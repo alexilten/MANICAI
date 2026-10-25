@@ -1,0 +1,59 @@
+{
+  "schema": "manicai.project",
+  "version": 1,
+  "name": "Club stadium with strong ends (Birmingham-inspired)",
+  "units": "metric",
+  "site": {
+    "northDeg": 90
+  },
+  "sport": "soccer",
+  "field": {
+    "length": 105000,
+    "width": 68000,
+    "runoffSide": 6000,
+    "runoffEnd": 6000
+  },
+  "bowl": {
+    "sideDistance": 8000,
+    "endDistance": 7000,
+    "cornerRadius": 8000,
+    "targetCapacity": 62000
+  },
+  "seating": {
+    "seatWidth": 500,
+    "aisleWidth": 1200,
+    "maxSeatsBetweenAisles": 28,
+    "eyeHeight": 1200
+  },
+  "sightlines": {
+    "mode": "cvalue",
+    "targetC": 90,
+    "minC": 60,
+    "riserStep": 10,
+    "maxRakeDeg": 34
+  },
+  "tiers": [
+    {
+      "id": "T1",
+      "name": "Lower tier",
+      "rows": 29,
+      "rowDepth": 800,
+      "riser": 380,
+      "elevation": 1300,
+      "overhang": 0,
+      "barrier": 800
+    },
+    {
+      "id": "T2",
+      "name": "Upper tier",
+      "rows": 33,
+      "rowDepth": 800,
+      "riser": 380,
+      "elevation": 4800,
+      "overhang": -6000,
+      "barrier": 800,
+      "targetC": 60
+    }
+  ],
+  "presetId": "birmingham"
+}

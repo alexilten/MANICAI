@@ -1,0 +1,59 @@
+{
+  "schema": "manicai.project",
+  "version": 1,
+  "name": "European two-tier bowl (Milan-inspired)",
+  "units": "metric",
+  "site": {
+    "northDeg": 90
+  },
+  "sport": "soccer",
+  "field": {
+    "length": 105000,
+    "width": 68000,
+    "runoffSide": 6000,
+    "runoffEnd": 7500
+  },
+  "bowl": {
+    "sideDistance": 8500,
+    "endDistance": 10500,
+    "cornerRadius": 16000,
+    "targetCapacity": 71500
+  },
+  "seating": {
+    "seatWidth": 500,
+    "aisleWidth": 1200,
+    "maxSeatsBetweenAisles": 28,
+    "eyeHeight": 1200
+  },
+  "sightlines": {
+    "mode": "cvalue",
+    "targetC": 90,
+    "minC": 60,
+    "riserStep": 10,
+    "maxRakeDeg": 37
+  },
+  "tiers": [
+    {
+      "id": "T1",
+      "name": "First ring",
+      "rows": 33,
+      "rowDepth": 800,
+      "riser": 380,
+      "elevation": 1500,
+      "overhang": 0,
+      "barrier": 800
+    },
+    {
+      "id": "T2",
+      "name": "Second ring",
+      "rows": 36,
+      "rowDepth": 800,
+      "riser": 380,
+      "elevation": 5000,
+      "overhang": -6000,
+      "barrier": 800,
+      "targetC": 60
+    }
+  ],
+  "presetId": "milano"
+}

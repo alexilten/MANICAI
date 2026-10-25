@@ -1,0 +1,59 @@
+{
+  "schema": "manicai.project",
+  "version": 1,
+  "name": "Intimate soccer bowl (Inter Miami-inspired)",
+  "units": "metric",
+  "site": {
+    "northDeg": 90
+  },
+  "sport": "soccer",
+  "field": {
+    "length": 105000,
+    "width": 68000,
+    "runoffSide": 5000,
+    "runoffEnd": 6500
+  },
+  "bowl": {
+    "sideDistance": 6000,
+    "endDistance": 7500,
+    "cornerRadius": 7000,
+    "targetCapacity": 25000
+  },
+  "seating": {
+    "seatWidth": 500,
+    "aisleWidth": 1200,
+    "maxSeatsBetweenAisles": 28,
+    "eyeHeight": 1200
+  },
+  "sightlines": {
+    "mode": "cvalue",
+    "targetC": 90,
+    "minC": 60,
+    "riserStep": 10,
+    "maxRakeDeg": 34
+  },
+  "tiers": [
+    {
+      "id": "T1",
+      "name": "Lower bowl",
+      "rows": 19,
+      "rowDepth": 800,
+      "riser": 380,
+      "elevation": 1200,
+      "overhang": 0,
+      "barrier": 800
+    },
+    {
+      "id": "T2",
+      "name": "Upper bowl",
+      "rows": 11,
+      "rowDepth": 800,
+      "riser": 380,
+      "elevation": 4200,
+      "overhang": -6000,
+      "barrier": 800,
+      "targetC": 60
+    }
+  ],
+  "presetId": "freedom-park"
+}
