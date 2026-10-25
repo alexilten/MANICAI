@@ -87,12 +87,20 @@ describe('B · field dimensions', () => {
 describe('C · seat count is the data', () => {
   it('reports exactly the seats that exist, by tier, sector and CSV row', () => {
     const s = fresh();
-    const n = s.seats.seats.count;
+    const t = s.seats.seats, n = t.count;
+    let active = 0;
+    for (let i = 0; i < n; i++) if (t.status[i] === 0) active++;
     expect(s.metrics.gross).toBe(n);
-    expect(countSeats(s.project, s.ring, s.profiles)).toBe(n);
-    expect(s.metrics.byTier.reduce((a, t) => a + t.seats, 0)).toBe(n);
-    expect(SECTORS.reduce((a, k) => a + s.metrics.bySector[k], 0)).toBe(n);
+    expect(s.metrics.net).toBe(active);
+    const c = countSeats(s.project, s.ring, s.profiles, s.layout.rows, { focus: s.field.boundary, fieldLW: [s.field.length, s.field.width] });
+    expect(c.gross).toBe(n);
+    expect(c.net).toBe(active);
+    expect(s.metrics.net + s.metrics.exclusions.reduce((a, x) => a + x.seats, 0)).toBe(n);
+    expect(s.metrics.byTier.reduce((a, t) => a + t.seats, 0)).toBe(active);
+    expect(s.metrics.byTier.reduce((a, t) => a + t.gross, 0)).toBe(n);
+    expect(SECTORS.reduce((a, k) => a + s.metrics.bySector[k], 0)).toBe(active);
     expect(s.seats.sections.reduce((a, x) => a + x.seats, 0)).toBe(n);
+    expect(s.seats.sections.reduce((a, x) => a + x.net, 0)).toBe(active);
     const csv = seatsCsv(s).trim().split('\n');
     expect(csv.length - 1).toBe(n);
   });
@@ -263,15 +271,16 @@ describe('J · assumptions stay visible', () => {
     }
   });
 
-  it('always states the Round 01 scope limits', () => {
-    expect(fresh().warnings.some((w) => w.code === 'scope.r01')).toBe(true);
+  it('always states the scope limits', () => {
+    expect(fresh().warnings.some((w) => w.code === 'scope.r02')).toBe(true);
   });
 
-  it('fits every preset to within 2% of its published capacity', () => {
+  it('fits every preset to within 2% of its published capacity (net) and meets the ADA wheelchair count', () => {
     for (const pr of PRESETS) {
       const p = pr.build();
-      const g = fresh(p).metrics.gross;
-      expect(Math.abs(g - p.bowl.targetCapacity) / p.bowl.targetCapacity, pr.id).toBeLessThan(0.02);
+      const m = fresh(p).metrics;
+      expect(Math.abs(m.net - p.bowl.targetCapacity) / p.bowl.targetCapacity, pr.id).toBeLessThan(0.02);
+      expect(m.accessible.wheelchair, pr.id).toBeGreaterThanOrEqual(m.accessible.required);
     }
   });
 });

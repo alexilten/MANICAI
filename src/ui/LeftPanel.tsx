@@ -1,8 +1,9 @@
 import { fitRowsToTarget, ROWS_MAX, ROWS_MIN } from '../core/engine/optimize';
-import { switchSport, tier, type Project, type TierParams } from '../core/schema';
+import { CORNER_NEIGHBOURS, SEGMENTS, type SegmentId } from '../core/engine/plan';
+import { switchSport, tier, type CornerId, type Project, type StandId, type StandParams, type TierParams } from '../core/schema';
 import { SPORTS, type SportId } from '../core/sports';
 import { formatLength } from '../core/units';
-import { LengthControl, NumberControl, Section, Segmented } from './controls';
+import { LengthControl, NumberControl, Section, Segmented, Toggle } from './controls';
 import { useStore } from './store';
 
 const fmtInt = (v: number) => Math.round(v).toLocaleString('en-US');
@@ -21,7 +22,7 @@ export function LeftPanel() {
   const fit = () => {
     const r = fitRowsToTarget(p);
     edit((x) => { x.tiers.forEach((t, i) => { t.rows = r.rows[i]; }); }, 'fit');
-    toast(r.reached ? `Rows fitted: ${fmtInt(r.capacity)} seats (target ${fmtInt(p.bowl.targetCapacity)})` : `Closest achievable with these tiers: ${fmtInt(r.capacity)} seats — add a tier or move rows back`);
+    toast(r.reached ? `Rows fitted: ${fmtInt(r.capacity)} net seats (target ${fmtInt(p.bowl.targetCapacity)})` : `Closest achievable with these tiers: ${fmtInt(r.capacity)} seats — add a tier or move rows back`);
   };
 
   const setTierCount = (n: number) => edit((x) => {
@@ -51,10 +52,10 @@ export function LeftPanel() {
           <LengthControl label="Run-off, ends" units={u} value={p.field.runoffEnd} min={2000} max={20000} step={250} onChange={(v) => set((x) => { x.field.runoffEnd = v; }, 'field.runoffEnd')} />
         </Section>
 
-        <Section title="Bowl" summary={`${fmtInt(st.metrics.gross)} seats`}>
+        <Section title="Bowl" summary={`${fmtInt(st.metrics.net)} seats`}>
           <NumberControl label="Target capacity" value={p.bowl.targetCapacity} min={5000} max={110000} step={500} format={fmtInt}
             onChange={(v) => set((x) => { x.bowl.targetCapacity = v; }, 'bowl.target')}
-            hint={<span>Modelled <b>{fmtInt(st.metrics.gross)}</b> · {st.metrics.gross >= p.bowl.targetCapacity ? '+' : '−'}{fmtInt(Math.abs(st.metrics.gross - p.bowl.targetCapacity))}</span>} />
+            hint={<span>Net <b>{fmtInt(st.metrics.net)}</b> · {st.metrics.net >= p.bowl.targetCapacity ? '+' : '−'}{fmtInt(Math.abs(st.metrics.net - p.bowl.targetCapacity))} · gross {fmtInt(st.metrics.gross)}</span>} />
           <button className="primary wide" onClick={fit}>Fit rows to target</button>
           <div className="sub-label">Plan</div>
           <LengthControl label="First row from sidelines" units={u} value={p.bowl.sideDistance} min={3000} max={40000} step={250}
@@ -67,6 +68,8 @@ export function LeftPanel() {
             hint={`Corner rows ${formatLength(st.ring.cornerDistance, u)} from the field corner`} onChange={(v) => set((x) => { x.bowl.cornerRadius = v; }, 'bowl.corner')} />
         </Section>
 
+        <StandControls />
+
         <Section title="Tiers" summary={`${p.tiers.length} tier${p.tiers.length > 1 ? 's' : ''} · ${st.metrics.rows} rows`}>
           <Segmented value={String(p.tiers.length)} onChange={(v) => setTierCount(+v)} options={[{ value: '1', label: 'Single' }, { value: '2', label: 'Two' }, { value: '3', label: 'Three' }]} />
           {p.tiers.map((t, i) => <TierControls key={t.id} t={t} i={i} />)}
@@ -77,6 +80,8 @@ export function LeftPanel() {
           <LengthControl label="Aisle width" units={u} value={p.seating.aisleWidth} min={900} max={2400} step={50} hint="FIFA: routes ≥ 1.2 m" onChange={(v) => set((x) => { x.seating.aisleWidth = v; }, 'seat.aisle')} />
           <NumberControl label="Max seats between aisles" value={p.seating.maxSeatsBetweenAisles} min={8} max={40} step={1} hint="Green Guide: 28 (14 with one gangway)" onChange={(v) => set((x) => { x.seating.maxSeatsBetweenAisles = v; }, 'seat.max')} />
           <LengthControl label="Eye height above tread" units={u} value={p.seating.eyeHeight} min={1000} max={1400} step={10} hint="Seated; assumption" onChange={(v) => set((x) => { x.seating.eyeHeight = v; }, 'seat.eye')} />
+          <LengthControl label="Wheelchair user eye height" units={u} value={p.seating.wheelchairEyeHeight} min={1000} max={1400} step={10} hint="Above the platform; assumption" onChange={(v) => set((x) => { x.seating.wheelchairEyeHeight = v; }, 'seat.weye')} />
+          <LengthControl label="Cross-aisle width" units={u} value={p.seating.crossAisleWidth} min={900} max={4000} step={50} hint="Lateral gangway added to the tread where a tier has a cross-aisle" onChange={(v) => set((x) => { x.seating.crossAisleWidth = v; }, 'seat.cross')} />
         </Section>
 
         <Section title="Sightlines" summary={p.sightlines.mode === 'cvalue' ? `C ${p.sightlines.targetC} mm target` : 'Fixed risers'} defaultOpen={false}>
@@ -86,13 +91,73 @@ export function LeftPanel() {
           <NumberControl label="Minimum C-value" value={p.sightlines.minC} min={20} max={120} step={5} suffix=" mm" hint="FIFA minimum: 60" onChange={(v) => set((x) => { x.sightlines.minC = v; }, 'sl.min')} />
           <NumberControl label="Maximum rake" value={p.sightlines.maxRakeDeg} min={20} max={40} step={0.5} suffix="°" hint="UK Green Guide: 34°. Set by local regulation." onChange={(v) => set((x) => { x.sightlines.maxRakeDeg = v; }, 'sl.rake')} />
           <NumberControl label="Riser increment" value={p.sightlines.riserStep} min={1} max={50} step={1} suffix=" mm" onChange={(v) => set((x) => { x.sightlines.riserStep = v; }, 'sl.step')} />
+          <Toggle label="Exclude seats below minimum C" checked={p.sightlines.excludeBelowMin} onChange={(v) => set((x) => { x.sightlines.excludeBelowMin = v; }, 'sl.exclude')} />
+          <p className="muted small">When on, seats under the minimum C-value are taken out of net capacity (they stay in gross).</p>
         </Section>
 
-        <Section title="Premium" badge="R03" defaultOpen={false}><p className="muted small">Club seats, suites and loge boxes inserted into the bowl section — Round 03. The tier model already reserves the vertical gap between tiers that these levels occupy.</p></Section>
+        <Section title="Premium" badge="R03" defaultOpen={false}><p className="muted small">A tier can already be a club tier (Tiers → Type). Suites, loge boxes and club lounges inserted into the bowl section arrive in Round 03, in the vertical gap the tier model reserves between tiers.</p></Section>
         <Section title="Architecture" badge="R03–04" defaultOpen={false}><p className="muted small">Concourses, vertical circulation, structure and facade generate from the bowl in Rounds 03–04.</p></Section>
         <Section title="Roof" badge="R04" defaultOpen={false}><p className="muted small">Open, canopy, fixed ETFE and retractable typologies coordinated with tier heights and sightlines — Round 04.</p></Section>
       </div>
     </aside>
+  );
+}
+
+const REGION_LABEL: Record<SegmentId, string> = { N: 'North side', S: 'South side', E: 'East end', W: 'West end', NE: 'NE corner', NW: 'NW corner', SW: 'SW corner', SE: 'SE corner' };
+const REGION_ORDER: SegmentId[] = ['N', 'S', 'E', 'W', 'NE', 'NW', 'SW', 'SE'];
+
+/** Independent stands and corners: distance, open, rows per tier. */
+function StandControls() {
+  const p = useStore((s) => s.project);
+  const st = useStore((s) => s.stadium);
+  const edit = useStore((s) => s.edit);
+  const region = useStore((s) => s.region);
+  const setRegion = useStore((s) => s.setRegion);
+  const u = p.units;
+  const seg = region;
+  const sp: StandParams = p.bowl.stands[seg as StandId | CornerId] ?? {};
+  const isCorner = seg.length === 2;
+  const isSide = seg === 'N' || seg === 'S';
+  const rows = st.layout.rows[seg];
+  const custom = SEGMENTS.filter((k) => { const v = p.bowl.stands[k as StandId | CornerId]; return v && (v.open || v.distance != null || (v.rows && Object.keys(v.rows).length)); });
+  const upd = (fn: (x: StandParams) => void, k: string) => edit((x) => {
+    const id = seg as StandId | CornerId;
+    const cur: StandParams = { ...(x.bowl.stands[id] ?? {}), rows: { ...(x.bowl.stands[id]?.rows ?? {}) } };
+    fn(cur);
+    if (cur.rows && !Object.keys(cur.rows).length) delete cur.rows;
+    if (!cur.open) delete cur.open;
+    x.bowl.stands = { ...x.bowl.stands, [id]: cur };
+    if (!Object.keys(cur).length) delete x.bowl.stands[id];
+  }, `stand.${seg}.${k}`);
+  const dist = isCorner ? st.ring.cornerDist[seg as CornerId] : st.ring.dist[seg as StandId];
+  const followHint = isCorner ? `Follows the smaller of ${CORNER_NEIGHBOURS[seg as CornerId].join(' and ')} unless set` : 'Follows the tier unless set';
+  return (
+    <Section title="Stands" summary={custom.length ? `${custom.length} customised` : 'Symmetric'}>
+      <div className="regions"><Segmented size="sm" wrap value={seg} onChange={setRegion} options={REGION_ORDER.map((k) => ({ value: k, title: REGION_LABEL[k] + (custom.includes(k) ? ' (customised)' : ''), label: custom.includes(k) ? <>{k}<i className="dot" /></> : k }))} /></div>
+      <div className="tier-card">
+        <div className="tier-head"><span className="sub-title">{REGION_LABEL[seg]}</span>{custom.includes(seg) && <button className="link-btn" onClick={() => edit((x) => { const s2 = { ...x.bowl.stands }; delete s2[seg as StandId | CornerId]; x.bowl.stands = s2; }, `stand.${seg}.reset`)}>Reset</button>}</div>
+        <div className="cab-meta">
+          <span>{fmtInt(st.metrics.bySegment?.[seg] ?? 0)} seats</span>
+          <span>{rows.map((r, i) => `${p.tiers[i]?.id} ${r}`).join(' · ')} rows</span>
+          <span>first row {formatLength(dist, u)}</span>
+        </div>
+        <Toggle label={isCorner ? 'Open corner (no seats)' : 'Open stand (no seats)'} checked={!!sp.open} onChange={(v) => upd((x) => { x.open = v; }, 'open')} />
+        {!isCorner && !sp.open && (
+          <LengthControl label={isSide ? 'First row from touchline' : 'First row from goal line'} units={u} value={sp.distance ?? (isSide ? p.bowl.sideDistance : p.bowl.endDistance)} min={3000} max={40000} step={250}
+            hint={sp.distance == null ? `Bowl-wide value (${isSide ? 'sidelines' : 'ends'})` : undefined}
+            onChange={(v) => upd((x) => { x.distance = v; }, 'dist')} />
+        )}
+        {!sp.open && p.tiers.map((t, i) => {
+          const own = sp.rows?.[t.id];
+          return (
+            <NumberControl key={t.id} label={`${t.name} rows${own == null ? '' : ' (set)'}`} value={own ?? rows[i]} min={0} max={ROWS_MAX} step={1}
+              hint={own == null ? followHint : (rows[i] !== own ? `Held at ${rows[i]}: a tier above sits over this one here` : undefined)}
+              onChange={(v) => upd((x) => { x.rows![t.id] = v; }, `rows.${t.id}`)} />
+          );
+        })}
+      </div>
+      <p className="muted small">Each tier keeps one rake all the way round; a stand carries the first rows of that sequence, so stands and corners meet without steps. 0 rows drops a tier from a stand.</p>
+    </Section>
   );
 }
 
@@ -130,6 +195,37 @@ function TierControls({ t, i }: { t: TierParams; i: number }) {
       {p.sightlines.mode === 'riser'
         ? <LengthControl label="Riser" units={u} value={t.riser} min={100} max={700} step={5} hint={`Rake ${(Math.atan2(t.riser, t.rowDepth) * 180 / Math.PI).toFixed(1)}°`} onChange={(v) => set((x) => { x.riser = v; }, 'riser')} />
         : <NumberControl label="C-value target" value={target} min={30} max={150} step={5} suffix=" mm" onChange={(v) => set((x) => { x.targetC = v; }, 'c')} />}
+      <div className="sub-label">Type</div>
+      <Segmented size="sm" value={t.kind} onChange={(v) => set((x) => { x.kind = v; }, 'kind')} options={[{ value: 'general', label: 'General' }, { value: 'club', label: 'Club', title: 'Premium seating: wider seats, deeper rows (set below); counted separately' }]} />
+      <LengthControl label="Seat width" units={u} value={t.seatWidth ?? p.seating.seatWidth} min={430} max={700} step={5}
+        hint={t.seatWidth == null ? 'Bowl-wide seat width' : <button className="link-btn" onClick={() => set((x) => { delete x.seatWidth; }, 'seatw')}>Use bowl-wide width</button>}
+        onChange={(v) => set((x) => { x.seatWidth = v; }, 'seatw')} />
+      <CrossAisles t={t} max={t.rows} onChange={(v) => set((x) => { x.crossAisles = v; }, 'cross')} />
+      <div className="sub-label">Vomitories</div>
+      <Toggle label="Vomitories" checked={t.vomitories.enabled} onChange={(v) => set((x) => { x.vomitories = { ...x.vomitories, enabled: v }; }, 'vom.on')} />
+      {t.vomitories.enabled && <>
+        <NumberControl label="One every n sections" value={t.vomitories.every} min={1} max={8} step={1} onChange={(v) => set((x) => { x.vomitories = { ...x.vomitories, every: v }; }, 'vom.every')} />
+        <NumberControl label="Mouth at row" value={t.vomitories.mouthRow} min={1} max={Math.max(1, t.rows - 1)} step={1} hint={`${m?.vomitories ?? 0} vomitories · rows removed until ${formatLength(2700, u)} headroom`} onChange={(v) => set((x) => { x.vomitories = { ...x.vomitories, mouthRow: v }; }, 'vom.row')} />
+        <LengthControl label="Opening width" units={u} value={t.vomitories.width} min={1800} max={6000} step={100} onChange={(v) => set((x) => { x.vomitories = { ...x.vomitories, width: v }; }, 'vom.w')} />
+      </>}
+      <div className="sub-label">Accessible positions</div>
+      <NumberControl label="Wheelchair spaces per section" value={t.accessible.perSection} min={0} max={8} step={1} hint="Each with a companion seat beside it" onChange={(v) => set((x) => { x.accessible = { ...x.accessible, perSection: v }; }, 'acc.n')} />
+      {t.accessible.perSection > 0 && <NumberControl label="Platform row (0 = last)" value={t.accessible.row} min={0} max={t.rows} step={1} format={(v) => (v === 0 ? 'Last' : String(v))} onChange={(v) => set((x) => { x.accessible = { ...x.accessible, row: v }; }, 'acc.row')} />}
+    </div>
+  );
+}
+
+function CrossAisles({ t, max, onChange }: { t: TierParams; max: number; onChange: (v: number[]) => void }) {
+  const text = t.crossAisles.join(', ');
+  return (
+    <div className="ctl">
+      <div className="ctl-row">
+        <span className="ctl-label">Cross-aisles after row</span>
+        <input key={text} className="ctl-input" defaultValue={text} placeholder="none"
+          onBlur={(e) => onChange([...new Set(e.target.value.split(/[ ,;]+/).map((x) => parseInt(x, 10)).filter((x) => x >= 1 && x < max))].sort((a, b) => a - b))}
+          onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} />
+      </div>
+      <div className="ctl-hint">Row numbers, comma separated. The tread behind each is widened by the cross-aisle width.</div>
     </div>
   );
 }

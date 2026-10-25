@@ -1,0 +1,95 @@
+{
+  "schema": "manicai.project",
+  "version": 2,
+  "name": "Four stands with a steep home end (Everton-inspired)",
+  "units": "metric",
+  "site": {
+    "northDeg": 90
+  },
+  "sport": "soccer",
+  "field": {
+    "length": 105000,
+    "width": 68000,
+    "runoffSide": 5500,
+    "runoffEnd": 6000
+  },
+  "bowl": {
+    "sideDistance": 7500,
+    "endDistance": 8500,
+    "cornerRadius": 0,
+    "targetCapacity": 52888,
+    "stands": {
+      "W": {
+        "distance": 7000,
+        "rows": {
+          "T1": 49,
+          "T2": 0
+        }
+      }
+    }
+  },
+  "seating": {
+    "seatWidth": 500,
+    "aisleWidth": 1200,
+    "maxSeatsBetweenAisles": 28,
+    "eyeHeight": 1200,
+    "crossAisleWidth": 1500,
+    "wheelchairEyeHeight": 1150
+  },
+  "sightlines": {
+    "mode": "cvalue",
+    "targetC": 90,
+    "minC": 60,
+    "riserStep": 10,
+    "maxRakeDeg": 34,
+    "excludeBelowMin": false
+  },
+  "tiers": [
+    {
+      "id": "T1",
+      "name": "Lower tier",
+      "rows": 33,
+      "rowDepth": 800,
+      "riser": 380,
+      "elevation": 1200,
+      "overhang": 0,
+      "barrier": 800,
+      "kind": "general",
+      "crossAisles": [],
+      "vomitories": {
+        "enabled": true,
+        "every": 2,
+        "mouthRow": 12,
+        "width": 2800
+      },
+      "accessible": {
+        "perSection": 5,
+        "row": 0
+      }
+    },
+    {
+      "id": "T2",
+      "name": "Upper tier",
+      "rows": 29,
+      "rowDepth": 800,
+      "riser": 380,
+      "elevation": 4600,
+      "overhang": -5000,
+      "barrier": 800,
+      "kind": "general",
+      "crossAisles": [],
+      "vomitories": {
+        "enabled": true,
+        "every": 2,
+        "mouthRow": 10,
+        "width": 2800
+      },
+      "accessible": {
+        "perSection": 4,
+        "row": 1
+      },
+      "targetC": 60
+    }
+  ],
+  "presetId": "steep-end"
+}

@@ -1,0 +1,91 @@
+{
+  "schema": "manicai.project",
+  "version": 2,
+  "name": "Horseshoe ground",
+  "units": "metric",
+  "site": {
+    "northDeg": 90
+  },
+  "sport": "soccer",
+  "field": {
+    "length": 105000,
+    "width": 68000,
+    "runoffSide": 6000,
+    "runoffEnd": 7500
+  },
+  "bowl": {
+    "sideDistance": 8000,
+    "endDistance": 10000,
+    "cornerRadius": 9000,
+    "targetCapacity": 32000,
+    "stands": {
+      "E": {
+        "open": true
+      }
+    }
+  },
+  "seating": {
+    "seatWidth": 500,
+    "aisleWidth": 1200,
+    "maxSeatsBetweenAisles": 28,
+    "eyeHeight": 1200,
+    "crossAisleWidth": 1500,
+    "wheelchairEyeHeight": 1150
+  },
+  "sightlines": {
+    "mode": "cvalue",
+    "targetC": 90,
+    "minC": 60,
+    "riserStep": 10,
+    "maxRakeDeg": 34,
+    "excludeBelowMin": false
+  },
+  "tiers": [
+    {
+      "id": "T1",
+      "name": "Lower tier",
+      "rows": 28,
+      "rowDepth": 800,
+      "riser": 380,
+      "elevation": 1300,
+      "overhang": 0,
+      "barrier": 800,
+      "kind": "general",
+      "crossAisles": [],
+      "vomitories": {
+        "enabled": true,
+        "every": 2,
+        "mouthRow": 10,
+        "width": 2800
+      },
+      "accessible": {
+        "perSection": 4,
+        "row": 0
+      }
+    },
+    {
+      "id": "T2",
+      "name": "Upper tier",
+      "rows": 21,
+      "rowDepth": 800,
+      "riser": 380,
+      "elevation": 4500,
+      "overhang": -4500,
+      "barrier": 800,
+      "kind": "general",
+      "crossAisles": [],
+      "vomitories": {
+        "enabled": true,
+        "every": 2,
+        "mouthRow": 7,
+        "width": 2800
+      },
+      "accessible": {
+        "perSection": 3,
+        "row": 1
+      },
+      "targetC": 60
+    }
+  ],
+  "presetId": "horseshoe"
+}

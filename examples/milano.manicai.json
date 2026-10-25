@@ -1,6 +1,6 @@
 {
   "schema": "manicai.project",
-  "version": 1,
+  "version": 2,
   "name": "European two-tier bowl (Milan-inspired)",
   "units": "metric",
   "site": {
@@ -17,41 +17,69 @@
     "sideDistance": 8500,
     "endDistance": 10500,
     "cornerRadius": 16000,
-    "targetCapacity": 71500
+    "targetCapacity": 71500,
+    "stands": {}
   },
   "seating": {
     "seatWidth": 500,
     "aisleWidth": 1200,
     "maxSeatsBetweenAisles": 28,
-    "eyeHeight": 1200
+    "eyeHeight": 1200,
+    "crossAisleWidth": 1500,
+    "wheelchairEyeHeight": 1150
   },
   "sightlines": {
     "mode": "cvalue",
     "targetC": 90,
     "minC": 60,
     "riserStep": 10,
-    "maxRakeDeg": 37
+    "maxRakeDeg": 37,
+    "excludeBelowMin": false
   },
   "tiers": [
     {
       "id": "T1",
       "name": "First ring",
-      "rows": 33,
+      "rows": 32,
       "rowDepth": 800,
       "riser": 380,
       "elevation": 1500,
       "overhang": 0,
-      "barrier": 800
+      "barrier": 800,
+      "kind": "general",
+      "crossAisles": [],
+      "vomitories": {
+        "enabled": true,
+        "every": 2,
+        "mouthRow": 12,
+        "width": 2800
+      },
+      "accessible": {
+        "perSection": 5,
+        "row": 0
+      }
     },
     {
       "id": "T2",
       "name": "Second ring",
-      "rows": 36,
+      "rows": 39,
       "rowDepth": 800,
       "riser": 380,
       "elevation": 5000,
       "overhang": -6000,
       "barrier": 800,
+      "kind": "general",
+      "crossAisles": [],
+      "vomitories": {
+        "enabled": true,
+        "every": 2,
+        "mouthRow": 13,
+        "width": 2800
+      },
+      "accessible": {
+        "perSection": 4,
+        "row": 1
+      },
       "targetC": 60
     }
   ],

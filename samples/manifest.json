@@ -2,19 +2,27 @@
   {
     "file": "four-stand-30k_rhino8.3dm",
     "preset": "four-stand",
-    "seats": 30472,
+    "seats": 30444,
+    "grossSeats": 31560,
+    "vomitories": 18,
+    "wheelchair": 196,
     "exportedSeats": true,
-    "bytes": 22765093,
-    "exportMs": 2139,
+    "bytes": 23842558,
+    "exportMs": 2364,
     "readBack": {
       "units": "Millimeters",
-      "layers": 49,
-      "objects": 30602,
+      "layers": 53,
+      "objects": 31950,
       "blocks": [
         {
           "name": "MANICAI_SEAT_500MM",
           "parts": 3,
-          "instances": 30472
+          "instances": 30248
+        },
+        {
+          "name": "MANICAI_WHEELCHAIR_1400x900MM",
+          "parts": 1,
+          "instances": 196
         }
       ],
       "groups": [
@@ -26,14 +34,17 @@
   {
     "file": "generic-soccer_bowl-only_rhino8.3dm",
     "preset": "generic-soccer",
-    "seats": 41868,
+    "seats": 41998,
+    "grossSeats": 44180,
+    "vomitories": 42,
+    "wheelchair": 290,
     "exportedSeats": false,
-    "bytes": 309014,
-    "exportMs": 11,
+    "bytes": 1160996,
+    "exportMs": 39,
     "readBack": {
       "units": "Millimeters",
-      "layers": 49,
-      "objects": 147,
+      "layers": 53,
+      "objects": 521,
       "blocks": [],
       "groups": [
         "TERRACE_T1",

@@ -10,9 +10,14 @@ export const SECTOR_TONES = ['#4f6d9a', '#4f6d9a', '#9a6a4f', '#9a6a4f', '#6f8a5
 const RED = new THREE.Color('#e5484d'), AMBER = new THREE.Color('#f0a020'), GREEN = new THREE.Color('#2f9e6a'), TEAL = new THREE.Color('#1c7c8c');
 const NEAR = new THREE.Color('#1f6fd6'), MID = new THREE.Color('#e7e3dc'), FAR = new THREE.Color('#e0742c');
 
+/** by seat class: general, premium, wheelchair, companion; excluded positions in red */
+export const CLASS_TONES = ['#7d8592', '#b8893a', '#1e63c6', '#6fa3e8'];
+export const EXCLUDED_TONE = '#e5484d';
+
 export function seatColor(t: SeatTable, i: number, p: Project, mode: Mode, metric: AnalysisMetric, out: THREE.Color): THREE.Color {
-  if (mode !== 'analysis') return out.set(TIER_TONES[t.tier[i] % TIER_TONES.length]);
+  if (mode !== 'analysis') return out.set(t.cls[i] === 1 ? '#8a6a3a' : t.cls[i] === 3 ? '#3d6fb0' : TIER_TONES[t.tier[i] % TIER_TONES.length]);
   switch (metric) {
+    case 'class': return out.set(t.status[i] !== 0 ? EXCLUDED_TONE : CLASS_TONES[t.cls[i]] ?? CLASS_TONES[0]);
     case 'cvalue': {
       const c = t.cValue[i], { minC } = p.sightlines;
       const target = p.tiers[t.tier[i]]?.targetC ?? p.sightlines.targetC;
@@ -42,6 +47,10 @@ export function legendFor(metric: AnalysisMetric, p: Project): { color: string; 
       { color: '#1f6fd6', label: '≤ 40 m' }, { color: '#e7e3dc', label: '85 m' }, { color: '#e0742c', label: '≥ 130 m' },
     ];
     case 'sector': return [{ color: '#4f6d9a', label: 'Sidelines' }, { color: '#9a6a4f', label: 'Ends' }, { color: '#6f8a5c', label: 'Corners' }];
+    case 'class': return [
+      { color: CLASS_TONES[0], label: 'General' }, { color: CLASS_TONES[1], label: 'Club' }, { color: CLASS_TONES[2], label: 'Wheelchair' },
+      { color: CLASS_TONES[3], label: 'Companion' }, { color: EXCLUDED_TONE, label: 'Excluded' },
+    ];
     default: return p.tiers.map((t, i) => ({ color: TIER_TONES[i % TIER_TONES.length], label: t.name }));
   }
 }

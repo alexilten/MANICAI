@@ -8,13 +8,18 @@
  *   • terraces as exact NURBS: each straight run is the tier section extruded along it, each corner the
  *     section revolved about the corner centre. The pieces of one tier share edges exactly and are grouped;
  *     run manicai_join_tiers.py (or _Join on the group) for one closed polysurface per tier
- *   • every seat as a named block instance (one block definition per seat width) carrying its id and C-value
+ *   • every seat in use as a named block instance (one block definition per seat width) carrying its id and C-value;
+ *     club seats on 05_PREMIUM, wheelchair positions and companion seats on 04_ACCESSIBILITY, and the positions
+ *     removed for vomitories / platforms as named points on 91_ANALYSIS::EXCLUDED_SEATS
+ *   • vomitory openings as closed solids on 07_VERTICAL_CIRCULATION::VOMITORIES (the join script subtracts them)
  *   • field markings as true lines and arcs; goals as solids
  *   • the full project JSON in the document strings, so MANICAI can reopen the file parametrically
  */
 import { annotations } from '../core/engine/annotations';
 import { isCorner, pointAt, SECTORS, SECTOR_LABEL, SEGMENTS, type SegmentId } from '../core/engine/plan';
-import { seatId } from '../core/engine/seats';
+import { tierOutline } from '../core/engine/profile';
+import { SEAT_STATUS, seatId } from '../core/engine/seats';
+import { vomCorners } from '../core/engine/vomGeometry';
 import type { Stadium } from '../core/engine/stadium';
 import { serializeProject } from '../core/schema';
 
@@ -22,7 +27,7 @@ import { serializeProject } from '../core/schema';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export type RhinoModule = any;
 
-export const APP_VERSION = '0.1.0';
+export const APP_VERSION = '0.2.0';
 
 /** The MANICAI layer standard. Systems that are not generated yet keep their place in the hierarchy. */
 export const LAYER_TREE: { name: string; color: [number, number, number]; children: string[] }[] = [
@@ -30,10 +35,10 @@ export const LAYER_TREE: { name: string; color: [number, number, number]; childr
   { name: '01_FIELD', color: [90, 140, 80], children: ['SURFACE', 'MARKINGS', 'GOALS', 'ZONES'] },
   { name: '02_BOWL_GEOMETRY', color: [120, 120, 128], children: ['FRONT_ROW_LINE', 'ROW_LINES'] },
   { name: '03_SEATING', color: [70, 76, 90], children: [] },
-  { name: '04_ACCESSIBILITY', color: [30, 96, 190], children: [] },
+  { name: '04_ACCESSIBILITY', color: [30, 96, 190], children: ['WHEELCHAIR_POSITIONS', 'COMPANION_SEATS'] },
   { name: '05_PREMIUM', color: [170, 130, 60], children: [] },
   { name: '06_CONCOURSES', color: [160, 150, 140], children: [] },
-  { name: '07_VERTICAL_CIRCULATION', color: [150, 110, 160], children: [] },
+  { name: '07_VERTICAL_CIRCULATION', color: [150, 110, 160], children: ['VOMITORIES'] },
   { name: '08_STRUCTURE', color: [110, 112, 118], children: [] },
   { name: '09_ROOF', color: [200, 200, 205], children: [] },
   { name: '10_FACADE', color: [180, 175, 165], children: [] },
@@ -45,7 +50,7 @@ export const LAYER_TREE: { name: string; color: [number, number, number]; childr
   { name: '16_BACK_OF_HOUSE', color: [140, 140, 120], children: [] },
   { name: '17_SITE', color: [120, 150, 110], children: [] },
   { name: '90_DIMENSIONS', color: [10, 132, 255], children: [] },
-  { name: '91_ANALYSIS', color: [230, 40, 40], children: ['SIGHTLINES'] },
+  { name: '91_ANALYSIS', color: [230, 40, 40], children: ['SIGHTLINES', 'EXCLUDED_SEATS'] },
 ];
 
 const free = (...xs: unknown[]) => { for (const x of xs) (x as { delete?: () => void } | null)?.delete?.(); };
@@ -89,8 +94,11 @@ export function exportRhino(rh: RhinoModule, s: Stadium, opts: RhinoExportOption
   const tierLayer = (t: { id: string; name: string }) => `${t.id}_${slug(t.name)}`;
   for (const t of s.profiles) {
     addLayer(`02_BOWL_GEOMETRY::${tierLayer(t)}`, [120, 120, 128]);
-    addLayer(`03_SEATING::${tierLayer(t)}`, [70, 76, 90]);
-    for (const sec of SECTORS) addLayer(`03_SEATING::${tierLayer(t)}::${slug(SECTOR_LABEL[sec])}`, [70, 76, 90]);
+    const club = p.tiers[t.index]?.kind === 'club';
+    const root = club ? '05_PREMIUM' : '03_SEATING';
+    const col: [number, number, number] = club ? [170, 130, 60] : [70, 76, 90];
+    addLayer(`${root}::${tierLayer(t)}`, col);
+    for (const sec of SECTORS) addLayer(`${root}::${tierLayer(t)}::${slug(SECTOR_LABEL[sec])}`, col);
   }
   const L = (path: string) => { const i = layerIndex.get(path); if (i === undefined) throw new Error(`Layer ${path} missing`); return i; };
 
@@ -151,59 +159,84 @@ export function exportRhino(rh: RhinoModule, s: Stadium, opts: RhinoExportOption
 
   // ── bowl geometry: front-row line, row nosing lines, terrace surfaces
   const ring = s.ring;
-  const closedOffset = (d: number, z: number) => {
-    const pl = new rh.Polyline(0);
-    for (const seg of SEGMENTS) {
-      const n = isCorner(seg) ? 24 : 1;
-      for (let k = 0; k <= n; k++) { const q = pointAt(ring, seg, k / n, d); pl.add(q.x, q.y, z); }
-    }
-    const first = pointAt(ring, 'E', 0, d); pl.add(first.x, first.y, z);
-    return pl;
-  };
   // exact front-row line: straight lines + arcs
   for (const seg of SEGMENTS) {
     const g = segmentCurve(rh, ring, seg, 0, 0);
     if (g) add(g, attrs('02_BOWL_GEOMETRY::FRONT_ROW_LINE', `FRONT_ROW.${seg}`));
   }
+  const regions = s.layout.rows;
   for (const t of s.profiles) {
     const tl = `02_BOWL_GEOMETRY::${tierLayer(t)}`;
-    // terrace pieces
+    // terrace pieces: each region with its own number of rows
     const gIdx = doc.groups().count;
     const grp = new rh.Group(); grp.name = `TERRACE_${t.id}`; doc.groups().add(grp); free(grp);
     for (const seg of SEGMENTS) {
-      const piece = terracePiece(rh, ring, seg, t.outline);
+      const n = regions[seg][t.index];
+      if (n <= 0) continue;
+      const piece = terracePiece(rh, ring, seg, tierOutline(t, n));
       if (!piece) continue;
-      const a = attrs(tl, `TERRACE.${t.id}.${seg}`, { tier: t.id, segment: seg, rows: t.rows.length, rowDepth_mm: t.rowDepth });
+      const a = attrs(tl, `TERRACE.${t.id}.${seg}`, { tier: t.id, segment: seg, rows: n, rowDepth_mm: t.rowDepth });
       a.addToGroup(gIdx);
       add(piece, a);
     }
-    // row nosing lines (closed polylines at tread level), for setting out
+    // row nosing lines at tread level, exact (lines and arcs) per region, for setting out
     t.rows.forEach((r, i) => {
-      const pl = closedOffset(r.d, r.z);
-      add(pl.toPolylineCurve(), attrs('02_BOWL_GEOMETRY::ROW_LINES', `ROW.${t.id}.${String(i + 1).padStart(2, '0')}`, { tier: t.id, row: i + 1, nosing_offset_mm: Math.round(r.d), tread_level_mm: Math.round(r.z), riser_mm: Math.round(r.riser) }));
-      free(pl);
+      for (const seg of SEGMENTS) {
+        if (regions[seg][t.index] <= i) continue;
+        const g = segmentCurve(rh, ring, seg, r.d, r.z);
+        if (g) add(g, attrs('02_BOWL_GEOMETRY::ROW_LINES', `ROW.${t.id}.${String(i + 1).padStart(2, '0')}.${seg}`, { tier: t.id, row: i + 1, segment: seg, nosing_offset_mm: Math.round(r.d), tread_level_mm: Math.round(r.z), riser_mm: Math.round(r.riser) }));
+      }
     });
   }
+  // vomitory openings: closed solids, grouped per tier for the join script's boolean difference
+  for (const v of s.seats.vomitories) {
+    const c = vomCorners(ring, v);
+    const m = new rh.Mesh();
+    for (const q of c) m.vertices().add(q[0], q[1], q[2]);
+    for (const [a, b, cc, d] of [[0, 3, 2, 1], [4, 5, 6, 7], [0, 1, 5, 4], [1, 2, 6, 5], [2, 3, 7, 6], [3, 0, 4, 7]]) m.faces().addQuadFace(a, b, cc, d);
+    m.normals().computeNormals();
+    const brep = rh.Brep.createFromMesh(m, true);
+    free(m);
+    const tid = s.profiles[v.tier].id;
+    add(brep, attrs('07_VERTICAL_CIRCULATION::VOMITORIES', v.id, { tier: tid, section: v.section, width_mm: v.width, rows_removed: v.rowsRemoved, floor_mm: Math.round(v.zFloor) }));
+  }
 
-  // ── seats: one block per seat width, one named instance per seat
+  // ── seats: one block per seat width, one named instance per position in use
   if (opts.seats !== false && s.seats.seats.count) {
-    const w = p.seating.seatWidth;
-    const def = seatBlock(rh, w);
-    const seatLayer0 = L('03_SEATING');
-    const battrs = def.parts.map((_, i) => { const a = new rh.ObjectAttributes(); a.layerIndex = seatLayer0; a.name = `SEAT_${w}.${i + 1}`; return a; });
-    const name = `MANICAI_SEAT_${w}MM`;
-    const idx = doc.instanceDefinitions().add(name, `Generic stadium seat, ${w} mm centres (generic parametric family — not a manufacturer product)`, '', '', [0, 0, 0], def.parts, battrs);
-    free(...def.parts, ...battrs);
-    const blockId = doc.instanceDefinitions().get(idx).id;
     const t = s.seats.seats, tierIds = s.profiles.map((x) => x.id);
-    const sectorLayers = s.profiles.map((pr) => SECTORS.map((sec) => L(`03_SEATING::${tierLayer(pr)}::${slug(SECTOR_LABEL[sec])}`)));
+    const blocks = new Map<string, string>();
+    const block = (name: string, desc: string, parts: any[], layer: string) => {
+      if (blocks.has(name)) { free(...parts); return blocks.get(name)!; }
+      const battrs = parts.map((_, i) => { const a = new rh.ObjectAttributes(); a.layerIndex = L(layer); a.name = `${name}.${i + 1}`; return a; });
+      const idx = doc.instanceDefinitions().add(name, desc, '', '', [0, 0, 0], parts, battrs);
+      free(...parts, ...battrs);
+      const id = doc.instanceDefinitions().get(idx).id;
+      blocks.set(name, id);
+      return id;
+    };
+    const seatBlockFor = (w: number) => block(`MANICAI_SEAT_${w}MM`, `Generic stadium seat, ${w} mm centres (generic parametric family — not a manufacturer product)`, seatBlock(rh, w).parts, '03_SEATING');
+    const wcBlock = () => block('MANICAI_WHEELCHAIR_1400x900MM', 'Wheelchair position, 1400 mm deep × 900 mm wide clear floor (generic)', [rh.Extrusion.createBoxExtrusion(new rh.Box(new rh.BoundingBox([-800, -450, 0], [600, 450, 40])), true)], '04_ACCESSIBILITY::WHEELCHAIR_POSITIONS');
+    const seatLayers = s.profiles.map((pr) => {
+      const root = p.tiers[pr.index]?.kind === 'club' ? '05_PREMIUM' : '03_SEATING';
+      return SECTORS.map((sec) => L(`${root}::${tierLayer(pr)}::${slug(SECTOR_LABEL[sec])}`));
+    });
+    const widths = p.tiers.map((x) => x.seatWidth ?? p.seating.seatWidth);
     for (let i = 0; i < t.count; i++) {
+      const name = seatId(t, i, tierIds);
+      if (t.status[i] !== 0) {
+        const a = attrs('91_ANALYSIS::EXCLUDED_SEATS', name, { reason: SEAT_STATUS[t.status[i]] });
+        add(new rh.Point([t.x[i], t.y[i], t.z[i]]), a);
+        continue;
+      }
+      const wheel = t.cls[i] === 2, comp = t.cls[i] === 3;
+      const blockId = wheel ? wcBlock() : seatBlockFor(widths[t.tier[i]]);
       const xf = rh.Transform.multiply(rh.Transform.translationXYZ(t.x[i], t.y[i], t.z[i]), rh.Transform.rotation(t.rot[i], [0, 0, 1], [0, 0, 0]));
       const ref = new rh.InstanceReference(blockId, xf);
       const a = new rh.ObjectAttributes();
-      a.layerIndex = sectorLayers[t.tier[i]][t.sector[i]];
-      a.name = seatId(t, i, tierIds);
+      a.layerIndex = wheel ? L('04_ACCESSIBILITY::WHEELCHAIR_POSITIONS') : comp ? L('04_ACCESSIBILITY::COMPANION_SEATS') : seatLayers[t.tier[i]][t.sector[i]];
+      a.name = name;
       a.setUserString('manicai.cvalue_mm', String(Math.round(t.cValue[i])));
+      if (wheel || comp) a.setUserString('manicai.class', wheel ? 'wheelchair' : 'companion');
       doc.objects().add(ref, a);
       free(ref, a, xf);
     }
@@ -220,9 +253,10 @@ export function exportRhino(rh: RhinoModule, s: Stadium, opts: RhinoExportOption
   // ── analysis: sightlines on the north sideline centreline (x = 0) for every 4th row
   const focusY = f.width / 2;
   for (const t of s.profiles) {
+    const n = s.layout.rows.N[t.index];
     t.rows.forEach((r, i) => {
-      if (i % 4 && i !== t.rows.length - 1) return;
-      const eye = [0, ring.hy + r.eyeD, r.eyeZ];
+      if (i >= n || (i % 4 && i !== n - 1)) return;
+      const eye = [0, ring.cy + ring.hy + r.eyeD, r.eyeZ];
       add(new rh.LineCurve(eye, [0, focusY, 0]), attrs('91_ANALYSIS::SIGHTLINES', `SIGHTLINE.${t.id}.R${String(i + 1).padStart(2, '0')}`, { cvalue_side_mm: Math.round(r.cSide) }));
     });
   }
@@ -231,9 +265,10 @@ export function exportRhino(rh: RhinoModule, s: Stadium, opts: RhinoExportOption
   doc.strings().set('manicai.schema', 'manicai.project');
   doc.strings().set('manicai.appVersion', APP_VERSION);
   doc.strings().set('manicai.project', serializeProject(p));
-  doc.strings().set('manicai.capacity', String(s.metrics.gross));
+  doc.strings().set('manicai.capacity', String(s.metrics.net));
+  doc.strings().set('manicai.capacity.gross', String(s.metrics.gross));
   doc.strings().set('manicai.coordinateSystem', 'mm; Z up; origin = centre of the playing field at field level; +X field length (east end), +Y field width (north sideline); site north given by manicai.project site.northDeg');
-  doc.strings().set('manicai.note', 'Editable Rhino model generated by MANICAI — a conceptual design, not a construction document. Seats are block instances named tier-section-row-seat. Terrace pieces of one tier are grouped; run manicai_join_tiers.py (Export menu) or _Join the group for one closed polysurface. Reopen this file in MANICAI to edit parametrically.');
+  doc.strings().set('manicai.note', 'Editable Rhino model generated by MANICAI — a conceptual design, not a construction document. Seats are block instances named tier-section-row-seat. Terrace pieces of one tier are grouped; run manicai_join_tiers.py (Export menu) to join each tier into one closed polysurface and cut its vomitory openings. Reopen this file in MANICAI to edit parametrically.');
 
   const options = new rh.File3dmWriteOptions();
   options.version = opts.version ?? 8;

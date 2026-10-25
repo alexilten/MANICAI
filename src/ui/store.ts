@@ -1,11 +1,12 @@
 import { create } from 'zustand';
 import { resolveStadium, type Stadium } from '../core/engine/stadium';
 import { DEFAULT_PRESET, getPreset } from '../core/presets';
+import type { SegmentId } from '../core/engine/plan';
 import type { Project } from '../core/schema';
 
 export type Mode = 'explore' | 'technical' | 'analysis';
 export type CameraView = 'perspective' | 'plan' | 'elevation' | 'section' | 'iso' | 'fieldLevel';
-export type AnalysisMetric = 'cvalue' | 'distance' | 'tier' | 'sector';
+export type AnalysisMetric = 'cvalue' | 'distance' | 'tier' | 'sector' | 'class';
 
 export type LayerKey = 'field' | 'seats' | 'terraces' | 'dimensions' | 'reference';
 export const LAYERS: { key: LayerKey; label: string; rhino: string }[] = [
@@ -17,7 +18,7 @@ export const LAYERS: { key: LayerKey; label: string; rhino: string }[] = [
 ];
 /** systems the platform is planned to generate — listed (disabled) so the layer model is visible from day one */
 export const FUTURE_LAYERS: { label: string; round: string }[] = [
-  { label: 'Premium levels', round: 'R03' }, { label: 'Concourses', round: 'R03' }, { label: 'Vertical circulation', round: 'R03' },
+  { label: 'Premium levels', round: 'R03' }, { label: 'Concourses', round: 'R03' }, { label: 'Stairs & lifts', round: 'R03' },
   { label: 'Structure', round: 'R04' }, { label: 'Roof', round: 'R04' }, { label: 'Facade', round: 'R04' },
   { label: 'Lighting', round: 'R05' }, { label: 'HVAC', round: 'R05' }, { label: 'Electrical', round: 'R05' }, { label: 'Plumbing', round: 'R05' }, { label: 'AV / IT', round: 'R05' },
   { label: 'Site', round: 'later' },
@@ -42,6 +43,8 @@ interface State {
   /** looking from the selected seat */
   seatView: boolean;
   cut: Cut;
+  /** stand or corner being edited in the Stands panel */
+  region: SegmentId;
   toast: string | null;
   edit: (fn: (p: Project) => void, key?: string) => void;
   load: (p: Project) => void;
@@ -55,6 +58,7 @@ interface State {
   selectSeat: (i: number | null) => void;
   setSeatView: (on: boolean) => void;
   setCut: (c: Partial<Cut>) => void;
+  setRegion: (r: SegmentId) => void;
   showToast: (msg: string) => void;
 }
 
@@ -72,6 +76,7 @@ export const useStore = create<State>((set, get) => ({
   layers: { field: true, seats: true, terraces: true, dimensions: false, reference: false },
   seat: null, seatView: false,
   cut: { enabled: false, axis: 'x', offset: 0 },
+  region: 'E',
   toast: null,
 
   edit: (fn, key) => {
@@ -108,6 +113,7 @@ export const useStore = create<State>((set, get) => ({
   selectSeat: (seat) => set({ seat, seatView: seat == null ? false : get().seatView }),
   setSeatView: (seatView) => set({ seatView, viewNonce: seatView ? get().viewNonce : get().viewNonce + 1 }),
   setCut: (c) => set({ cut: { ...get().cut, ...c } }),
+  setRegion: (region) => set({ region }),
   showToast: (toast) => {
     clearTimeout(toastTimer);
     set({ toast });

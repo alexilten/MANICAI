@@ -34,7 +34,7 @@ for (const j of jobs) {
   writeFileSync(`samples/${j.file}`, bytes);
   const info = inspect3dm(rh, bytes, { bboxes: false });
   manifest.push({
-    file: j.file, preset: j.id, seats: s.metrics.gross, exportedSeats: j.seats, bytes: bytes.byteLength, exportMs: Math.round(ms),
+    file: j.file, preset: j.id, seats: s.metrics.net, grossSeats: s.metrics.gross, vomitories: s.metrics.vomitories, wheelchair: s.metrics.accessible.wheelchair, exportedSeats: j.seats, bytes: bytes.byteLength, exportMs: Math.round(ms),
     readBack: { units: info.units, layers: info.layers.length, objects: info.objects.length, blocks: info.blocks, groups: info.groups },
   });
   if (j.seats) writeFileSync(`samples/${j.id}_seats.csv`, seatsCsv(s));

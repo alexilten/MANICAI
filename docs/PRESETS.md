@@ -8,15 +8,18 @@ They are **not** the architects' geometry, they use no drawings or CAD, and they
 
 | preset | sport | target | modelled | tiers | rows | worst C (mm) | farthest seat (m) | confidence |
 |---|---|---:|---:|---:|---:|---:|---:|---|
-| Generic soccer bowl | Soccer | 42,000 | 41,868 | 2 | 24 / 21 | 60 | 176 | generic |
-| Generic NFL bowl | NFL | 65,000 | 65,388 | 3 | 30 / 10 / 24 | 60 | 193 | generic |
-| Four-stand ground | Soccer | 30,000 | 30,472 | 2 | 20 / 14 | 60 | 168 | generic |
-| Intimate soccer bowl — Inter Miami-inspired | Soccer | 25,000 | 25,400 | 2 | 19 / 11 | 61 | 163 | low |
-| Compact enclosed NFL bowl — Allegiant-inspired | NFL | 65,000 | 65,252 | 3 | 30 / 9 / 25 | 60 | 192 | low |
-| Large NFL atmosphere bowl — Chiefs-inspired | NFL | 70,000 | 70,320 | 3 | 32 / 8 / 29 | 53 | 197 | low |
-| Enclosed NFL stadium — New Nissan-inspired | NFL | 60,000 | 59,556 | 3 | 29 / 7 / 24 | 60 | 189 | low |
-| European two-tier bowl — Milan-inspired | Soccer | 71,500 | 71,812 | 2 | 33 / 36 | 60 | 198 | low |
-| Club stadium with strong ends — Birmingham-inspired | Soccer | 62,000 | 62,396 | 2 | 29 / 33 | 60 | 191 | low |
+| Generic soccer bowl | Soccer | 42,000 | 44,180 | 2 | 26 / 21 | 60 | 178 | generic |
+| Generic NFL bowl | NFL | 65,000 | 67,720 | 3 | 31 / 10 / 25 | 60 | 196 | generic |
+| Four-stand ground | Soccer | 30,000 | 31,560 | 2 | 20 / 15 | 60 | 169 | generic |
+| Horseshoe ground | Soccer | 32,000 | 33,144 | 2 | 28 / 21 | 60 | 180 | generic |
+| Big single-tier end — Tottenham-inspired | Soccer | 62,850 | 65,302 | 2 | 37 / 38 | 60 | 202 | low |
+| Four stands with a steep home end — Everton-inspired | Soccer | 52,888 | 54,714 | 2 | 33 / 29 | 60 | 194 | low |
+| Intimate soccer bowl — Inter Miami-inspired | Soccer | 25,000 | 26,450 | 2 | 19 / 12 | 61 | 164 | low |
+| Compact enclosed NFL bowl — Allegiant-inspired | NFL | 65,000 | 67,418 | 3 | 31 / 9 / 26 | 60 | 195 | low |
+| Large NFL atmosphere bowl — Chiefs-inspired | NFL | 70,000 | 72,692 | 3 | 33 / 8 / 30 | 54 | 199 | low |
+| Enclosed NFL stadium — New Nissan-inspired | NFL | 60,000 | 62,734 | 3 | 31 / 7 / 25 | 60 | 192 | low |
+| European two-tier bowl — Milan-inspired | Soccer | 71,500 | 74,232 | 2 | 32 / 39 | 60 | 200 | low |
+| Club stadium with strong ends — Birmingham-inspired | Soccer | 62,000 | 64,186 | 2 | 26 / 37 | 60 | 192 | low |
 
 ### Generic soccer bowl
 
@@ -41,6 +44,60 @@ Square corners: four separate stands.
 **Assumed by MANICAI:**
 
 - Corner radius 0: the offset rows open into fans, leaving corners empty — the classic British four-stand layout.
+
+### Horseshoe ground
+
+Three stands, one open end.
+
+**Assumed by MANICAI:**
+
+- East end left open (a horseshoe), e.g. for a view, a stage or a future stand.
+- Corners next to the open end follow the open end and stay empty.
+
+### Big single-tier end — Tottenham-inspired
+
+62,850 · two-tier bowl with one huge single-tier end.
+
+Precedent: **Tottenham Hotspur Stadium** (London, England). Status: completed. Credits: Populous.
+
+**Published (sourced in [PRECEDENTS.md](PRECEDENTS.md)):**
+
+- Premier League stadium (Populous), opened 2019
+- Capacity 62,850 (recalled)
+- Single-tier South Stand of about 17,500 seats (recalled)
+
+**Assumed by MANICAI:**
+
+- The single-tier end is the west end here (MANICAI puts the ends on ±X)
+- Lower tier extended at the west end to about 1¾ times its depth, upper tier dropped there; 35° rake limit
+- Two tiers elsewhere; row counts fitted to 62,850 net
+- Not the architects' geometry — rake, tier split and distances are MANICAI assumptions
+
+**Checks raised:**
+
+- Farthest seat is 202 m from the far pitch corner (FIFA maximum 190 m).
+
+### Four stands with a steep home end — Everton-inspired
+
+52,888 · square corners, single-tier end at the rake limit.
+
+Precedent: **Hill Dickinson Stadium (Everton)** (Bramley-Moore Dock, Liverpool, England). Status: completed. Credits: Design architect Dan Meis (MEIS Architects, stages 1–3); delivery architect BDP Pattern; contractor Laing O'Rourke. The brief lists it under Populous — we found no Populous credit.
+
+**Published (sourced in [PRECEDENTS.md](PRECEDENTS.md)):**
+
+- Premier League stadium (MEIS lead, BDP), opened 2025
+- Capacity 52,888
+- Single-tier South Stand at 33.89° maximum rake, "as steep as regulations allow" (RIBAJ)
+
+**Assumed by MANICAI:**
+
+- Four separate stands with square corners
+- The single-tier home end is the west end here, at the 34° limit with tight 7 m goal-line distance
+- Two tiers on the other three stands; row counts fitted to 52,888 net
+
+**Checks raised:**
+
+- Farthest seat is 194 m from the far pitch corner (FIFA maximum 190 m).
 
 ### Intimate soccer bowl — Inter Miami-inspired
 
@@ -98,8 +155,8 @@ Precedent: **Kansas City Chiefs Stadium** (Wyandotte County, Kansas, USA). Statu
 
 **Checks raised:**
 
-- Upper bowl: 11 rows hit the 35° rake limit, so the 90 mm C-value target is not met there. Move the tier closer to the field, lower its first row or accept a lower target.
-- Upper bowl: lowest C-value 53 mm is below the 60 mm minimum.
+- Upper bowl: 10 rows hit the 35° rake limit, so the C-value target is not met there. Move the tier closer to the field, lower its first row or accept a lower target.
+- Upper bowl: lowest C-value 54 mm is below the 60 mm minimum.
 
 ### Enclosed NFL stadium — New Nissan-inspired
 
@@ -138,7 +195,7 @@ Precedent: **Nuovo Stadio Milano** (San Siro, Milan, Italy). Status: in-design (
 
 **Checks raised:**
 
-- Farthest seat is 198 m from the far pitch corner (FIFA maximum 190 m).
+- Farthest seat is 200 m from the far pitch corner (FIFA maximum 190 m).
 
 ### Club stadium with strong ends — Birmingham-inspired
 
@@ -159,5 +216,6 @@ Precedent: **Birmingham City Football Club Stadium (Powerhouse Stadium)** (Birmi
 
 **Checks raised:**
 
-- Farthest seat is 191 m from the far pitch corner (FIFA maximum 190 m).
+- Upper tier: 1 row hit the 34° rake limit, so the C-value target is not met there. Move the tier closer to the field, lower its first row or accept a lower target.
+- Farthest seat is 192 m from the far pitch corner (FIFA maximum 190 m).
 

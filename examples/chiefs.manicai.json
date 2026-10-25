@@ -1,6 +1,6 @@
 {
   "schema": "manicai.project",
-  "version": 1,
+  "version": 2,
   "name": "Large NFL atmosphere bowl (Chiefs-inspired)",
   "units": "imperial",
   "site": {
@@ -17,52 +17,93 @@
     "sideDistance": 14000,
     "endDistance": 10000,
     "cornerRadius": 18000,
-    "targetCapacity": 70000
+    "targetCapacity": 70000,
+    "stands": {}
   },
   "seating": {
     "seatWidth": 500,
     "aisleWidth": 1200,
     "maxSeatsBetweenAisles": 28,
-    "eyeHeight": 1200
+    "eyeHeight": 1200,
+    "crossAisleWidth": 1500,
+    "wheelchairEyeHeight": 1150
   },
   "sightlines": {
     "mode": "cvalue",
     "targetC": 90,
     "minC": 60,
     "riserStep": 10,
-    "maxRakeDeg": 35
+    "maxRakeDeg": 35,
+    "excludeBelowMin": false
   },
   "tiers": [
     {
       "id": "T1",
       "name": "Lower bowl",
-      "rows": 32,
+      "rows": 33,
       "rowDepth": 800,
       "riser": 380,
       "elevation": 1800,
       "overhang": 0,
-      "barrier": 800
+      "barrier": 800,
+      "kind": "general",
+      "crossAisles": [],
+      "vomitories": {
+        "enabled": true,
+        "every": 2,
+        "mouthRow": 14,
+        "width": 2800
+      },
+      "accessible": {
+        "perSection": 4,
+        "row": 0
+      }
     },
     {
       "id": "T2",
       "name": "Club level",
       "rows": 8,
-      "rowDepth": 800,
+      "rowDepth": 900,
       "riser": 380,
       "elevation": 5000,
       "overhang": -3000,
       "barrier": 800,
-      "targetC": 60
+      "kind": "club",
+      "crossAisles": [],
+      "vomitories": {
+        "enabled": false,
+        "every": 2,
+        "mouthRow": 8,
+        "width": 2800
+      },
+      "accessible": {
+        "perSection": 3,
+        "row": 1
+      },
+      "targetC": 60,
+      "seatWidth": 550
     },
     {
       "id": "T3",
       "name": "Upper bowl",
-      "rows": 29,
+      "rows": 30,
       "rowDepth": 800,
       "riser": 380,
       "elevation": 4800,
       "overhang": -4500,
       "barrier": 800,
+      "kind": "general",
+      "crossAisles": [],
+      "vomitories": {
+        "enabled": true,
+        "every": 2,
+        "mouthRow": 12,
+        "width": 2800
+      },
+      "accessible": {
+        "perSection": 3,
+        "row": 1
+      },
       "targetC": 60
     }
   ],

@@ -9,6 +9,7 @@ import { defaultProject, parseProject, serializeProject } from '../src/core/sche
 import type { Stadium } from '../src/core/engine/stadium';
 import { exportRhino, projectFrom3dm, type RhinoModule } from '../src/export/rhino';
 import { inspect3dm, type FileInfo } from '../src/export/inspect3dm';
+import { getPreset } from '../src/core/presets';
 import { fresh, rhino } from './helpers';
 
 let rh: RhinoModule, s: Stadium, bytes: Uint8Array, info: FileInfo;
@@ -31,10 +32,14 @@ describe('H · Rhino .3dm export', () => {
     expect(info.layers.some((x) => x.startsWith('03_SEATING::T2'))).toBe(true);
   });
 
-  it('writes one seat block instance per modelled seat', () => {
+  it('writes one seat block instance per seat in use, and wheelchair spaces as their own block', () => {
+    const t = s.seats.seats;
+    let seats = 0, chairs = 0;
+    for (let i = 0; i < t.count; i++) if (t.status[i] === 0) t.cls[i] === 2 ? chairs++ : seats++;
     const seatBlocks = info.blocks.filter((b) => b.name.startsWith('MANICAI_SEAT_'));
-    expect(seatBlocks).toHaveLength(1);
-    expect(seatBlocks[0].instances).toBe(s.metrics.gross);
+    expect(seatBlocks.reduce((n, b) => n + b.instances, 0)).toBe(seats);
+    expect(info.blocks.find((b) => b.name.startsWith('MANICAI_WHEELCHAIR'))?.instances ?? 0).toBe(chairs);
+    expect(seats + chairs).toBe(s.metrics.net);
   });
 
   it('places seats at the engine positions, with their ids and C-values', () => {
@@ -75,5 +80,19 @@ describe('H · Rhino .3dm export', () => {
     expect(i7.units).toBe('Millimeters');
     expect(i7.objects.some((o) => o.type === 'InstanceReference')).toBe(false);
     expect(b7.byteLength).toBeLessThan(bytes.byteLength);
+  });
+
+  it('writes vomitory solids, wheelchair positions and club seats to their own layers', () => {
+    const g = fresh(getPreset('generic-nfl').build());
+    const f = inspect3dm(rh, exportRhino(rh, g, { version: 8, seats: true }));
+    const on = (l: string) => f.objects.filter((o) => o.layer === l);
+    const voms = on('07_VERTICAL_CIRCULATION::VOMITORIES');
+    expect(voms.length).toBe(g.metrics.vomitories);
+    expect(voms.every((o) => o.type === 'Brep' && o.name.startsWith('VOM.'))).toBe(true);
+    expect(on('04_ACCESSIBILITY::WHEELCHAIR_POSITIONS').length).toBe(g.metrics.accessible.wheelchair);
+    expect(on('04_ACCESSIBILITY::COMPANION_SEATS').length).toBe(g.metrics.accessible.companion);
+    const club = f.objects.filter((o) => o.layer?.startsWith('05_PREMIUM::') && o.type === 'InstanceReference').length;
+    expect(club).toBe(g.metrics.byClass.premium);
+    expect(f.blocks.some((b) => b.name === 'MANICAI_SEAT_550MM')).toBe(true);
   });
 });

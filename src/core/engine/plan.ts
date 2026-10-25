@@ -7,6 +7,9 @@
  * the same amount), so row depths stay constant all the way round and aisles in the corners stay
  * radial. A square corner (radius 0) therefore opens up into a fan — the classic four-stand layout.
  *
+ * Each stand keeps its own first-row distance (Round 02), so the path is a rounded rectangle whose
+ * centre can sit off the field centre: a closer north sideline moves that straight in, nothing else.
+ *
  * Positions on the path are addressed as (segment, u ∈ [0,1], d) where d is the plan offset
  * behind the front-row line. Segments run counter-clockwise from the east end:
  *
@@ -31,23 +34,45 @@ export const SECTOR_LABEL: Record<Sector, string> = {
 export const SECTORS: Sector[] = ['north', 'south', 'east', 'west', 'northeast', 'northwest', 'southwest', 'southeast'];
 export const isCorner = (s: SegmentId) => s.length === 2;
 
+export type StandSeg = 'N' | 'S' | 'E' | 'W';
+export type CornerSeg = 'NE' | 'NW' | 'SW' | 'SE';
+export const STANDS: StandSeg[] = ['N', 'S', 'E', 'W'];
+export const CORNERS: CornerSeg[] = ['NE', 'NW', 'SW', 'SE'];
+/** the two stands each corner joins */
+export const CORNER_NEIGHBOURS: Record<CornerSeg, [StandSeg, StandSeg]> = { NE: ['N', 'E'], NW: ['N', 'W'], SW: ['S', 'W'], SE: ['S', 'E'] };
+
 export interface PlanRing {
   /** half-length / half-width of the front-row line */
   hx: Mm; hy: Mm;
+  /** centre of the front-row line (0,0 unless opposite stands sit at different distances) */
+  cx: Mm; cy: Mm;
   /** corner radius at the front-row line */
   r: Mm;
-  /** distances from the field boundary used to build it */
+  /** first-row distance of each stand from its field line */
+  dist: Record<StandSeg, Mm>;
+  /** the nearer of the two sidelines / ends (kept for summaries) */
   sideDistance: Mm; endDistance: Mm;
-  /** first-row distance from the field corner, measured to the nearest point of the corner (governs when the corner pinches in) */
+  /** first-row distance from each field corner, to the nearest point of the corner (governs when a corner pinches in) */
+  cornerDist: Record<CornerSeg, Mm>;
+  /** the smallest of cornerDist */
   cornerDistance: Mm;
 }
 
 export interface Station { x: number; y: number; nx: number; ny: number }
 
-export function makeRing(fieldLength: Mm, fieldWidth: Mm, sideDistance: Mm, endDistance: Mm, cornerRadius: Mm): PlanRing {
-  const hx = fieldLength / 2 + endDistance, hy = fieldWidth / 2 + sideDistance;
-  const ring = { hx, hy, r: Math.max(0, Math.min(cornerRadius, hx, hy)), sideDistance, endDistance, cornerDistance: 0 };
-  ring.cornerDistance = -planOffset(ring, fieldLength / 2, fieldWidth / 2);
+/** `side`/`end` may be one distance for both stands or a per-stand record. */
+export function makeRing(fieldLength: Mm, fieldWidth: Mm, side: Mm | Record<StandSeg, Mm>, end: Mm, cornerRadius: Mm): PlanRing {
+  const dist: Record<StandSeg, Mm> = typeof side === 'number' ? { N: side, S: side, E: end, W: end } : side;
+  const xE = fieldLength / 2 + dist.E, xW = fieldLength / 2 + dist.W, yN = fieldWidth / 2 + dist.N, yS = fieldWidth / 2 + dist.S;
+  const hx = (xE + xW) / 2, hy = (yN + yS) / 2;
+  const ring: PlanRing = {
+    hx, hy, cx: (xE - xW) / 2, cy: (yN - yS) / 2, r: Math.max(0, Math.min(cornerRadius, hx, hy)), dist,
+    sideDistance: Math.min(dist.N, dist.S), endDistance: Math.min(dist.E, dist.W),
+    cornerDist: { NE: 0, NW: 0, SW: 0, SE: 0 }, cornerDistance: 0,
+  };
+  const L2 = fieldLength / 2, W2 = fieldWidth / 2;
+  ring.cornerDist = { NE: -planOffset(ring, L2, W2), NW: -planOffset(ring, -L2, W2), SW: -planOffset(ring, -L2, -W2), SE: -planOffset(ring, L2, -W2) };
+  ring.cornerDistance = Math.min(...CORNERS.map((c) => ring.cornerDist[c]));
   return ring;
 }
 
@@ -66,25 +91,25 @@ export function segmentLength(ring: PlanRing, seg: SegmentId, d: Mm): Mm {
 
 /** Point and outward normal on the path at (segment, u, d). */
 export function pointAt(ring: PlanRing, seg: SegmentId, u: number, d: Mm): Station {
-  const { hx, hy, r } = ring;
+  const { hx, hy, r, cx, cy } = ring;
   const sx = hx - r, sy = hy - r;
   switch (seg) {
-    case 'E': return { x: hx + d, y: -sy + 2 * sy * u, nx: 1, ny: 0 };
-    case 'N': return { x: sx - 2 * sx * u, y: hy + d, nx: 0, ny: 1 };
-    case 'W': return { x: -hx - d, y: sy - 2 * sy * u, nx: -1, ny: 0 };
-    case 'S': return { x: -sx + 2 * sx * u, y: -hy - d, nx: 0, ny: -1 };
+    case 'E': return { x: cx + hx + d, y: cy - sy + 2 * sy * u, nx: 1, ny: 0 };
+    case 'N': return { x: cx + sx - 2 * sx * u, y: cy + hy + d, nx: 0, ny: 1 };
+    case 'W': return { x: cx - hx - d, y: cy + sy - 2 * sy * u, nx: -1, ny: 0 };
+    case 'S': return { x: cx - sx + 2 * sx * u, y: cy - hy - d, nx: 0, ny: -1 };
     default: {
       const c = CORNER[seg];
       const a = c.a0 + u * Math.PI / 2;
       const nx = Math.cos(a), ny = Math.sin(a);
-      return { x: c.cx * sx + (r + d) * nx, y: c.cy * sy + (r + d) * ny, nx, ny };
+      return { x: cx + c.cx * sx + (r + d) * nx, y: cy + c.cy * sy + (r + d) * ny, nx, ny };
     }
   }
 }
 
 /** Signed plan offset of a point from the front-row line (positive behind it): the rounded-rectangle SDF. */
 export function planOffset(ring: PlanRing, x: number, y: number): number {
-  const qx = Math.abs(x) - (ring.hx - ring.r), qy = Math.abs(y) - (ring.hy - ring.r);
+  const qx = Math.abs(x - ring.cx) - (ring.hx - ring.r), qy = Math.abs(y - ring.cy) - (ring.hy - ring.r);
   const ox = Math.max(qx, 0), oy = Math.max(qy, 0);
   return Math.sqrt(ox * ox + oy * oy) + Math.min(Math.max(qx, qy), 0) - ring.r;
 }

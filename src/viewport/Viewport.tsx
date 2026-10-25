@@ -7,7 +7,7 @@ import { annotations } from '../core/engine/annotations';
 import type { Stadium } from '../core/engine/stadium';
 import { formatLength } from '../core/units';
 import { useStore, type CameraView } from '../ui/store';
-import { Seats, Terraces } from './Bowl';
+import { Seats, Terraces, Vomitories, WheelchairPads } from './Bowl';
 import { Field } from './Field';
 
 /** World is mm, Z-up (core/coords.ts). three.js is Y-up metres → one wrapping transform. */
@@ -57,8 +57,10 @@ export function Viewport() {
 
       <group rotation={WORLD_ROTATION} scale={MM}>
         {layers.field && <Field field={stadium.field} />}
-        {layers.terraces && <Terraces ring={stadium.ring} profiles={stadium.profiles} clip={clip} />}
+        {layers.terraces && <Terraces ring={stadium.ring} profiles={stadium.profiles} regions={stadium.layout.rows} clip={clip} />}
+        {layers.terraces && <Vomitories ring={stadium.ring} voms={stadium.seats.vomitories} clip={clip} />}
         {layers.seats && <Seats seats={stadium.seats.seats} project={project} clip={clip} />}
+        {layers.seats && <WheelchairPads seats={stadium.seats.seats} clip={clip} />}
         <SelectedSeat stadium={stadium} />
         {layers.dimensions && <Dimensions stadium={stadium} />}
         {layers.reference && <Reference stadium={stadium} />}
@@ -148,7 +150,7 @@ function viewFor(view: CameraView, s: Stadium) {
     case 'iso': return { fov: 20, pos: new THREE.Vector3(sz * 1.45, sz * 1.2, sz * 1.45), target: new THREE.Vector3(0, h * 0.15, 0) };
     case 'fieldLevel': {
       const f = s.field;
-      return { fov: 55, pos: toThree([-f.length * 0.18, -(f.width / 2 + 2500), 1700]), target: toThree([f.length * 0.05, s.ring.hy * 0.9, 9000]) };
+      return { fov: 55, pos: toThree([-f.length * 0.18, -(f.width / 2 + 2500), 1700]), target: toThree([f.length * 0.05, (s.ring.cy + s.ring.hy) * 0.9, 9000]) };
     }
     default: return { fov: 28, pos: c.clone().add(new THREE.Vector3(-sz * 0.95, sz * 0.62, sz * 1.25)), target: c.clone().add(new THREE.Vector3(0, -h * 0.25, 0)) };
   }

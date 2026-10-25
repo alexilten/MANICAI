@@ -1,0 +1,94 @@
+{
+  "schema": "manicai.project",
+  "version": 2,
+  "name": "Big single-tier end (Tottenham-inspired)",
+  "units": "metric",
+  "site": {
+    "northDeg": 90
+  },
+  "sport": "soccer",
+  "field": {
+    "length": 105000,
+    "width": 68000,
+    "runoffSide": 5500,
+    "runoffEnd": 6000
+  },
+  "bowl": {
+    "sideDistance": 7500,
+    "endDistance": 7000,
+    "cornerRadius": 8000,
+    "targetCapacity": 62850,
+    "stands": {
+      "W": {
+        "rows": {
+          "T1": 56,
+          "T2": 0
+        }
+      }
+    }
+  },
+  "seating": {
+    "seatWidth": 500,
+    "aisleWidth": 1200,
+    "maxSeatsBetweenAisles": 28,
+    "eyeHeight": 1200,
+    "crossAisleWidth": 1500,
+    "wheelchairEyeHeight": 1150
+  },
+  "sightlines": {
+    "mode": "cvalue",
+    "targetC": 90,
+    "minC": 60,
+    "riserStep": 10,
+    "maxRakeDeg": 35,
+    "excludeBelowMin": false
+  },
+  "tiers": [
+    {
+      "id": "T1",
+      "name": "Lower tier",
+      "rows": 37,
+      "rowDepth": 800,
+      "riser": 380,
+      "elevation": 1300,
+      "overhang": 0,
+      "barrier": 800,
+      "kind": "general",
+      "crossAisles": [],
+      "vomitories": {
+        "enabled": true,
+        "every": 2,
+        "mouthRow": 13,
+        "width": 2800
+      },
+      "accessible": {
+        "perSection": 5,
+        "row": 0
+      }
+    },
+    {
+      "id": "T2",
+      "name": "Upper tier",
+      "rows": 38,
+      "rowDepth": 800,
+      "riser": 380,
+      "elevation": 4800,
+      "overhang": -6000,
+      "barrier": 800,
+      "kind": "general",
+      "crossAisles": [],
+      "vomitories": {
+        "enabled": true,
+        "every": 2,
+        "mouthRow": 13,
+        "width": 2800
+      },
+      "accessible": {
+        "perSection": 4,
+        "row": 1
+      },
+      "targetC": 60
+    }
+  ],
+  "presetId": "single-end"
+}
