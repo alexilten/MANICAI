@@ -32,6 +32,12 @@ export function annotations(s: Stadium): Annotation[] {
     out.push({ id: `DIM.${t.id}.TOP_ROW_LEVEL`, kind: 'level', from: [0, y1, 0], to: [0, y1, top], value: top, label: `${t.name} top row` });
     out.push({ id: `DIM.${t.id}.DEPTH`, kind: 'dim', from: [0, y0, top + 1500], to: [0, y1, top + 1500], value: back - t.front, label: `${t.name} depth` });
   }
+  // building levels (Round 03) on the same section, at the front of each floor plate
+  const ySec = layout.rows.S.some((r) => r > 0) ? -1 : 1, yBase = ySec < 0 ? yS : yN;
+  for (const l of s.building.levels) {
+    const y = yBase + ySec * (l.d0 + 1500);
+    out.push({ id: `DIM.LEVEL.${l.id}`, kind: 'level', from: [0, y, 0], to: [0, y, l.z], value: l.z, label: l.name });
+  }
   // overall footprint
   const e = extents(ring, layout, profiles);
   out.push({ id: 'DIM.BOWL.LENGTH', kind: 'dim', from: [e.minX, e.minY - 6000, 0], to: [e.maxX, e.minY - 6000, 0], value: e.maxX - e.minX, label: 'Bowl length' });

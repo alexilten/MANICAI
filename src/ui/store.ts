@@ -8,17 +8,19 @@ export type Mode = 'explore' | 'technical' | 'analysis';
 export type CameraView = 'perspective' | 'plan' | 'elevation' | 'section' | 'iso' | 'fieldLevel';
 export type AnalysisMetric = 'cvalue' | 'distance' | 'tier' | 'sector' | 'class';
 
-export type LayerKey = 'field' | 'seats' | 'terraces' | 'dimensions' | 'reference';
+export type LayerKey = 'field' | 'seats' | 'terraces' | 'premium' | 'concourses' | 'cores' | 'dimensions' | 'reference';
 export const LAYERS: { key: LayerKey; label: string; rhino: string }[] = [
   { key: 'field', label: 'Field', rhino: '01_FIELD' },
   { key: 'terraces', label: 'Terraces', rhino: '02_BOWL_GEOMETRY' },
   { key: 'seats', label: 'Seats', rhino: '03_SEATING' },
+  { key: 'premium', label: 'Premium levels', rhino: '05_PREMIUM' },
+  { key: 'concourses', label: 'Concourses & program', rhino: '06_CONCOURSES' },
+  { key: 'cores', label: 'Stairs & lifts', rhino: '07_VERTICAL_CIRCULATION' },
   { key: 'dimensions', label: 'Dimensions', rhino: '90_DIMENSIONS' },
   { key: 'reference', label: 'Reference', rhino: '00_REFERENCE' },
 ];
 /** systems the platform is planned to generate — listed (disabled) so the layer model is visible from day one */
 export const FUTURE_LAYERS: { label: string; round: string }[] = [
-  { label: 'Premium levels', round: 'R03' }, { label: 'Concourses', round: 'R03' }, { label: 'Stairs & lifts', round: 'R03' },
   { label: 'Structure', round: 'R04' }, { label: 'Roof', round: 'R04' }, { label: 'Facade', round: 'R04' },
   { label: 'Lighting', round: 'R05' }, { label: 'HVAC', round: 'R05' }, { label: 'Electrical', round: 'R05' }, { label: 'Plumbing', round: 'R05' }, { label: 'AV / IT', round: 'R05' },
   { label: 'Site', round: 'later' },
@@ -73,7 +75,7 @@ export const useStore = create<State>((set, get) => ({
   past: [], future: [], lastEditKey: null, lastEditAt: 0,
   mode: 'explore', metric: 'cvalue',
   view: 'perspective', viewNonce: 0,
-  layers: { field: true, seats: true, terraces: true, dimensions: false, reference: false },
+  layers: { field: true, seats: true, terraces: true, premium: true, concourses: true, cores: true, dimensions: false, reference: false },
   seat: null, seatView: false,
   cut: { enabled: false, axis: 'x', offset: 0 },
   region: 'E',

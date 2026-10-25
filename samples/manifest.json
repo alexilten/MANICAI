@@ -7,12 +7,12 @@
     "vomitories": 18,
     "wheelchair": 196,
     "exportedSeats": true,
-    "bytes": 23842558,
-    "exportMs": 2364,
+    "bytes": 26429992,
+    "exportMs": 2541,
     "readBack": {
       "units": "Millimeters",
-      "layers": 53,
-      "objects": 31950,
+      "layers": 63,
+      "objects": 32025,
       "blocks": [
         {
           "name": "MANICAI_SEAT_500MM",
@@ -39,16 +39,38 @@
     "vomitories": 42,
     "wheelchair": 290,
     "exportedSeats": false,
-    "bytes": 1160996,
-    "exportMs": 39,
+    "bytes": 4216858,
+    "exportMs": 92,
     "readBack": {
       "units": "Millimeters",
-      "layers": 53,
-      "objects": 521,
+      "layers": 63,
+      "objects": 604,
       "blocks": [],
       "groups": [
         "TERRACE_T1",
         "TERRACE_T2"
+      ]
+    }
+  },
+  {
+    "file": "generic-nfl_building_rhino8.3dm",
+    "preset": "generic-nfl",
+    "seats": 64034,
+    "grossSeats": 67272,
+    "vomitories": 50,
+    "wheelchair": 462,
+    "exportedSeats": false,
+    "bytes": 7860214,
+    "exportMs": 176,
+    "readBack": {
+      "units": "Millimeters",
+      "layers": 73,
+      "objects": 1173,
+      "blocks": [],
+      "groups": [
+        "TERRACE_T1",
+        "TERRACE_T2",
+        "TERRACE_T3"
       ]
     }
   }

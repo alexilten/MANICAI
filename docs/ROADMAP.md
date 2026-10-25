@@ -1,11 +1,13 @@
 # Limitations and roadmap
 
-## Known limitations after Round 02
+## Known limitations after Round 03
 
 - **Net capacity covers vomitories, wheelchair platforms and (optionally) poor sightlines.** Camera and media positions, kill-offs behind structure, and segregation gaps are not modelled yet.
 - **Aisles and vomitories are geometric.** Radial aisles, lateral cross-aisles and vomitory openings are placed and counted, but there is no stair geometry inside aisles and no egress calculation: exit widths, travel distances and egress time still need a code analysis (`review.egress`).
 - **Accessible positions** follow the US ADA 221.2.1.1 count (recall). Dispersion rules, sightlines over standing spectators and other jurisdictions' numbers are not checked.
 - **One ring shape.** Stands can now sit at different distances, carry different row counts or be left open, but the plan is still a rounded rectangle (straight stands with circular corners). Oval or bowed stands and corner tiers that fold back are not modelled. Each tier keeps one rake all the way round.
+- **The building is conceptual space planning.** Concourses, program zones and cores are set out from the bowl with allowances you set. There are no stair runs, escalators or ramps inside the cores, no toilet fixture counts, and no exit-capacity or travel-distance check (`review.egress`, `manicai.program`, `manicai.cores`).
+- **Premium levels are full rings.** A suite or club level runs all the way round its tier (suites only on the chosen stands); loge boxes, field-level clubs and press boxes are not modelled yet.
 - **Vomitories are not cut from the terrace solids in the .3dm.** They are separate closed solids; `manicai_join_tiers.py` joins each tier and subtracts them in Rhino.
 - **Structure is an envelope.** Soffits, fascias and tier gaps are architectural placeholders. No rakers, columns, cantilever checks or vibration (`review.structure`).
 - **No roof yet**, so no roof sightline check (FIFA's 15 m high-ball rule), sun or shade study, or acoustics.
@@ -21,7 +23,7 @@
 | Round | Focus |
 |---|---|
 | ~~R02 · Bowl detail~~ | Done: independent stands and corners, open ends, per-stand rows, club tiers, cross-aisles, vomitories, wheelchair platforms with companions, net vs gross, capacity suggestions. Carried over: media and camera positions, egress scaffolding, upper-tier obstruction check, oval and bowed stands. |
-| **R03 · Premium and architecture** | Suites, clubs, loges and field-level clubs as seat classes with their own geometry. Concourses and levels under the bowl. Gross floor areas. |
+| ~~R03 · Premium and circulation~~ | Done: premium levels (suites, club) inserted into the section, concourses at each tier's access level, program zones from per-spectator allowances, cores, building metrics and a section diagram. Carried over: loges, field-level clubs, press boxes, escalators and ramps. |
 | **R04 · Roof and envelope** | Roof types (fixed, retractable, ETFE), the FIFA high-ball check, shade and sun, and envelope options. |
 | **R05 · Site** | Geolocation, orientation optimisation (north), site footprint and massing. |
 | **R06 · Interop** | IFC, GLB and DWG/DXF. Grasshopper definition. Seats-as-points `.3dm` option. |

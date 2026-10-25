@@ -1,6 +1,6 @@
-# Acceptance tests (Rounds 01–02)
+# Acceptance tests (Rounds 01–03)
 
-`npm test` runs 48 tests in `tests/`. All 48 pass as of 2026-10-25 (Node 22, vitest 3). A–J are the Round 01 tests (updated for net capacity); K–Q are new in Round 02.
+`npm test` runs 61 tests in `tests/`. All 61 pass as of 2026-10-25 (Node 22, vitest 3). A–J are the Round 01 tests, K–Q came with Round 02 and R–W with Round 03.
 
 | Test | What is checked | File |
 |---|---|---|
@@ -19,10 +19,16 @@
 | O · net vs gross | Excluding seats below the minimum C keeps gross, reduces net by exactly the excluded seats, and lifts the worst C to the minimum. | `round02.test.ts` |
 | P · capacity suggestions | The top suggestion closes the gap without breaking a rule, and applying it gives exactly the capacity it promised. A seat-width cut below the Green Guide minimum is flagged. | `round02.test.ts` |
 | Q · v1 files | Round 01 files open as v2 with their Round 01 seat counts (30,472 and 41,868). | `round02.test.ts` |
+| R · premium levels | A suite level lifts the tier above by exactly its height and sets it back by its setback, leaves the tier below untouched, and the lifted tier still meets its C target. The suite glass sits on the back of the tier below, between the concourse and the tier above. A level under the lower tier is reported and not built. | `round03.test.ts` |
+| S · suites and capacity | Only whole suites fit a stand; their seats add to the headline capacity, which the capacity fit uses too. A club level has lounge instead of suites. | `round03.test.ts` |
+| T · concourses | A tier with vomitories gets its concourse at the vomitory floor, starting under the tier where the soffit clears the concourse height; without them, behind its back row. Program areas follow the allowances and the spectators served, sit behind the concourse, and a shortfall is flagged. | `round03.test.ts` |
+| U · cores | Cores stand outside every plate, at the set spacing, above the top level; the reported walk to a core is half the spacing. | `round03.test.ts` |
+| V · solids | A ring floor plate is closed and outward-facing with the volume of its plan band; a span box has the analytical volume. | `round03.test.ts` |
+| W · v2 files and Rhino | v2 files open as v3 with no premium levels and their Round 02 capacities. The .3dm has the plates, suites, program and cores on their layers in the right numbers. | `round03.test.ts` |
 | I · performance | A fitted bowl of about 75,000 seats regenerates from scratch in under 1.5 s. This is a CI guard; see the benchmark below. | `bench.test.ts` |
 | J · assumptions visible | Every preset lists its assumptions and precedent presets list published facts. Every rule has a kind, verification and source, and every referenced rule exists. The scope warning is always shown. Every preset fits within 2% of its target net capacity and meets the ADA wheelchair count. | `core.test.ts` |
 
-The sample `.3dm` files are also checked independently with the Python rhino3dm bindings (`npm run verify:3dm`). `four-stand-30k_rhino8.3dm` reads back in millimetres with 53 layers, 30,248 `MANICAI_SEAT_500MM` instances and 196 `MANICAI_WHEELCHAIR_1400x900MM` instances, which together equal its 30,444 net capacity (31,560 gross). All 42 vomitory solids in the bowl-only sample read back as closed (`IsSolid`).
+The sample `.3dm` files are also checked independently with the Python rhino3dm bindings (`npm run verify:3dm`). `four-stand-30k_rhino8.3dm` reads back in millimetres with 53 layers, 30,248 `MANICAI_SEAT_500MM` instances and 196 `MANICAI_WHEELCHAIR_1400x900MM` instances, which together equal its 30,444 net capacity (31,560 gross). All vomitory, suite, program and core solids in the samples read back as closed (`IsSolid`), including the 34 suites in `generic-nfl_building_rhino8.3dm`.
 
 ## Benchmark (`npm run bench`)
 
@@ -30,9 +36,9 @@ Node 22.22, engine only (no rendering), median of 7 runs, run in the cloud build
 
 | target | seats | tiers | full regen (ms) | seat edit (ms) | field-distance edit (ms) |
 |---:|---:|---:|---:|---:|---:|
-| 25,000 | 25,640 | 2 | 16 | 16 | 17 |
-| 50,000 | 50,516 | 2 | 33 | 32 | 31 |
-| 75,000 | 75,864 | 3 | 49 | 48 | 50 |
-| 100,000 | 100,284 | 3 | 66 | 62 | 63 |
+| 25,000 | 25,640 | 2 | 24 | 26 | 26 |
+| 50,000 | 50,516 | 2 | 32 | 31 | 30 |
+| 75,000 | 75,864 | 3 | 49 | 44 | 46 |
+| 100,000 | 100,284 | 3 | 61 | 60 | 60 |
 
 In the browser, the GPU upload of instanced seats adds to these times. Rhino export of a 42,000-seat bowl took about 3 s and wrote a 31 MB file; the 30,444-seat sample is 23.8 MB.

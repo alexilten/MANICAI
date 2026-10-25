@@ -297,3 +297,8 @@ code { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
 .moves li button { grid-column: 2; grid-row: 1 / span 2; }
 .btn-sm { height: 26px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--line, rgba(0,0,0,0.12)); background: var(--bg-elev, #fff); font: inherit; font-size: 12px; cursor: pointer; }
 .btn-sm.wide { width: 100%; height: 32px; margin: 4px 0 8px; }
+
+/* Round 03 */
+.section-svg { width: 100%; height: auto; display: block; margin: 2px 0 6px; background: var(--card, rgba(0,0,0,0.025)); border-radius: 10px; }
+.section-svg .svg-note { font-size: 8px; fill: var(--ink-3); }
+.swatch { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; vertical-align: 0; }

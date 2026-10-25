@@ -11,7 +11,7 @@ import { SPORTS, type SportId } from './sports';
 import type { DisplayUnits, Mm } from './units';
 
 export const SCHEMA_ID = 'manicai.project';
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 export type SightlineMode = 'cvalue' | 'riser';
 export type TierKind = 'general' | 'club';
@@ -43,6 +43,42 @@ export interface AccessibleParams {
   perSection: number;
   /** platform row, 1-based from the front; 0 = the tier's last row */
   row: number;
+}
+
+/**
+ * A premium level inserted under a tier (Round 03): suites or a club lounge level with its own
+ * floor-to-floor height. It lifts the tier above by that height, so premium levels change the bowl
+ * section (and the upper tier's sightlines) rather than being drawn on top of it.
+ */
+export interface PremiumLevel {
+  id: string;
+  name: string;
+  /** the tier this level sits under (it is inserted in that tier's gap above the tier below) */
+  belowTier: string;
+  kind: 'suites' | 'club';
+  /** floor-to-floor height added to the section */
+  height: Mm;
+  /** how far the level pushes the tier above back from the field (a lifted tier needs it to keep its C-values) */
+  setback: Mm;
+  /** stands that get suite fronts; the rest of the level is premium circulation and lounge */
+  stands: StandId[];
+  /** suite module: width along the bowl and depth behind the glass */
+  unitWidth: Mm; unitDepth: Mm;
+  /** seats per suite, including its balcony seats */
+  seatsPerUnit: number;
+}
+
+/** Concourse, program and core planning allowances (Round 03). Every value is a user-editable assumption. */
+export interface BuildingParams {
+  /** clear circulation width of each concourse */
+  concourseWidth: Mm;
+  /** depth of the program zone (concessions, toilets, retail) behind each concourse */
+  programDepth: Mm;
+  /** clear height wanted between a concourse floor and the structure above */
+  concourseClear: Mm;
+  /** gross program area per spectator served, m² (MANICAI planning assumptions, not standards) */
+  allowances: { concessions: number; restrooms: number; retail: number; firstAid: number; clubLounge: number };
+  cores: { spacing: Mm; width: Mm; depth: Mm; stairs: number; stairWidth: Mm; lifts: number };
 }
 
 export interface TierParams {
@@ -117,6 +153,9 @@ export interface Project {
     excludeBelowMin: boolean;
   };
   tiers: TierParams[];
+  /** premium levels inserted into the section */
+  premium: PremiumLevel[];
+  building: BuildingParams;
 }
 
 export const NO_VOMS: VomitoryParams = { enabled: false, every: 2, mouthRow: 8, width: 2800 };
@@ -126,6 +165,18 @@ export function tier(id: string, name: string, p: Partial<TierParams> = {}): Tie
     id, name, rows: 24, rowDepth: 800, riser: 380, elevation: 1500, overhang: 0, barrier: 800, kind: 'general', crossAisles: [],
     vomitories: { ...NO_VOMS }, accessible: { perSection: 0, row: 0 }, ...p,
   };
+}
+
+export function defaultBuilding(): BuildingParams {
+  return {
+    concourseWidth: 10000, programDepth: 10000, concourseClear: 4000,
+    allowances: { concessions: 0.06, restrooms: 0.07, retail: 0.015, firstAid: 0.003, clubLounge: 1.0 },
+    cores: { spacing: 60000, width: 9000, depth: 11000, stairs: 2, stairWidth: 2400, lifts: 2 },
+  };
+}
+
+export function suiteLevel(id: string, belowTier: string, p: Partial<PremiumLevel> = {}): PremiumLevel {
+  return { id, name: 'Suite level', belowTier, kind: 'suites', height: 4500, setback: 4000, stands: ['N', 'S'], unitWidth: 5500, unitDepth: 8000, seatsPerUnit: 16, ...p };
 }
 
 export function defaultProject(): Project {
@@ -141,6 +192,8 @@ export function defaultProject(): Project {
       tier('T1', 'Lower tier', { rows: 24, elevation: 1500, accessible: { perSection: 2, row: 0 } }),
       tier('T2', 'Upper tier', { rows: 20, elevation: 4500, overhang: -2000, targetC: 60, accessible: { perSection: 1, row: 1 } }),
     ],
+    premium: [],
+    building: defaultBuilding(),
   };
 }
 
@@ -163,6 +216,8 @@ export function serializeProject(p: Project): string {
  * Parse and migrate a saved project. Unknown future versions are refused rather than half-read.
  * v1 → v2: v1 files have no stands, cross-aisles, vomitories or accessible positions; they open with
  * none of these, so a v1 bowl keeps exactly its v1 geometry and seat count.
+ * v2 → v3: no premium levels; building allowances take their defaults (they add geometry around the
+ * bowl but never move a seat).
  */
 export function parseProject(text: string): Project {
   const raw = JSON.parse(text);
@@ -177,6 +232,8 @@ export function parseProject(text: string): Project {
     seating: { ...d.seating, ...raw.seating },
     sightlines: { ...d.sightlines, ...raw.sightlines },
     bowl: { ...d.bowl, ...raw.bowl, stands: { ...raw.bowl?.stands } },
+    premium: Array.isArray(raw.premium) ? raw.premium.map((l: Partial<PremiumLevel>, i: number) => suiteLevel(l.id ?? `P${i + 1}`, l.belowTier ?? 'T2', l)) : [],
+    building: { ...d.building, ...raw.building, allowances: { ...d.building.allowances, ...raw.building?.allowances }, cores: { ...d.building.cores, ...raw.building?.cores } },
     tiers: Array.isArray(raw.tiers) && raw.tiers.length
       ? raw.tiers.map((t: Partial<TierParams>, i: number) => {
         const x = tier(t.id ?? `T${i + 1}`, t.name ?? `Tier ${i + 1}`, t);

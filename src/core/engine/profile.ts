@@ -107,8 +107,11 @@ export function solveProfiles(project: Project, ring: PlanRing, regions: RegionR
     if (!Ds.length) Ds.push(...STANDS.map((g) => ring.dist[g]), ...CORNERS.map((g) => ring.cornerDist[g]));
     const Dmin = Math.min(...Ds);
     const aisleAfter = [...new Set((t.crossAisles ?? []).map((k) => Math.round(k) - 1).filter((k) => k >= 0 && k < nSolve - 1))].sort((a, b) => a - b);
-    const front = prev ? prev.back - t.overhang : 0;
-    const bottom = prev ? prev.top + t.elevation : t.elevation;
+    const under = (project.premium ?? []).filter((l) => l.belowTier === t.id && ti > 0);
+    const front = prev ? prev.back - t.overhang + under.reduce((a, l) => a + (l.setback ?? 0), 0) : 0;
+    // premium levels inserted under this tier lift it by their floor-to-floor heights
+    const lift = under.reduce((a, l) => a + l.height, 0);
+    const bottom = prev ? prev.top + t.elevation + lift : t.elevation;
     const rows: RowProfile[] = [];
     const maxRiser = Math.max(s.riserStep, Math.floor((T * tanMax) / s.riserStep) * s.riserStep);
     let extra = 0;

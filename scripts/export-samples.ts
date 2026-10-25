@@ -23,6 +23,7 @@ const rh = await import('rhino3dm/rhino3dm.module.js').then((m: any) => m.defaul
 const jobs = [
   { id: 'four-stand', seats: true, file: 'four-stand-30k_rhino8.3dm' },
   { id: 'generic-soccer', seats: false, file: 'generic-soccer_bowl-only_rhino8.3dm' },
+  { id: 'generic-nfl', seats: false, file: 'generic-nfl_building_rhino8.3dm' },
 ];
 const manifest = [];
 for (const j of jobs) {

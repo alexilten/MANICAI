@@ -14,6 +14,7 @@
 import type { Project } from '../schema';
 import { SPORTS, type FieldModel } from '../sports';
 import { adaRequired } from './accessibility';
+import { buildBuilding, type Building } from './building';
 import { regionRows, standDistances, type Layout } from './layout';
 import { isCorner, makeRing, pointAt, SECTORS, SECTOR_LABEL, SECTOR_OF, SEGMENTS, STANDS, type PlanRing, type Sector, type SegmentId } from './plan';
 import { HEADROOM, solveProfiles, type TierProfile } from './profile';
@@ -23,6 +24,10 @@ export interface Warning { level: 'info' | 'warn' | 'error'; code: string; messa
 
 export interface Metrics {
   target: number;
+  /** net bowl seats plus suite seats: the headline capacity */
+  total: number;
+  /** seats in suites (Round 03 premium levels) */
+  suiteSeats: number;
   /** every position the geometry allows */
   gross: number;
   /** gross minus exclusions (vomitories, wheelchair platforms, optionally poor sightlines) */
@@ -55,6 +60,8 @@ export interface Stadium {
   layout: Layout;
   profiles: TierProfile[];
   seats: SeatResult;
+  /** concourses, premium levels, program and cores (Round 03) */
+  building: Building;
   metrics: Metrics;
   warnings: Warning[];
   /** ms spent per stage on the last resolve (0 = cache hit) */
@@ -87,15 +94,19 @@ export function resolveStadium(p: Project): Stadium {
   const profiles = stage('profiles', profKey, timing, () => solveProfiles(p, ring, layout.rows));
   const seatKey = JSON.stringify([profKey, p.seating, p.tiers.map((t) => [t.kind, t.seatWidth, t.vomitories, t.accessible])]);
   const seats = stage('seats', seatKey, timing, () => generateSeats(p, ring, profiles, layout.rows, { focus: field.boundary, fieldLW: [field.length, field.width] }));
-  const anaKey = JSON.stringify([seatKey, p.bowl.targetCapacity, p.tiers.map((t) => t.name)]);
-  const { metrics, warnings } = stage('analysis', anaKey, timing, () => analyse(p, field, ring, layout, profiles, seats));
+  const anaKey = JSON.stringify([seatKey, p.bowl.targetCapacity, p.tiers.map((t) => t.name), p.premium, p.building]);
+  const { metrics, warnings, building } = stage('analysis', anaKey, timing, () => {
+    const a = analyse(p, field, ring, layout, profiles, seats);
+    return { ...a, building: addBuilding(p, ring, profiles, a.metrics, a.warnings) };
+  });
   const ext = extents(ring, layout, profiles);
-  const outer = Math.max(...profiles.map((t) => t.rows[t.rows.length - 1].z));
+  const outer = Math.max(...profiles.map((t) => t.rows[t.rows.length - 1].z), ...building.cores.map((c) => c.zTop));
+  const o = building.metrics.outerD;
   const bounds = {
-    min: [ext.minX, ext.minY, 0] as [number, number, number],
-    max: [ext.maxX, ext.maxY, outer + 2500] as [number, number, number],
+    min: [Math.min(ext.minX, ring.cx - ring.hx - o), Math.min(ext.minY, ring.cy - ring.hy - o), 0] as [number, number, number],
+    max: [Math.max(ext.maxX, ring.cx + ring.hx + o), Math.max(ext.maxY, ring.cy + ring.hy + o), outer + 2500] as [number, number, number],
   };
-  return { project: p, field, ring, layout, profiles, seats, metrics, warnings, timing, bounds };
+  return { project: p, field, ring, layout, profiles, seats, building, metrics, warnings, timing, bounds };
 }
 
 /** plan offset of the back of the bowl in each region (0 where a region carries no seats) */
@@ -155,6 +166,7 @@ function analyse(p: Project, field: FieldModel, ring: PlanRing, layout: Layout, 
   const byClass = Object.fromEntries(SEAT_CLASSES.map((c, i) => [c, res.counts.byClass[i]]));
   const metrics: Metrics = {
     target: p.bowl.targetCapacity,
+    total: net, suiteSeats: 0,
     gross: res.counts.gross,
     net,
     exclusions: SEAT_STATUS.map((st, i) => ({ status: st, label: SEAT_STATUS_LABEL[st], seats: res.counts.byStatus[i] })).filter((x) => x.status !== 'active'),
@@ -197,9 +209,28 @@ function analyse(p: Project, field: FieldModel, ring: PlanRing, layout: Layout, 
   if (p.sport === 'soccer' && metrics.viewing.maxFarCorner > 190000) w.push({ level: 'warn', code: 'view.190', rule: 'fifa.viewing.distance', message: `Farthest seat is ${(metrics.viewing.maxFarCorner / 1000).toFixed(0)} m from the far pitch corner (FIFA maximum 190 m).` });
   if (metrics.accessible.wheelchair < metrics.accessible.required) w.push({ level: 'warn', code: 'access.count', rule: 'ada.221', message: `${metrics.accessible.wheelchair} wheelchair positions; the US 2010 ADA Standards table asks for ${metrics.accessible.required} at this capacity. Add positions per section on a tier (other jurisdictions differ).` });
   if (!res.vomitories.length) w.push({ level: 'info', code: 'vom.none', rule: 'review.egress', message: 'No vomitories: spectators reach every row from the front or back of each tier. Add vomitories on deep tiers.' });
-  const diff = net - p.bowl.targetCapacity;
-  if (Math.abs(diff) > p.bowl.targetCapacity * 0.02) w.push({ level: 'info', code: 'capacity.target', message: `Net capacity is ${Math.abs(diff).toLocaleString('en-US')} ${diff > 0 ? 'above' : 'below'} the ${p.bowl.targetCapacity.toLocaleString('en-US')} target. "Fit rows to target" adjusts the row counts; "Suggest moves" lists other options.` });
-  w.push({ level: 'info', code: 'scope.r02', rule: 'review.egress', message: 'Vomitories and aisles are geometric. Exit widths, travel distances and egress time are not modelled yet and need a code analysis.' });
+  w.push({ level: 'info', code: 'scope.r03', rule: 'review.egress', message: 'Vomitories, concourses and cores are conceptual geometry. Exit widths, travel distances, egress time and toilet fixture counts are not checked and need a code analysis.' });
   void field;
   return { metrics, warnings: w };
+}
+
+/** Round 03: the building around the bowl, its capacity contribution (suites) and its checks. */
+function addBuilding(p: Project, ring: PlanRing, profiles: TierProfile[], m: Metrics, w: Warning[]): Building {
+  const b = buildBuilding(p, ring, profiles, { tier: m.byTier.map((t) => t.seats), club: m.byTier.map((t) => (t.kind === 'club' ? t.seats : 0)) });
+  m.suiteSeats = b.metrics.suiteSeats;
+  m.total = m.net + m.suiteSeats;
+  const diff = m.total - p.bowl.targetCapacity;
+  if (Math.abs(diff) > p.bowl.targetCapacity * 0.02) w.push({ level: 'info', code: 'capacity.target', message: `Capacity is ${Math.abs(diff).toLocaleString('en-US')} ${diff > 0 ? 'above' : 'below'} the ${p.bowl.targetCapacity.toLocaleString('en-US')} target. "Fit rows to target" adjusts the row counts; "Suggest moves" lists other options.` });
+  if (b.metrics.programPlaced < b.metrics.programNeeded * 0.98) w.push({ level: 'warn', code: 'program.short', rule: 'manicai.program', message: `The concourses have frontage for ${Math.round(b.metrics.programPlaced).toLocaleString('en-US')} m² of the ${Math.round(b.metrics.programNeeded).toLocaleString('en-US')} m² of concessions, toilets and retail the allowances ask for. Deepen the program zone or add a concourse.` });
+  for (const l of p.premium ?? []) {
+    const ti = p.tiers.findIndex((t) => t.id === l.belowTier);
+    if (ti <= 0) w.push({ level: 'warn', code: 'premium.tier', rule: 'manicai.premium', message: `${l.name} sits under ${l.belowTier}, which is not an upper tier, so it is not built. Put premium levels under tier 2 or above.` });
+  }
+  for (const lv of b.levels) {
+    if (lv.kind !== 'concourse') continue;
+    const t = profiles[lv.tier];
+    if (lv.d0 >= t.back - 1 && t.index > 0 && p.tiers[t.index].vomitories?.enabled) w.push({ level: 'info', code: 'concourse.behind', message: `${t.name}: the soffit never clears ${(p.building.concourseClear / 1000).toFixed(1)} m above the vomitory floor, so its concourse starts behind the tier.` });
+  }
+  if (b.metrics.maxToCore > 60000) w.push({ level: 'info', code: 'core.spacing', rule: 'manicai.cores', message: `Up to ${(b.metrics.maxToCore / 1000).toFixed(0)} m along the concourse to the nearest core. Reduce the core spacing if the code's travel distance is shorter.` });
+  return b;
 }
