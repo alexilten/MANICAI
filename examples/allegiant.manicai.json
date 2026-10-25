@@ -1,0 +1,70 @@
+{
+  "schema": "manicai.project",
+  "version": 1,
+  "name": "Compact enclosed NFL bowl (Allegiant-inspired)",
+  "units": "imperial",
+  "site": {
+    "northDeg": 90
+  },
+  "sport": "nfl",
+  "field": {
+    "length": 109728,
+    "width": 48768,
+    "runoffSide": 10972.8,
+    "runoffEnd": 4572
+  },
+  "bowl": {
+    "sideDistance": 15000,
+    "endDistance": 11000,
+    "cornerRadius": 14000,
+    "targetCapacity": 65000
+  },
+  "seating": {
+    "seatWidth": 500,
+    "aisleWidth": 1200,
+    "maxSeatsBetweenAisles": 28,
+    "eyeHeight": 1200
+  },
+  "sightlines": {
+    "mode": "cvalue",
+    "targetC": 90,
+    "minC": 60,
+    "riserStep": 10,
+    "maxRakeDeg": 35
+  },
+  "tiers": [
+    {
+      "id": "T1",
+      "name": "Lower bowl",
+      "rows": 30,
+      "rowDepth": 800,
+      "riser": 380,
+      "elevation": 1800,
+      "overhang": 0,
+      "barrier": 800
+    },
+    {
+      "id": "T2",
+      "name": "Club level",
+      "rows": 9,
+      "rowDepth": 800,
+      "riser": 380,
+      "elevation": 5000,
+      "overhang": -3500,
+      "barrier": 800,
+      "targetC": 60
+    },
+    {
+      "id": "T3",
+      "name": "Upper bowl",
+      "rows": 25,
+      "rowDepth": 800,
+      "riser": 380,
+      "elevation": 5200,
+      "overhang": -2000,
+      "barrier": 800,
+      "targetC": 60
+    }
+  ],
+  "presetId": "allegiant"
+}
