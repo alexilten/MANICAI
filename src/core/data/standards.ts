@@ -77,6 +77,8 @@ export const RULES: Rule[] = [
     statement: 'Routes ≥ 1.2 m; wheelchair routes ≥ 1.8 m; head clearance 2.4 m where possible; ideally no more than 36 risers in a stair run.' },
   { id: 'fifa.accessible.position', topic: 'Accessibility', kind: 'guidance', verification: 'checked', checked: '2026-10-25', source: 'FIFA Football Stadiums Guidelines §2.3', url: FIFA_BOWL,
     statement: 'Wheelchair position with companion 1.4 m × 1.4 m minimum; companion seat ≥ 500 mm. Required numbers come from local law (e.g. 2010 ADA Standards 221.2 in the US).' },
+  { id: 'ada.221', topic: 'Accessibility', kind: 'governing', verification: 'recall', source: '2010 ADA Standards for Accessible Design, 221.2.1.1 (US)', url: 'https://www.ada.gov/law-and-regs/design-standards/2010-stds/',
+    statement: 'Wheelchair spaces by total seating: 501–5,000 seats: 6 plus 1 per 150 over 500; over 5,000: 36 plus 1 per 200 over 5,000. Each space needs a companion seat beside it. Applies in the US only; other jurisdictions set their own numbers.' },
   // ── MANICAI planning assumptions
   { id: 'manicai.eye', topic: 'Sightlines', kind: 'assumption', verification: 'recall', source: 'MANICAI default',
     statement: 'Seated eye point 1200 mm above the tread, 400 mm in front of the riser behind. Configurable.' },
@@ -86,6 +88,14 @@ export const RULES: Rule[] = [
     statement: 'Front-of-tier barrier 800 mm above the first tread for the first-row sightline check (the Green Guide minimum in front of seated rows; 1100 mm where people can walk behind it). Barrier heights are set by local code and loading standards.' },
   { id: 'manicai.aisle', topic: 'Circulation', kind: 'assumption', verification: 'recall', source: 'MANICAI default',
     statement: 'Radial aisles 1200 mm clear (FIFA minimum route width) at every sector junction and between sections.' },
+  { id: 'manicai.vomitory', topic: 'Circulation', kind: 'assumption', verification: 'recall', source: 'MANICAI default',
+    statement: 'A vomitory opening (default 2.8 m including walls) sits at the centre of every n-th section. Seats are removed from its mouth row back until the treads are 2.7 m above the tunnel floor (2.4 m headroom plus 300 mm structure). The floor is taken level with the tread in front of the mouth; a ramped floor would lose fewer rows.' },
+  { id: 'manicai.wheelchair', topic: 'Accessibility', kind: 'assumption', verification: 'recall', source: 'MANICAI default, after FIFA §2.3',
+    statement: 'Each wheelchair position with its companion seat takes ⌈1400 mm ÷ seat width⌉ seats across the platform row, plus the seats behind it (1.4 m platform depth). Positions sit at the aisle ends of a section. Wheelchair users\' eye height is taken as 1150 mm; the platform is raised by the difference to the seated eye height (50 mm by default) so the position keeps the row\'s C-value. Sightlines over standing spectators in front are not checked yet.' },
+  { id: 'manicai.crossaisle', topic: 'Circulation', kind: 'assumption', verification: 'recall', source: 'MANICAI default',
+    statement: 'A lateral cross-aisle (default 1.5 m clear) widens the tread behind the seats of the row in front; the row behind is solved for its C-value over the wider gap. People walking in the aisle are not treated as an obstruction.' },
+  { id: 'manicai.stands', topic: 'Bowl plan', kind: 'assumption', verification: 'recall', source: 'MANICAI method',
+    statement: 'Each tier keeps one row sequence all the way round, so corners meet the stands without steps. Stands can sit at their own distances and carry fewer or more rows; the riser solve uses the nearest stand that carries the tier, so farther stands are slightly steeper than they need to be.' },
   // ── conceptual systems
   { id: 'review.structure', topic: 'Structure', kind: 'engineer-review', verification: 'recall', source: 'MANICAI scope',
     statement: 'Tier soffits, overhangs and tier gaps are architectural envelopes, not structural designs. Raker spans, cantilevers and vibration need a structural engineer.' },

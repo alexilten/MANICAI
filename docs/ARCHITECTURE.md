@@ -10,8 +10,8 @@
 ## Pipeline
 
 ```
-Project ──► field ──► plan ring ──► tier profiles ──► seats ──► analysis
- (JSON)     sports/    plan.ts      profile.ts        seats.ts    stadium.ts
+Project ──► field ──► layout ──► plan ring ──► tier profiles ──► seats ──► analysis
+ (JSON)     sports/    layout.ts   plan.ts      profile.ts        seats.ts    stadium.ts
                                                                     │
                        viewport (three.js) ◄─────────────── Stadium ─┤
                        Rhino .3dm / CSV    ◄───────────────────────────┘
@@ -20,10 +20,11 @@ Project ──► field ──► plan ring ──► tier profiles ──► se
 | Stage | What it produces | Notes |
 |---|---|---|
 | field (`core/sports`) | Boundary, surface, markings, zones, goals, landmarks | IFAB Law 1 and NFL Rule 1 geometry, each mark named |
-| plan (`engine/plan.ts`) | `PlanRing`: rounded rectangle `hx, hy, r` at the first row | Rows are exact offsets d of this line. `planOffset` is its signed distance field. Eight segments (E, NE, N, …) map to sectors |
-| profiles (`engine/profile.ts`) | Per tier: rows (nosing d, tread z, riser, eye, C on the side, end and corner), outline, rake | Risers solved from the C-value formula against the governing (nearest) of the side, end and corner distances, rounded up to the riser step and capped at the maximum rake |
-| seats (`engine/seats.ts`) | Columnar typed arrays (x, y, z, rotation, tier, sector, section, row, number, class, C, distances) | Sections are split by radial aisles at segment junctions and evenly between them (28 seats or fewer). Per-seat C uses the true plan sightline to the nearest boundary point (bisection on the SDF) |
-| analysis (`engine/stadium.ts`) | Metrics and warnings | Each warning cites a rule id from the standards registry |
+| layout (`engine/layout.ts`) | Distance of each stand and rows of each tier in each of the 8 regions | Stands take their override or the tier's rows (0 if open). Corners follow the smaller neighbour. A tier can only run past its own row count where no tier sits above it there; other overrides are clamped and reported |
+| plan (`engine/plan.ts`) | `PlanRing`: rounded rectangle `hx, hy, r`, offset by `cx, cy` when opposite stands sit at different distances | Rows are exact offsets d of this line. `planOffset` is its signed distance field. Eight segments (E, NE, N, …) map to sectors |
+| profiles (`engine/profile.ts`) | Per tier: rows (nosing d, tread z, riser, eye, C on the side, end and corner), outline, rake | One row sequence per tier all the way round, so stands and corners meet without steps. Risers are solved from the C-value formula against the nearest region that carries the row, rounded up to the riser step and capped at the maximum rake. Cross-aisles widen the tread behind a row and the next riser is solved over the wider gap |
+| seats (`engine/seats.ts`) | Columnar typed arrays (x, y, z, rotation, tier, sector, section, row, number, class, C, distances) | Sections are split by radial aisles at segment junctions and evenly between them (28 seats or fewer). Per-seat C uses the true plan sightline to the nearest boundary point (bisection on the SDF). Every gross position stays in the table with a status (active, vomitory, platform, sightline) and a class (general, premium, wheelchair, companion), so net capacity, the viewport and the exports agree |
+| analysis (`engine/stadium.ts`) | Metrics (net, gross, exclusions, by tier, sector, stand and class, ADA count) and warnings | Each warning cites a rule id from the standards registry |
 
 Each stage is memoised on a JSON key of its inputs (`stage()` in `stadium.ts`), so moving a seat-width slider skips field, plan and profiles.
 
@@ -31,6 +32,9 @@ Each stage is memoised on a JSON key of its inputs (`stage()` in `stadium.ts`), 
 
 - `TierParams.elevation` is the first tread level for tier 1, and the vertical gap above the tier below for upper tiers. `overhang` is how far the tier's front sits forward of the back of the tier below (negative is a setback).
 - `targetC` per tier lets upper tiers accept less than the lower bowl.
+- `bowl.stands` holds per-stand and per-corner overrides (distance, open, rows per tier). Anything left out follows the bowl-wide value.
+- Schema v2 (Round 02) adds stands, tier kind, seat width, cross-aisles, vomitories and accessible positions. v1 files open with none of these, so they keep their Round 01 seat counts.
+- `optimize.ts` evaluates capacity without storing a seat table, so "fit rows" and "suggest moves" can try dozens of candidate projects.
 - Seat ids are `T{tier}-{section}-R{row}-S{seat}`, stable for a given project.
 - `parseProject` refuses foreign schemas and newer versions, and fills missing groups from defaults so older drafts open.
 
@@ -38,7 +42,7 @@ Each stage is memoised on a JSON key of its inputs (`stage()` in `stadium.ts`), 
 
 | Format | Round | Approach |
 |---|---|---|
-| **Rhino .3dm** (7 and 8) | R01 ✓ | Written with rhino3dm (openNURBS in WASM) in the browser. Exact NURBS terraces: straight runs are extrusions of the tier section and corners are revolves. rhino3dm cannot cap or join these, so each tier's pieces are grouped `TERRACE_<id>` and `manicai_join_tiers.py` joins them in Rhino. Seats are one block definition with one instance per seat, named by seat id, with the C-value as a user string. The layer tree runs from 00_REFERENCE to 17_SITE, plus 90_DIMENSIONS and 91_ANALYSIS. The project JSON is embedded in document strings so the file reopens in MANICAI. |
+| **Rhino .3dm** (7 and 8) | R01 ✓ | Written with rhino3dm (openNURBS in WASM) in the browser. Exact NURBS terraces: straight runs are extrusions of the tier section and corners are revolves. rhino3dm cannot cap or join these, so each tier's pieces are grouped `TERRACE_<id>` and `manicai_join_tiers.py` joins them in Rhino. Seats are one block definition per seat width with one instance per seat in use, named by seat id, with the C-value as a user string. Club seats go under 05_PREMIUM, wheelchair positions (their own 1400 × 900 block) and companions under 04_ACCESSIBILITY, vomitories as closed solids under 07_VERTICAL_CIRCULATION, and excluded positions as points with their reason under 91_ANALYSIS. The layer tree runs from 00_REFERENCE to 17_SITE, plus 90_DIMENSIONS and 91_ANALYSIS. The project JSON is embedded in document strings so the file reopens in MANICAI. |
 | CSV seat schedule | R01 ✓ | One row per seat |
 | GLB | R06 | three.js GLTFExporter from the viewport meshes, for visualisation |
 | IFC | R06 | IfcOpenShell (WASM) or a server step. Map tiers to `IfcSlab` and stairs, seats to `IfcFurniture` with Psets. Needs a structural model first |
@@ -53,12 +57,12 @@ The engine regenerates 75,000–100,000 seats in about 50–70 ms in Node (see [
 
 | Risk | Status | Mitigation |
 |---|---|---|
-| Seat generation blocking the UI on big bowls | ~50 ms at 100k seats today | Move `generateSeats` to a Web Worker if R02 exclusions push it past ~100 ms |
+| Seat generation blocking the UI on big bowls | ~65 ms at 100k seats with R02 exclusions | Move `generateSeats` to a Web Worker if it passes ~100 ms |
 | `.3dm` size (≈ 0.75 KB per seat instance) | 31 MB for 42k seats | Offer "seats as points" and "one block per section" options. Bowl-only export is already available |
 | rhino3dm WASM heap on large files | Handles freed explicitly (`inspect3dm`) | Stream sections, and keep re-reading files in tests |
 | Software WebGL (no GPU) is slow | Screenshots take about 40 s per frame under SwiftShader | Expected. Real GPUs render at interactive rates. Add a reduced-seat preview when FPS drops |
-| Upper-tier C-values against the 34° rake cap | Flagged per row | Per-tier targets; the R02 optimiser will trade gap, overhang and first-row distance |
-| Corner geometry with large radii | `plan.corner` warning | R02: variable corner profiles (corner tiers that fold back) |
+| Upper-tier C-values against the 34° rake cap | Flagged per row | Per-tier targets; "Suggest moves" tries rows, distances, corners and seat module and flags C, rake and headroom breaks |
+| Corner geometry with large radii | `plan.corner` warning | Corners can now carry their own rows or be opened; corner tiers that fold back are still to come |
 
 ## Relationship to Stagework
 

@@ -11,9 +11,39 @@ import { SPORTS, type SportId } from './sports';
 import type { DisplayUnits, Mm } from './units';
 
 export const SCHEMA_ID = 'manicai.project';
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 export type SightlineMode = 'cvalue' | 'riser';
+export type TierKind = 'general' | 'club';
+export type StandId = 'N' | 'S' | 'E' | 'W';
+export type CornerId = 'NE' | 'NW' | 'SW' | 'SE';
+
+/** Per-region overrides (Round 02). Anything left out follows the bowl-wide value. */
+export interface StandParams {
+  /** first-row distance from this stand's field line (sidelines N/S, ends E/W only) */
+  distance?: Mm;
+  /** no seating in this region (an open end, a gap for a stage or a scoreboard) */
+  open?: boolean;
+  /** rows per tier, keyed by tier id; a missing tier keeps its own row count (corners: the smaller of the two neighbours) */
+  rows?: Record<string, number>;
+}
+
+export interface VomitoryParams {
+  enabled: boolean;
+  /** a vomitory in every n-th section of the tier (1 = every section) */
+  every: number;
+  /** the first row it removes, counted from the front of the tier (1-based) */
+  mouthRow: number;
+  /** clear opening width across the row, including the side walls */
+  width: Mm;
+}
+
+export interface AccessibleParams {
+  /** wheelchair positions (each with a companion seat) per section */
+  perSection: number;
+  /** platform row, 1-based from the front; 0 = the tier's last row */
+  row: number;
+}
 
 export interface TierParams {
   id: string;
@@ -32,6 +62,14 @@ export interface TierParams {
   barrier: Mm;
   /** C-value target for this tier (upper tiers usually accept less than the lower bowl); default: sightlines.targetC */
   targetC?: Mm;
+  /** general admission or club (premium) seating */
+  kind: TierKind;
+  /** seat width for this tier; default: seating.seatWidth */
+  seatWidth?: Mm;
+  /** lateral cross-aisles: one after each listed row (1-based), seating.crossAisleWidth wide */
+  crossAisles: number[];
+  vomitories: VomitoryParams;
+  accessible: AccessibleParams;
 }
 
 export interface Project {
@@ -56,12 +94,18 @@ export interface Project {
     /** plan radius of the corner at the first row (0 = square corner). Rows behind grow it. */
     cornerRadius: Mm;
     targetCapacity: number;
+    /** independent stands and corners */
+    stands: Partial<Record<StandId | CornerId, StandParams>>;
   };
   seating: {
     seatWidth: Mm;
     aisleWidth: Mm;
     maxSeatsBetweenAisles: number;
     eyeHeight: Mm;
+    /** clear width of a lateral cross-aisle (added to the tread in front of the next row) */
+    crossAisleWidth: Mm;
+    /** wheelchair users' eye height above the platform */
+    wheelchairEyeHeight: Mm;
   };
   sightlines: {
     mode: SightlineMode;
@@ -69,12 +113,19 @@ export interface Project {
     minC: Mm;
     riserStep: Mm;
     maxRakeDeg: number;
+    /** count seats below the minimum C-value as excluded (not sold) */
+    excludeBelowMin: boolean;
   };
   tiers: TierParams[];
 }
 
+export const NO_VOMS: VomitoryParams = { enabled: false, every: 2, mouthRow: 8, width: 2800 };
+
 export function tier(id: string, name: string, p: Partial<TierParams> = {}): TierParams {
-  return { id, name, rows: 24, rowDepth: 800, riser: 380, elevation: 1500, overhang: 0, barrier: 800, ...p };
+  return {
+    id, name, rows: 24, rowDepth: 800, riser: 380, elevation: 1500, overhang: 0, barrier: 800, kind: 'general', crossAisles: [],
+    vomitories: { ...NO_VOMS }, accessible: { perSection: 0, row: 0 }, ...p,
+  };
 }
 
 export function defaultProject(): Project {
@@ -83,10 +134,13 @@ export function defaultProject(): Project {
     site: { northDeg: 90 },
     sport: 'soccer',
     field: { length: 105000, width: 68000, runoffSide: 6000, runoffEnd: 7500 },
-    bowl: { sideDistance: 8000, endDistance: 10000, cornerRadius: 12000, targetCapacity: 40000 },
-    seating: { seatWidth: 500, aisleWidth: 1200, maxSeatsBetweenAisles: 28, eyeHeight: 1200 },
-    sightlines: { mode: 'cvalue', targetC: 90, minC: 60, riserStep: 10, maxRakeDeg: 34 },
-    tiers: [tier('T1', 'Lower tier', { rows: 24, elevation: 1500 }), tier('T2', 'Upper tier', { rows: 20, elevation: 4500, overhang: -2000, targetC: 60 })],
+    bowl: { sideDistance: 8000, endDistance: 10000, cornerRadius: 12000, targetCapacity: 40000, stands: {} },
+    seating: { seatWidth: 500, aisleWidth: 1200, maxSeatsBetweenAisles: 28, eyeHeight: 1200, crossAisleWidth: 1500, wheelchairEyeHeight: 1150 },
+    sightlines: { mode: 'cvalue', targetC: 90, minC: 60, riserStep: 10, maxRakeDeg: 34, excludeBelowMin: false },
+    tiers: [
+      tier('T1', 'Lower tier', { rows: 24, elevation: 1500, accessible: { perSection: 2, row: 0 } }),
+      tier('T2', 'Upper tier', { rows: 20, elevation: 4500, overhang: -2000, targetC: 60, accessible: { perSection: 1, row: 1 } }),
+    ],
   };
 }
 
@@ -105,21 +159,33 @@ export function serializeProject(p: Project): string {
   return JSON.stringify(p, null, 2);
 }
 
-/** Parse and migrate a saved project. Unknown future versions are refused rather than half-read. */
+/**
+ * Parse and migrate a saved project. Unknown future versions are refused rather than half-read.
+ * v1 → v2: v1 files have no stands, cross-aisles, vomitories or accessible positions; they open with
+ * none of these, so a v1 bowl keeps exactly its v1 geometry and seat count.
+ */
 export function parseProject(text: string): Project {
   const raw = JSON.parse(text);
   if (raw?.schema !== SCHEMA_ID) throw new Error('Not a MANICAI project file');
   if (typeof raw.version !== 'number' || raw.version > SCHEMA_VERSION) throw new Error(`Project version ${raw.version} is newer than this MANICAI (v${SCHEMA_VERSION})`);
-  // v1 is the first schema; fill any missing groups from the defaults so older drafts open
   const d = defaultProject();
+  const v1 = raw.version < 2;
   return {
     ...d, ...raw,
     site: { ...d.site, ...raw.site },
     field: { ...d.field, ...raw.field },
-    bowl: { ...d.bowl, ...raw.bowl },
     seating: { ...d.seating, ...raw.seating },
     sightlines: { ...d.sightlines, ...raw.sightlines },
-    tiers: Array.isArray(raw.tiers) && raw.tiers.length ? raw.tiers.map((t: Partial<TierParams>, i: number) => tier(t.id ?? `T${i + 1}`, t.name ?? `Tier ${i + 1}`, t)) : d.tiers,
+    bowl: { ...d.bowl, ...raw.bowl, stands: { ...raw.bowl?.stands } },
+    tiers: Array.isArray(raw.tiers) && raw.tiers.length
+      ? raw.tiers.map((t: Partial<TierParams>, i: number) => {
+        const x = tier(t.id ?? `T${i + 1}`, t.name ?? `Tier ${i + 1}`, t);
+        x.vomitories = { ...NO_VOMS, ...t.vomitories };
+        x.accessible = { perSection: 0, row: 0, ...t.accessible };
+        if (v1) x.accessible.perSection = 0;
+        return x;
+      })
+      : d.tiers,
     version: SCHEMA_VERSION,
   };
 }

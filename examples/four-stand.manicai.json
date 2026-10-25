@@ -1,6 +1,6 @@
 {
   "schema": "manicai.project",
-  "version": 1,
+  "version": 2,
   "name": "Four-stand ground",
   "units": "metric",
   "site": {
@@ -17,20 +17,24 @@
     "sideDistance": 7000,
     "endDistance": 8500,
     "cornerRadius": 0,
-    "targetCapacity": 30000
+    "targetCapacity": 30000,
+    "stands": {}
   },
   "seating": {
     "seatWidth": 500,
     "aisleWidth": 1200,
     "maxSeatsBetweenAisles": 28,
-    "eyeHeight": 1200
+    "eyeHeight": 1200,
+    "crossAisleWidth": 1500,
+    "wheelchairEyeHeight": 1150
   },
   "sightlines": {
     "mode": "cvalue",
     "targetC": 90,
     "minC": 60,
     "riserStep": 10,
-    "maxRakeDeg": 34
+    "maxRakeDeg": 34,
+    "excludeBelowMin": false
   },
   "tiers": [
     {
@@ -41,17 +45,41 @@
       "riser": 380,
       "elevation": 1200,
       "overhang": 0,
-      "barrier": 800
+      "barrier": 800,
+      "kind": "general",
+      "crossAisles": [],
+      "vomitories": {
+        "enabled": true,
+        "every": 2,
+        "mouthRow": 9,
+        "width": 2800
+      },
+      "accessible": {
+        "perSection": 3,
+        "row": 0
+      }
     },
     {
       "id": "T2",
       "name": "Upper tier",
-      "rows": 14,
+      "rows": 15,
       "rowDepth": 800,
       "riser": 380,
       "elevation": 4200,
       "overhang": -4000,
       "barrier": 800,
+      "kind": "general",
+      "crossAisles": [],
+      "vomitories": {
+        "enabled": false,
+        "every": 2,
+        "mouthRow": 8,
+        "width": 2800
+      },
+      "accessible": {
+        "perSection": 2,
+        "row": 1
+      },
       "targetC": 60
     }
   ],

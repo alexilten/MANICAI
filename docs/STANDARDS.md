@@ -92,18 +92,28 @@ Verification: **checked** means the rule was read in the cited source on the dat
 |---|---|---|---|---|---|
 | `fifa.circulation` | Routes ≥ 1.2 m; wheelchair routes ≥ 1.8 m; head clearance 2.4 m where possible; ideally no more than 36 risers in a stair run. |  | guidance | checked 2026-10-25 | [FIFA Football Stadiums Guidelines §2.3](https://publications.fifa.com/en/football-stadiums-guidelines/general-process-guidelines/design/stadium-bowl) |
 | `manicai.aisle` | Radial aisles 1200 mm clear (FIFA minimum route width) at every sector junction and between sections. |  | assumption | recall | MANICAI default |
+| `manicai.vomitory` | A vomitory opening (default 2.8 m including walls) sits at the centre of every n-th section. Seats are removed from its mouth row back until the treads are 2.7 m above the tunnel floor (2.4 m headroom plus 300 mm structure). The floor is taken level with the tread in front of the mouth; a ramped floor would lose fewer rows. |  | assumption | recall | MANICAI default |
+| `manicai.crossaisle` | A lateral cross-aisle (default 1.5 m clear) widens the tread behind the seats of the row in front; the row behind is solved for its C-value over the wider gap. People walking in the aisle are not treated as an obstruction. |  | assumption | recall | MANICAI default |
 
 ## Accessibility
 
 | id | statement | value | kind | verification | source |
 |---|---|---|---|---|---|
 | `fifa.accessible.position` | Wheelchair position with companion 1.4 m × 1.4 m minimum; companion seat ≥ 500 mm. Required numbers come from local law (e.g. 2010 ADA Standards 221.2 in the US). |  | guidance | checked 2026-10-25 | [FIFA Football Stadiums Guidelines §2.3](https://publications.fifa.com/en/football-stadiums-guidelines/general-process-guidelines/design/stadium-bowl) |
+| `ada.221` | Wheelchair spaces by total seating: 501–5,000 seats: 6 plus 1 per 150 over 500; over 5,000: 36 plus 1 per 200 over 5,000. Each space needs a companion seat beside it. Applies in the US only; other jurisdictions set their own numbers. |  | governing | recall | [2010 ADA Standards for Accessible Design, 221.2.1.1 (US)](https://www.ada.gov/law-and-regs/design-standards/2010-stds/) |
+| `manicai.wheelchair` | Each wheelchair position with its companion seat takes ⌈1400 mm ÷ seat width⌉ seats across the platform row, plus the seats behind it (1.4 m platform depth). Positions sit at the aisle ends of a section. Wheelchair users' eye height is taken as 1150 mm; the platform is raised by the difference to the seated eye height (50 mm by default) so the position keeps the row's C-value. Sightlines over standing spectators in front are not checked yet. |  | assumption | recall | MANICAI default, after FIFA §2.3 |
 
 ## Barriers
 
 | id | statement | value | kind | verification | source |
 |---|---|---|---|---|---|
 | `manicai.barrier` | Front-of-tier barrier 800 mm above the first tread for the first-row sightline check (the Green Guide minimum in front of seated rows; 1100 mm where people can walk behind it). Barrier heights are set by local code and loading standards. |  | assumption | recall | MANICAI default |
+
+## Bowl plan
+
+| id | statement | value | kind | verification | source |
+|---|---|---|---|---|---|
+| `manicai.stands` | Each tier keeps one row sequence all the way round, so corners meet the stands without steps. Stands can sit at their own distances and carry fewer or more rows; the riser solve uses the nearest stand that carries the tier, so farther stands are slightly steeper than they need to be. |  | assumption | recall | MANICAI method |
 
 ## Structure
 

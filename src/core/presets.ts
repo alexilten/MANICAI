@@ -8,7 +8,8 @@
  * the published capacity rather than tuned by hand.
  */
 import { CHECKED, PRECEDENTS } from './data/precedents';
-import { fitRowsToTarget } from './engine/optimize';
+import { adaRequired } from './engine/accessibility';
+import { evaluate, fitRowsToTarget, ROWS_MAX as ROWS_LIMIT } from './engine/optimize';
 import { defaultProject, tier, type Project } from './schema';
 import { SPORTS, type SportId } from './sports';
 
@@ -39,10 +40,29 @@ function base(sport: SportId, name: string, id: string): Project {
   return p;
 }
 
-/** Fit row counts to the target capacity (keeps the tier proportions). */
+/**
+ * Round 02 planning defaults shared by every preset (MANICAI assumptions, listed in each preset's
+ * evidence): wheelchair platforms on every tier, vomitories in deep tiers, club tiers as premium.
+ */
+function professional(p: Project): Project {
+  p.tiers.forEach((t, i) => {
+    if (/club|suite/i.test(t.name)) { t.kind = 'club'; t.seatWidth = 550; t.rowDepth = Math.max(t.rowDepth, 900); }
+    t.accessible = i === 0 ? { perSection: 2, row: 0 } : { perSection: 1, row: 1 };
+    if (t.rows >= 18 && t.kind === 'general') t.vomitories = { enabled: true, every: 2, mouthRow: Math.round(t.rows * 0.4), width: 2800 };
+  });
+  return p;
+}
+
+/** Fit row counts to the target net capacity (keeps the tier proportions), adding wheelchair positions per section until the ADA table is met. */
 function fitted(p: Project): Project {
-  const f = fitRowsToTarget(p);
-  p.tiers.forEach((t, i) => { t.rows = f.rows[i]; });
+  professional(p);
+  for (let pass = 0; pass < 6; pass++) {
+    const f = fitRowsToTarget(p);
+    p.tiers.forEach((t, i) => { t.rows = f.rows[i]; });
+    const { counts } = evaluate(p);
+    if (counts.byClass[2] >= adaRequired(counts.net)) break;
+    p.tiers.forEach((t) => { t.accessible = { ...t.accessible, perSection: t.accessible.perSection + 1 }; });
+  }
   return p;
 }
 
@@ -78,13 +98,50 @@ export const PRESETS: Preset[] = [
       p.tiers = [tier('T1', 'Lower tier', { rows: 22, elevation: 1200 }), tier('T2', 'Upper tier', { rows: 16, elevation: 4200, overhang: -4000, targetC: 60 })];
       return fitted(p);
     }),
+  P({ id: 'horseshoe', name: 'Horseshoe ground', short: 'Three stands, one open end', category: 'generic', sport: 'soccer',
+      verified: [], assumed: ['East end left open (a horseshoe), e.g. for a view, a stage or a future stand.', 'Corners next to the open end follow the open end and stay empty.'], confidence: 'generic' },
+    () => {
+      const p = base('soccer', 'Horseshoe ground', 'horseshoe');
+      p.bowl.targetCapacity = 32000; p.bowl.cornerRadius = 9000;
+      p.bowl.stands = { E: { open: true } };
+      p.tiers = [tier('T1', 'Lower tier', { rows: 24, elevation: 1300 }), tier('T2', 'Upper tier', { rows: 18, elevation: 4500, overhang: -4500, targetC: 60 })];
+      return fitted(p);
+    }),
+  P({ id: 'single-end', name: 'Big single-tier end — Tottenham-inspired', short: '62,850 · two-tier bowl with one huge single-tier end', category: 'precedent', sport: 'soccer', precedent: 'tottenham',
+      verified: ['Premier League stadium (Populous), opened 2019', 'Capacity 62,850 (recalled)', 'Single-tier South Stand of about 17,500 seats (recalled)'],
+      assumed: ['The single-tier end is the west end here (MANICAI puts the ends on ±X)', 'Lower tier extended at the west end to about 1¾ times its depth, upper tier dropped there; 35° rake limit', 'Two tiers elsewhere; row counts fitted to 62,850 net', 'Not the architects\' geometry — rake, tier split and distances are MANICAI assumptions'], confidence: 'low' },
+    () => {
+      const p = base('soccer', 'Big single-tier end (Tottenham-inspired)', 'single-end');
+      p.field.runoffSide = 5500; p.field.runoffEnd = 6000;
+      p.sightlines.maxRakeDeg = 35;
+      p.bowl = { sideDistance: 7500, endDistance: 7000, cornerRadius: 8000, targetCapacity: 62850, stands: {} };
+      p.tiers = [tier('T1', 'Lower tier', { rows: 26, elevation: 1300 }), tier('T2', 'Upper tier', { rows: 26, elevation: 4800, overhang: -6000, targetC: 60 })];
+      fitted(p);
+      // the west end: one tier as deep as both tiers together, and no upper tier
+      const deep = Math.min(ROWS_LIMIT, Math.round(p.tiers[0].rows + p.tiers[1].rows * 0.75));
+      p.bowl.stands = { W: { rows: { T1: deep, T2: 0 } } };
+      return fitted(p);
+    }),
+  P({ id: 'steep-end', name: 'Four stands with a steep home end — Everton-inspired', short: '52,888 · square corners, single-tier end at the rake limit', category: 'precedent', sport: 'soccer', precedent: 'everton',
+      verified: ['Premier League stadium (MEIS lead, BDP), opened 2025', 'Capacity 52,888', 'Single-tier South Stand at 33.89° maximum rake, "as steep as regulations allow" (RIBAJ)'],
+      assumed: ['Four separate stands with square corners', 'The single-tier home end is the west end here, at the 34° limit with tight 7 m goal-line distance', 'Two tiers on the other three stands; row counts fitted to 52,888 net'], confidence: 'low' },
+    () => {
+      const p = base('soccer', 'Four stands with a steep home end (Everton-inspired)', 'steep-end');
+      p.field.runoffSide = 5500; p.field.runoffEnd = 6000;
+      p.bowl = { sideDistance: 7500, endDistance: 8500, cornerRadius: 0, targetCapacity: 52888, stands: {} };
+      p.tiers = [tier('T1', 'Lower tier', { rows: 24, elevation: 1200 }), tier('T2', 'Upper tier', { rows: 22, elevation: 4600, overhang: -5000, targetC: 60 })];
+      fitted(p);
+      const deep = Math.min(ROWS_LIMIT, Math.round(p.tiers[0].rows + p.tiers[1].rows * 0.75));
+      p.bowl.stands = { W: { distance: 7000, rows: { T1: deep, T2: 0 } } };
+      return fitted(p);
+    }),
   P({ id: 'freedom-park', name: 'Intimate soccer bowl — Inter Miami-inspired', short: '25,000 · soccer-specific, close to the pitch', category: 'precedent', sport: 'soccer', precedent: 'miami-freedom-park',
       verified: ['MLS soccer-specific stadium (MANICA), opened Apr 2026', 'Published capacity 25,000 (Dezeen; Wikipedia gives 26,700)', 'Lower and upper bowl'],
       assumed: ['First row 6 m from touchlines, 7.5 m from goal lines', 'Two tiers; row counts fitted to 25,000', 'Pitch 105 × 68 m'], confidence: 'low' },
     () => {
       const p = base('soccer', 'Intimate soccer bowl (Inter Miami-inspired)', 'freedom-park');
       p.field.runoffSide = 5000; p.field.runoffEnd = 6500;
-      p.bowl = { sideDistance: 6000, endDistance: 7500, cornerRadius: 7000, targetCapacity: 25000 };
+      p.bowl = { sideDistance: 6000, endDistance: 7500, cornerRadius: 7000, targetCapacity: 25000, stands: {} };
       p.tiers = [tier('T1', 'Lower bowl', { rows: 20, elevation: 1200 }), tier('T2', 'Upper bowl', { rows: 12, elevation: 4200, overhang: -6000, targetC: 60 })];
       return fitted(p);
     }),
@@ -93,7 +150,7 @@ export const PRESETS: Preset[] = [
       assumed: ['Three tiers (lower, club/suite, upper) — tier split not published', 'First row 15 m from sidelines', 'Roof not generated until Round 04'], confidence: 'low' },
     () => {
       const p = base('nfl', 'Compact enclosed NFL bowl (Allegiant-inspired)', 'allegiant');
-      p.bowl = { sideDistance: 15000, endDistance: 11000, cornerRadius: 14000, targetCapacity: 65000 };
+      p.bowl = { sideDistance: 15000, endDistance: 11000, cornerRadius: 14000, targetCapacity: 65000, stands: {} };
       p.sightlines.maxRakeDeg = 35;
       p.tiers = [
         tier('T1', 'Lower bowl', { rows: 32, elevation: 1800 }),
@@ -107,7 +164,7 @@ export const PRESETS: Preset[] = [
       assumed: ['Three tiers with a steep upper bowl (35°)', 'Tight 14 m sideline distance', 'Row counts fitted to 70,000'], confidence: 'low' },
     () => {
       const p = base('nfl', 'Large NFL atmosphere bowl (Chiefs-inspired)', 'chiefs');
-      p.bowl = { sideDistance: 14000, endDistance: 10000, cornerRadius: 18000, targetCapacity: 70000 };
+      p.bowl = { sideDistance: 14000, endDistance: 10000, cornerRadius: 18000, targetCapacity: 70000, stands: {} };
       p.sightlines.maxRakeDeg = 35;
       p.tiers = [
         tier('T1', 'Lower bowl', { rows: 34, elevation: 1800 }),
@@ -121,7 +178,7 @@ export const PRESETS: Preset[] = [
       assumed: ['Three tiers', 'Row counts fitted to 60,000'], confidence: 'low' },
     () => {
       const p = base('nfl', 'Enclosed NFL stadium (New Nissan-inspired)', 'nissan');
-      p.bowl = { sideDistance: 15000, endDistance: 11000, cornerRadius: 15000, targetCapacity: 60000 };
+      p.bowl = { sideDistance: 15000, endDistance: 11000, cornerRadius: 15000, targetCapacity: 60000, stands: {} };
       p.sightlines.maxRakeDeg = 35;
       p.tiers = [
         tier('T1', 'Lower bowl', { rows: 30, elevation: 1800 }),
@@ -135,7 +192,7 @@ export const PRESETS: Preset[] = [
       assumed: ['Max rake 37° (Italian rules differ from the UK 34°)', 'Generous corner radius for a softer plan (a truly oval, bowed plan needs Round 02 stand curvature)', 'Row counts fitted to 71,500'], confidence: 'low' },
     () => {
       const p = base('soccer', 'European two-tier bowl (Milan-inspired)', 'milano');
-      p.bowl = { sideDistance: 8500, endDistance: 10500, cornerRadius: 16000, targetCapacity: 71500 };
+      p.bowl = { sideDistance: 8500, endDistance: 10500, cornerRadius: 16000, targetCapacity: 71500, stands: {} };
       p.sightlines.maxRakeDeg = 37;
       p.tiers = [tier('T1', 'First ring', { rows: 30, elevation: 1500 }), tier('T2', 'Second ring', { rows: 32, elevation: 5000, overhang: -6000, targetC: 60 })];
       return fitted(p);
@@ -146,7 +203,7 @@ export const PRESETS: Preset[] = [
     () => {
       const p = base('soccer', 'Club stadium with strong ends (Birmingham-inspired)', 'birmingham');
       p.field.runoffEnd = 6000;
-      p.bowl = { sideDistance: 8000, endDistance: 7000, cornerRadius: 8000, targetCapacity: 62000 };
+      p.bowl = { sideDistance: 8000, endDistance: 7000, cornerRadius: 8000, targetCapacity: 62000, stands: {} };
       p.tiers = [tier('T1', 'Lower tier', { rows: 26, elevation: 1300 }), tier('T2', 'Upper tier', { rows: 30, elevation: 4800, overhang: -6000, targetC: 60 })];
       return fitted(p);
     }),
