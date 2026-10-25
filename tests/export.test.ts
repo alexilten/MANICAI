@@ -6,7 +6,7 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { seatId } from '../src/core/engine/seats';
 import { defaultProject, parseProject, serializeProject } from '../src/core/schema';
-import type { Stadium } from '../src/core/engine/stadium';
+import { extents, type Stadium } from '../src/core/engine/stadium';
 import { exportRhino, projectFrom3dm, type RhinoModule } from '../src/export/rhino';
 import { inspect3dm, type FileInfo } from '../src/export/inspect3dm';
 import { getPreset } from '../src/core/presets';
@@ -63,7 +63,7 @@ describe('H · Rhino .3dm export', () => {
     for (const o of terraces) for (let k = 0; k < 3; k++) { max[k] = Math.max(max[k], o.bbox!.max[k]); min[k] = Math.min(min[k], o.bbox!.min[k]); }
     expect(min[0]).toBeCloseTo(-max[0], 0);
     expect(min[1]).toBeCloseTo(-max[1], 0);
-    expect(max[0]).toBeCloseTo(s.bounds.max[0], -2);
+    expect(max[0]).toBeCloseTo(extents(s.ring, s.layout, s.profiles).maxX, -2);
     expect(min[2]).toBeGreaterThanOrEqual(-1);
     expect(info.groups.some((g) => g.startsWith('TERRACE_T1'))).toBe(true);
   });

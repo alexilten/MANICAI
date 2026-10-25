@@ -1,6 +1,6 @@
 {
   "schema": "manicai.project",
-  "version": 2,
+  "version": 3,
   "name": "Horseshoe ground",
   "units": "metric",
   "site": {
@@ -87,5 +87,26 @@
       "targetC": 60
     }
   ],
+  "premium": [],
+  "building": {
+    "concourseWidth": 10000,
+    "programDepth": 10000,
+    "concourseClear": 4000,
+    "allowances": {
+      "concessions": 0.06,
+      "restrooms": 0.07,
+      "retail": 0.015,
+      "firstAid": 0.003,
+      "clubLounge": 1
+    },
+    "cores": {
+      "spacing": 60000,
+      "width": 9000,
+      "depth": 11000,
+      "stairs": 2,
+      "stairWidth": 2400,
+      "lifts": 2
+    }
+  },
   "presetId": "horseshoe"
 }

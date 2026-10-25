@@ -1,6 +1,6 @@
 import { fitRowsToTarget, ROWS_MAX, ROWS_MIN } from '../core/engine/optimize';
 import { CORNER_NEIGHBOURS, SEGMENTS, type SegmentId } from '../core/engine/plan';
-import { switchSport, tier, type CornerId, type Project, type StandId, type StandParams, type TierParams } from '../core/schema';
+import { suiteLevel, switchSport, tier, type CornerId, type PremiumLevel, type Project, type StandId, type StandParams, type TierParams } from '../core/schema';
 import { SPORTS, type SportId } from '../core/sports';
 import { formatLength } from '../core/units';
 import { LengthControl, NumberControl, Section, Segmented, Toggle } from './controls';
@@ -22,7 +22,7 @@ export function LeftPanel() {
   const fit = () => {
     const r = fitRowsToTarget(p);
     edit((x) => { x.tiers.forEach((t, i) => { t.rows = r.rows[i]; }); }, 'fit');
-    toast(r.reached ? `Rows fitted: ${fmtInt(r.capacity)} net seats (target ${fmtInt(p.bowl.targetCapacity)})` : `Closest achievable with these tiers: ${fmtInt(r.capacity)} seats — add a tier or move rows back`);
+    toast(r.reached ? `Rows fitted: ${fmtInt(r.capacity)} seats (target ${fmtInt(p.bowl.targetCapacity)})` : `Closest achievable with these tiers: ${fmtInt(r.capacity)} seats — add a tier or move rows back`);
   };
 
   const setTierCount = (n: number) => edit((x) => {
@@ -52,10 +52,10 @@ export function LeftPanel() {
           <LengthControl label="Run-off, ends" units={u} value={p.field.runoffEnd} min={2000} max={20000} step={250} onChange={(v) => set((x) => { x.field.runoffEnd = v; }, 'field.runoffEnd')} />
         </Section>
 
-        <Section title="Bowl" summary={`${fmtInt(st.metrics.net)} seats`}>
+        <Section title="Bowl" summary={`${fmtInt(st.metrics.total)} seats`}>
           <NumberControl label="Target capacity" value={p.bowl.targetCapacity} min={5000} max={110000} step={500} format={fmtInt}
             onChange={(v) => set((x) => { x.bowl.targetCapacity = v; }, 'bowl.target')}
-            hint={<span>Net <b>{fmtInt(st.metrics.net)}</b> · {st.metrics.net >= p.bowl.targetCapacity ? '+' : '−'}{fmtInt(Math.abs(st.metrics.net - p.bowl.targetCapacity))} · gross {fmtInt(st.metrics.gross)}</span>} />
+            hint={<span>Capacity <b>{fmtInt(st.metrics.total)}</b> · {st.metrics.total >= p.bowl.targetCapacity ? '+' : '−'}{fmtInt(Math.abs(st.metrics.total - p.bowl.targetCapacity))} · gross {fmtInt(st.metrics.gross)}{st.metrics.suiteSeats ? ` · ${fmtInt(st.metrics.suiteSeats)} in suites` : ''}</span>} />
           <button className="primary wide" onClick={fit}>Fit rows to target</button>
           <div className="sub-label">Plan</div>
           <LengthControl label="First row from sidelines" units={u} value={p.bowl.sideDistance} min={3000} max={40000} step={250}
@@ -95,8 +95,9 @@ export function LeftPanel() {
           <p className="muted small">When on, seats under the minimum C-value are taken out of net capacity (they stay in gross).</p>
         </Section>
 
-        <Section title="Premium" badge="R03" defaultOpen={false}><p className="muted small">A tier can already be a club tier (Tiers → Type). Suites, loge boxes and club lounges inserted into the bowl section arrive in Round 03, in the vertical gap the tier model reserves between tiers.</p></Section>
-        <Section title="Architecture" badge="R03–04" defaultOpen={false}><p className="muted small">Concourses, vertical circulation, structure and facade generate from the bowl in Rounds 03–04.</p></Section>
+        <PremiumControls />
+        <ConcourseControls />
+        <Section title="Structure & facade" badge="R04" defaultOpen={false}><p className="muted small">Structural grid, rakers, facade and envelope generate from the bowl and building section in Round 04.</p></Section>
         <Section title="Roof" badge="R04" defaultOpen={false}><p className="muted small">Open, canopy, fixed ETFE and retractable typologies coordinated with tier heights and sightlines — Round 04.</p></Section>
       </div>
     </aside>
@@ -227,5 +228,85 @@ function CrossAisles({ t, max, onChange }: { t: TierParams; max: number; onChang
       </div>
       <div className="ctl-hint">Row numbers, comma separated. The tread behind each is widened by the cross-aisle width.</div>
     </div>
+  );
+}
+
+const STAND_IDS: StandId[] = ['N', 'S', 'E', 'W'];
+
+/** Premium levels inserted into the section: suites or club levels under an upper tier. */
+function PremiumControls() {
+  const p = useStore((s) => s.project);
+  const st = useStore((s) => s.stadium);
+  const edit = useStore((s) => s.edit);
+  const u = p.units;
+  const bm = st.building.metrics;
+  const upper = p.tiers.slice(1);
+  const set = (i: number, fn: (l: PremiumLevel) => void, k: string) => edit((x) => fn(x.premium[i]), `prem.${i}.${k}`);
+  const add = () => edit((x) => {
+    const under = x.tiers[1]?.id ?? 'T2';
+    const n = x.premium.length + 1;
+    x.premium.push(suiteLevel(`P${n}`, under, { name: n === 1 ? 'Suite level' : `Premium level ${n}` }));
+  }, 'prem.add');
+  return (
+    <Section title="Premium" summary={bm.suites ? `${bm.suites} suites · ${fmtInt(bm.suiteSeats)} seats` : 'None'} defaultOpen={false}>
+      <p className="muted small">A premium level is inserted under an upper tier and lifts it by its floor height, so the bowl section and the upper tier's sightlines change with it. Club seating in the bowl is a tier type (Tiers → Type).</p>
+      {p.premium.map((l, i) => (
+        <div className="tier-card" key={l.id}>
+          <div className="tier-head">
+            <input className="name-input" value={l.name} onChange={(e) => set(i, (x) => { x.name = e.target.value; }, 'name')} />
+            <button className="link-btn" onClick={() => edit((x) => { x.premium.splice(i, 1); }, `prem.${i}.del`)}>Remove</button>
+          </div>
+          <div className="cab-meta">
+            <span>{st.building.suites.filter((s) => s.level === `PREM.${l.id}`).length} suites</span>
+            <span>floor +{formatLength(st.building.levels.find((v) => v.id === `PREM.${l.id}`)?.z ?? 0, u)}</span>
+          </div>
+          <Segmented size="sm" value={l.kind} onChange={(v) => set(i, (x) => { x.kind = v; }, 'kind')} options={[{ value: 'suites', label: 'Suites' }, { value: 'club', label: 'Club level', title: 'An open club lounge level with a balcony, no suites' }]} />
+          {upper.length > 1 && <Segmented size="sm" value={l.belowTier} onChange={(v) => set(i, (x) => { x.belowTier = v; }, 'under')} options={upper.map((t) => ({ value: t.id, label: `Under ${t.id}` }))} />}
+          {upper.length === 0 && <p className="ctl-hint">Add a second tier: premium levels sit under an upper tier.</p>}
+          <LengthControl label="Floor-to-floor height" units={u} value={l.height} min={3500} max={7000} step={100} onChange={(v) => set(i, (x) => { x.height = v; }, 'h')} />
+          {l.kind === 'suites' && <>
+            <div className="sub-label">Suite fronts on</div>
+            <div className="regions"><Segmented size="sm" wrap value={'' as string} onChange={(g) => set(i, (x) => { const sId = g as StandId; x.stands = x.stands.includes(sId) ? x.stands.filter((q) => q !== sId) : [...x.stands, sId]; }, 'stands')}
+              options={STAND_IDS.map((g) => ({ value: g, label: l.stands.includes(g) ? <b>{g} ✓</b> : g }))} /></div>
+            <LengthControl label="Suite width" units={u} value={l.unitWidth} min={3500} max={10000} step={100} onChange={(v) => set(i, (x) => { x.unitWidth = v; }, 'w')} />
+            <LengthControl label="Suite depth" units={u} value={l.unitDepth} min={5000} max={14000} step={250} onChange={(v) => set(i, (x) => { x.unitDepth = v; }, 'd')} />
+            <NumberControl label="Seats per suite" value={l.seatsPerUnit} min={6} max={40} step={1} onChange={(v) => set(i, (x) => { x.seatsPerUnit = v; }, 'seats')} />
+          </>}
+        </div>
+      ))}
+      <button className="btn-sm wide" onClick={add} disabled={p.tiers.length < 2}>Add premium level</button>
+    </Section>
+  );
+}
+
+/** Concourses, program allowances and cores. */
+function ConcourseControls() {
+  const p = useStore((s) => s.project);
+  const st = useStore((s) => s.stadium);
+  const edit = useStore((s) => s.edit);
+  const u = p.units;
+  const b = p.building, bm = st.building.metrics;
+  const set = (fn: (x: Project['building']) => void, k: string) => edit((x) => fn(x.building), `bld.${k}`);
+  const allow = (k: keyof Project['building']['allowances'], label: string, max: number, step: number, hint?: string) => (
+    <NumberControl label={label} value={b.allowances[k]} min={0} max={max} step={step} suffix=" m²" hint={hint} onChange={(v) => set((x) => { x.allowances = { ...x.allowances, [k]: v }; }, `al.${k}`)} />
+  );
+  return (
+    <Section title="Concourses & circulation" summary={`${st.building.levels.filter((l) => l.kind === 'concourse').length} concourses · ${bm.cores} cores`} defaultOpen={false}>
+      <LengthControl label="Concourse width" units={u} value={b.concourseWidth} min={4000} max={25000} step={250} onChange={(v) => set((x) => { x.concourseWidth = v; }, 'cw')} />
+      <LengthControl label="Program zone depth" units={u} value={b.programDepth} min={3000} max={15000} step={250} hint="Concessions, toilets and retail behind the concourse" onChange={(v) => set((x) => { x.programDepth = v; }, 'pd')} />
+      <LengthControl label="Concourse clear height" units={u} value={b.concourseClear} min={3000} max={7000} step={100} hint="Where a concourse may start under a tier" onChange={(v) => set((x) => { x.concourseClear = v; }, 'cc')} />
+      <div className="sub-label">Program per spectator (assumptions)</div>
+      {allow('restrooms', 'Toilets', 0.3, 0.005)}
+      {allow('concessions', 'Concessions', 0.3, 0.005)}
+      {allow('retail', 'Retail', 0.1, 0.005)}
+      {allow('firstAid', 'First aid', 0.02, 0.001)}
+      {allow('clubLounge', 'Club lounge, per club seat', 3, 0.1)}
+      <p className="muted small">Planning allowances you set, not code values. Toilet fixture counts and their split depend on the jurisdiction.</p>
+      <div className="sub-label">Cores (stairs and lifts)</div>
+      <LengthControl label="Spacing along the building" units={u} value={b.cores.spacing} min={20000} max={150000} step={1000} hint={`${bm.cores} cores · up to ${formatLength(bm.maxToCore, u)} to the nearest`} onChange={(v) => set((x) => { x.cores = { ...x.cores, spacing: v }; }, 'cs')} />
+      <NumberControl label="Stairs per core" value={b.cores.stairs} min={1} max={4} step={1} onChange={(v) => set((x) => { x.cores = { ...x.cores, stairs: v }; }, 'st')} />
+      <NumberControl label="Lifts per core" value={b.cores.lifts} min={0} max={8} step={1} onChange={(v) => set((x) => { x.cores = { ...x.cores, lifts: v }; }, 'lf')} />
+      <LengthControl label="Stair width" units={u} value={b.cores.stairWidth} min={1100} max={4000} step={100} onChange={(v) => set((x) => { x.cores = { ...x.cores, stairWidth: v }; }, 'sw')} />
+    </Section>
   );
 }

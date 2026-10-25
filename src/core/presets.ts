@@ -10,7 +10,7 @@
 import { CHECKED, PRECEDENTS } from './data/precedents';
 import { adaRequired } from './engine/accessibility';
 import { evaluate, fitRowsToTarget, ROWS_MAX as ROWS_LIMIT } from './engine/optimize';
-import { defaultProject, tier, type Project } from './schema';
+import { defaultProject, suiteLevel, tier, type Project } from './schema';
 import { SPORTS, type SportId } from './sports';
 
 export type Confidence = 'generic' | 'low' | 'medium';
@@ -78,7 +78,7 @@ export const PRESETS: Preset[] = [
       return fitted(p);
     }),
   P({ id: 'generic-nfl', name: 'Generic NFL bowl', short: 'Three-tier football bowl with a club level', category: 'generic', sport: 'nfl',
-      verified: [], assumed: ['All dimensions are MANICAI planning defaults.'], confidence: 'generic' },
+      verified: [], assumed: ['One suite level between the club level and the upper bowl, suites on both sidelines', 'All dimensions are MANICAI planning defaults.'], confidence: 'generic' },
     () => {
       const p = base('nfl', 'Generic NFL bowl', 'generic-nfl');
       p.bowl.targetCapacity = 65000; p.bowl.cornerRadius = 16000;
@@ -88,6 +88,7 @@ export const PRESETS: Preset[] = [
         tier('T3', 'Upper bowl', { rows: 24, elevation: 4500, overhang: -2500, targetC: 60 }),
       ];
       p.sightlines.maxRakeDeg = 35;
+      p.premium = [suiteLevel('P1', 'T3', { name: 'Suite level' })];
       return fitted(p);
     }),
   P({ id: 'four-stand', name: 'Four-stand ground', short: 'Square corners: four separate stands', category: 'generic', sport: 'soccer',
@@ -147,7 +148,7 @@ export const PRESETS: Preset[] = [
     }),
   P({ id: 'allegiant', name: 'Compact enclosed NFL bowl — Allegiant-inspired', short: '65,000 · enclosed multipurpose NFL', category: 'precedent', sport: 'nfl', precedent: 'allegiant',
       verified: ['NFL stadium, MANICA design architect with HNTB, opened 2020', 'Capacity 65,000 (expandable to 71,835)', 'Fixed translucent ETFE roof; ten-level building; 128 suites'],
-      assumed: ['Three tiers (lower, club/suite, upper) — tier split not published', 'First row 15 m from sidelines', 'Roof not generated until Round 04'], confidence: 'low' },
+      assumed: ['Two suite levels on both sidelines; the suite count is what fits at 5.5 m per suite, not the published 128', 'Three tiers (lower, club/suite, upper) — tier split not published', 'First row 15 m from sidelines', 'Roof not generated until Round 04'], confidence: 'low' },
     () => {
       const p = base('nfl', 'Compact enclosed NFL bowl (Allegiant-inspired)', 'allegiant');
       p.bowl = { sideDistance: 15000, endDistance: 11000, cornerRadius: 14000, targetCapacity: 65000, stands: {} };
@@ -157,11 +158,12 @@ export const PRESETS: Preset[] = [
         tier('T2', 'Club level', { rows: 9, elevation: 5000, overhang: -3500, targetC: 60 }),
         tier('T3', 'Upper bowl', { rows: 26, elevation: 5200, overhang: -2000, targetC: 60 }),
       ];
+      p.premium = [suiteLevel('P1', 'T2', { name: 'Lower suite level', setback: 6000 }), suiteLevel('P2', 'T3', { name: 'Upper suite level', setback: 9000 })];
       return fitted(p);
     }),
   P({ id: 'chiefs', name: 'Large NFL atmosphere bowl — Chiefs-inspired', short: '≈70,000 · enclosed, steep and loud', category: 'precedent', sport: 'nfl', precedent: 'kc-chiefs',
       verified: ['In design (renderings Jul 2026), MANICA lead design architect, HNTB architect of record', 'About 70,000 seats', 'Enclosed translucent ETFE roof; bowl described as recalling Arrowhead, shaped for crowd noise'],
-      assumed: ['Three tiers with a steep upper bowl (35°)', 'Tight 14 m sideline distance', 'Row counts fitted to 70,000'], confidence: 'low' },
+      assumed: ['One suite level on both sidelines (suite count not published)', 'Three tiers with a steep upper bowl (35°)', 'Tight 14 m sideline distance', 'Row counts fitted to 70,000'], confidence: 'low' },
     () => {
       const p = base('nfl', 'Large NFL atmosphere bowl (Chiefs-inspired)', 'chiefs');
       p.bowl = { sideDistance: 14000, endDistance: 10000, cornerRadius: 18000, targetCapacity: 70000, stands: {} };
@@ -171,11 +173,12 @@ export const PRESETS: Preset[] = [
         tier('T2', 'Club level', { rows: 8, elevation: 5000, overhang: -3000, targetC: 60 }),
         tier('T3', 'Upper bowl', { rows: 30, elevation: 4800, overhang: -4500, targetC: 60 }),
       ];
+      p.premium = [suiteLevel('P1', 'T3', { name: 'Suite level', setback: 9000 })];
       return fitted(p);
     }),
   P({ id: 'nissan', name: 'Enclosed NFL stadium — New Nissan-inspired', short: '60,000 · enclosed, tiered football seating', category: 'precedent', sport: 'nfl', precedent: 'new-nissan',
       verified: ['Under construction, MANICA designer, opening 2027', 'Capacity 60,000 (55–60,000 proposed)', 'Enclosed translucent ETFE roof; ~170 suites'],
-      assumed: ['Three tiers', 'Row counts fitted to 60,000'], confidence: 'low' },
+      assumed: ['Two suite levels, the upper one wrapping all four stands; the suite count is what fits, not the published ~170', 'Three tiers', 'Row counts fitted to 60,000'], confidence: 'low' },
     () => {
       const p = base('nfl', 'Enclosed NFL stadium (New Nissan-inspired)', 'nissan');
       p.bowl = { sideDistance: 15000, endDistance: 11000, cornerRadius: 15000, targetCapacity: 60000, stands: {} };
@@ -185,16 +188,18 @@ export const PRESETS: Preset[] = [
         tier('T2', 'Suite & club level', { rows: 7, elevation: 5500, overhang: -4000, targetC: 60 }),
         tier('T3', 'Upper bowl', { rows: 24, elevation: 5000, overhang: -2000, targetC: 60 }),
       ];
+      p.premium = [suiteLevel('P1', 'T2', { name: 'Lower suite level', setback: 6000 }), suiteLevel('P2', 'T3', { name: 'Upper suite level', setback: 9000, stands: ['N', 'S', 'E', 'W'] })];
       return fitted(p);
     }),
   P({ id: 'milano', name: 'European two-tier bowl — Milan-inspired', short: '71,500 · two large tiers, oval, steep', category: 'precedent', sport: 'soccer', precedent: 'milano',
       verified: ['In design (Foster + Partners and MANICA)', '71,500 seats, > 13,000 premium', 'Two large tiers, more oval than the Meazza; curve sections up to ~37° (preliminary press figure)'],
-      assumed: ['Max rake 37° (Italian rules differ from the UK 34°)', 'Generous corner radius for a softer plan (a truly oval, bowed plan needs Round 02 stand curvature)', 'Row counts fitted to 71,500'], confidence: 'low' },
+      assumed: ['One suite level between the two rings on both sidelines; the published >13,000 premium seats also include club seating not modelled here', 'Max rake 37° (Italian rules differ from the UK 34°)', 'Generous corner radius for a softer plan (a truly oval, bowed plan needs Round 02 stand curvature)', 'Row counts fitted to 71,500'], confidence: 'low' },
     () => {
       const p = base('soccer', 'European two-tier bowl (Milan-inspired)', 'milano');
       p.bowl = { sideDistance: 8500, endDistance: 10500, cornerRadius: 16000, targetCapacity: 71500, stands: {} };
       p.sightlines.maxRakeDeg = 37;
       p.tiers = [tier('T1', 'First ring', { rows: 30, elevation: 1500 }), tier('T2', 'Second ring', { rows: 32, elevation: 5000, overhang: -6000, targetC: 60 })];
+      p.premium = [suiteLevel('P1', 'T2', { name: 'Suite level', setback: 6000 })];
       return fitted(p);
     }),
   P({ id: 'birmingham', name: 'Club stadium with strong ends — Birmingham-inspired', short: '62,000 · traditional bowl, big home end', category: 'precedent', sport: 'soccer', precedent: 'birmingham-city',

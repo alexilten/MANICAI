@@ -10,6 +10,7 @@ import { regionRows, standDistances } from './layout';
 import { makeRing } from './plan';
 import { HEADROOM, solveProfiles } from './profile';
 import { countSeats } from './seats';
+import { suiteSeats } from './building';
 
 export const ROWS_MIN = 3;
 export const ROWS_MAX = 70;
@@ -24,8 +25,10 @@ export function evaluate(p: Project) {
   return { counts, profiles, ring, layout };
 }
 
+/** Headline capacity: net bowl seats plus suite seats. */
 export function capacityOf(p: Project): number {
-  return evaluate(p).counts.net;
+  const e = evaluate(p);
+  return e.counts.net + suiteSeats(p, e.ring);
 }
 
 export interface FitResult { rows: number[]; capacity: number; reached: boolean }
@@ -81,7 +84,7 @@ export interface Move {
  * Sorted: clean moves that close the gap first.
  */
 export function suggestMoves(p: Project, limit = 6): Move[] {
-  const now = evaluate(p).counts.net;
+  const now = capacityOf(p);
   const gap = p.bowl.targetCapacity - now;
   const up = gap > 0;
   const cands: Omit<Move, 'capacity' | 'delta' | 'breaks'>[] = [];
@@ -109,7 +112,8 @@ export function suggestMoves(p: Project, limit = 6): Move[] {
     const q: Project = structuredClone(p);
     c.apply(q);
     const ev = evaluate(q);
-    return { ...c, capacity: ev.counts.net, delta: ev.counts.net - now, breaks: checks(q, ev, p) };
+    const cap = ev.counts.net + suiteSeats(q, ev.ring);
+    return { ...c, capacity: cap, delta: cap - now, breaks: checks(q, ev, p) };
   });
   return moves
     .filter((m) => Math.sign(m.delta) === Math.sign(gap) && m.delta !== 0)

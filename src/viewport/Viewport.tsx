@@ -8,6 +8,7 @@ import type { Stadium } from '../core/engine/stadium';
 import { formatLength } from '../core/units';
 import { useStore, type CameraView } from '../ui/store';
 import { Seats, Terraces, Vomitories, WheelchairPads } from './Bowl';
+import { Cores, Floors, Suites } from './Building';
 import { Field } from './Field';
 
 /** World is mm, Z-up (core/coords.ts). three.js is Y-up metres → one wrapping transform. */
@@ -61,6 +62,10 @@ export function Viewport() {
         {layers.terraces && <Vomitories ring={stadium.ring} voms={stadium.seats.vomitories} clip={clip} />}
         {layers.seats && <Seats seats={stadium.seats.seats} project={project} clip={clip} />}
         {layers.seats && <WheelchairPads seats={stadium.seats.seats} clip={clip} />}
+        {layers.concourses && <Floors ring={stadium.ring} building={stadium.building} clip={clip} premium={false} />}
+        {layers.premium && <Floors ring={stadium.ring} building={stadium.building} clip={clip} premium />}
+        {layers.premium && <Suites ring={stadium.ring} building={stadium.building} project={project} clip={clip} />}
+        {layers.cores && <Cores ring={stadium.ring} building={stadium.building} clip={clip} />}
         <SelectedSeat stadium={stadium} />
         {layers.dimensions && <Dimensions stadium={stadium} />}
         {layers.reference && <Reference stadium={stadium} />}

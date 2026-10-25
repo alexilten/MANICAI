@@ -10,8 +10,8 @@
 ## Pipeline
 
 ```
-Project ──► field ──► layout ──► plan ring ──► tier profiles ──► seats ──► analysis
- (JSON)     sports/    layout.ts   plan.ts      profile.ts        seats.ts    stadium.ts
+Project ──► field ──► layout ──► plan ring ──► tier profiles ──► seats ──► analysis ──► building
+ (JSON)     sports/    layout.ts   plan.ts      profile.ts        seats.ts    stadium.ts    building.ts
                                                                     │
                        viewport (three.js) ◄─────────────── Stadium ─┤
                        Rhino .3dm / CSV    ◄───────────────────────────┘
@@ -24,6 +24,7 @@ Project ──► field ──► layout ──► plan ring ──► tier prof
 | plan (`engine/plan.ts`) | `PlanRing`: rounded rectangle `hx, hy, r`, offset by `cx, cy` when opposite stands sit at different distances | Rows are exact offsets d of this line. `planOffset` is its signed distance field. Eight segments (E, NE, N, …) map to sectors |
 | profiles (`engine/profile.ts`) | Per tier: rows (nosing d, tread z, riser, eye, C on the side, end and corner), outline, rake | One row sequence per tier all the way round, so stands and corners meet without steps. Risers are solved from the C-value formula against the nearest region that carries the row, rounded up to the riser step and capped at the maximum rake. Cross-aisles widen the tread behind a row and the next riser is solved over the wider gap |
 | seats (`engine/seats.ts`) | Columnar typed arrays (x, y, z, rotation, tier, sector, section, row, number, class, C, distances) | Sections are split by radial aisles at segment junctions and evenly between them (28 seats or fewer). Per-seat C uses the true plan sightline to the nearest boundary point (bisection on the SDF). Every gross position stays in the table with a status (active, vomitory, platform, sightline) and a class (general, premium, wheelchair, companion), so net capacity, the viewport and the exports agree |
+| building (`engine/building.ts`) | Levels (concourses and premium plates), suites, program zones, cores, building metrics | Set out in the same (segment, u, d) frame as the seats, so it follows the bowl. Premium levels are part of the section: `solveProfiles` lifts and sets back the tier above them. `bandSolid` turns any band of the ring into a closed solid for the viewport and the .3dm |
 | analysis (`engine/stadium.ts`) | Metrics (net, gross, exclusions, by tier, sector, stand and class, ADA count) and warnings | Each warning cites a rule id from the standards registry |
 
 Each stage is memoised on a JSON key of its inputs (`stage()` in `stadium.ts`), so moving a seat-width slider skips field, plan and profiles.
@@ -33,6 +34,7 @@ Each stage is memoised on a JSON key of its inputs (`stage()` in `stadium.ts`), 
 - `TierParams.elevation` is the first tread level for tier 1, and the vertical gap above the tier below for upper tiers. `overhang` is how far the tier's front sits forward of the back of the tier below (negative is a setback).
 - `targetC` per tier lets upper tiers accept less than the lower bowl.
 - `bowl.stands` holds per-stand and per-corner overrides (distance, open, rows per tier). Anything left out follows the bowl-wide value.
+- Schema v3 (Round 03) adds `premium` (levels inserted under a tier) and `building` (concourse, program allowances, cores). v2 files open with no premium levels and keep their capacities (tested).
 - Schema v2 (Round 02) adds stands, tier kind, seat width, cross-aisles, vomitories and accessible positions. v1 files open with none of these, so they keep their Round 01 seat counts.
 - `optimize.ts` evaluates capacity without storing a seat table, so "fit rows" and "suggest moves" can try dozens of candidate projects.
 - Seat ids are `T{tier}-{section}-R{row}-S{seat}`, stable for a given project.

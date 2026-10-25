@@ -6,20 +6,20 @@ Presets are starting points. **Generic** presets use MANICAI planning defaults. 
 
 They are **not** the architects' geometry, they use no drawings or CAD, and they are not affiliated with or endorsed by MANICA, Populous, HOK or any studio named. Confidence is **low** for all precedent presets because only the capacity and a qualitative bowl description are published.
 
-| preset | sport | target | modelled | tiers | rows | worst C (mm) | farthest seat (m) | confidence |
-|---|---|---:|---:|---:|---:|---:|---:|---|
-| Generic soccer bowl | Soccer | 42,000 | 44,180 | 2 | 26 / 21 | 60 | 178 | generic |
-| Generic NFL bowl | NFL | 65,000 | 67,720 | 3 | 31 / 10 / 25 | 60 | 196 | generic |
-| Four-stand ground | Soccer | 30,000 | 31,560 | 2 | 20 / 15 | 60 | 169 | generic |
-| Horseshoe ground | Soccer | 32,000 | 33,144 | 2 | 28 / 21 | 60 | 180 | generic |
-| Big single-tier end — Tottenham-inspired | Soccer | 62,850 | 65,302 | 2 | 37 / 38 | 60 | 202 | low |
-| Four stands with a steep home end — Everton-inspired | Soccer | 52,888 | 54,714 | 2 | 33 / 29 | 60 | 194 | low |
-| Intimate soccer bowl — Inter Miami-inspired | Soccer | 25,000 | 26,450 | 2 | 19 / 12 | 61 | 164 | low |
-| Compact enclosed NFL bowl — Allegiant-inspired | NFL | 65,000 | 67,418 | 3 | 31 / 9 / 26 | 60 | 195 | low |
-| Large NFL atmosphere bowl — Chiefs-inspired | NFL | 70,000 | 72,692 | 3 | 33 / 8 / 30 | 54 | 199 | low |
-| Enclosed NFL stadium — New Nissan-inspired | NFL | 60,000 | 62,734 | 3 | 31 / 7 / 25 | 60 | 192 | low |
-| European two-tier bowl — Milan-inspired | Soccer | 71,500 | 74,232 | 2 | 32 / 39 | 60 | 200 | low |
-| Club stadium with strong ends — Birmingham-inspired | Soccer | 62,000 | 64,186 | 2 | 26 / 37 | 60 | 192 | low |
+| preset | sport | target | capacity | suites | gross | tiers | rows | worst C (mm) | farthest seat (m) | confidence |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| Generic soccer bowl | Soccer | 42,000 | 41,998 | 0 | 44,180 | 2 | 26 / 21 | 60 | 178 | generic |
+| Generic NFL bowl | NFL | 65,000 | 64,578 | 34 | 67,272 | 3 | 31 / 10 / 24 | 60 | 200 | generic |
+| Four-stand ground | Soccer | 30,000 | 30,444 | 0 | 31,560 | 2 | 20 / 15 | 60 | 169 | generic |
+| Horseshoe ground | Soccer | 32,000 | 31,652 | 0 | 33,144 | 2 | 28 / 21 | 60 | 180 | generic |
+| Big single-tier end — Tottenham-inspired | Soccer | 62,850 | 63,281 | 0 | 65,302 | 2 | 37 / 38 | 60 | 202 | low |
+| Four stands with a steep home end — Everton-inspired | Soccer | 52,888 | 52,565 | 0 | 54,714 | 2 | 33 / 29 | 60 | 194 | low |
+| Intimate soccer bowl — Inter Miami-inspired | Soccer | 25,000 | 25,434 | 0 | 26,450 | 2 | 19 / 12 | 61 | 164 | low |
+| Compact enclosed NFL bowl — Allegiant-inspired | NFL | 65,000 | 64,899 | 72 | 66,780 | 3 | 30 / 8 / 24 | 60 | 208 | low |
+| Large NFL atmosphere bowl — Chiefs-inspired | NFL | 70,000 | 70,584 | 32 | 72,912 | 3 | 32 / 8 / 29 | 60 | 207 | low |
+| Enclosed NFL stadium — New Nissan-inspired | NFL | 60,000 | 60,044 | 84 | 61,222 | 3 | 28 / 7 / 23 | 60 | 205 | low |
+| European two-tier bowl — Milan-inspired | Soccer | 71,500 | 71,398 | 32 | 73,348 | 2 | 29 / 39 | 60 | 204 | low |
+| Club stadium with strong ends — Birmingham-inspired | Soccer | 62,000 | 61,626 | 0 | 64,186 | 2 | 26 / 37 | 60 | 192 | low |
 
 ### Generic soccer bowl
 
@@ -35,6 +35,7 @@ Three-tier football bowl with a club level.
 
 **Assumed by MANICAI:**
 
+- One suite level between the club level and the upper bowl, suites on both sidelines
 - All dimensions are MANICAI planning defaults.
 
 ### Four-stand ground
@@ -131,6 +132,7 @@ Precedent: **Allegiant Stadium** (Paradise (Las Vegas), Nevada, USA). Status: co
 
 **Assumed by MANICAI:**
 
+- Two suite levels on both sidelines; the suite count is what fits at 5.5 m per suite, not the published 128
 - Three tiers (lower, club/suite, upper) — tier split not published
 - First row 15 m from sidelines
 - Roof not generated until Round 04
@@ -149,14 +151,10 @@ Precedent: **Kansas City Chiefs Stadium** (Wyandotte County, Kansas, USA). Statu
 
 **Assumed by MANICAI:**
 
+- One suite level on both sidelines (suite count not published)
 - Three tiers with a steep upper bowl (35°)
 - Tight 14 m sideline distance
 - Row counts fitted to 70,000
-
-**Checks raised:**
-
-- Upper bowl: 10 rows hit the 35° rake limit, so the C-value target is not met there. Move the tier closer to the field, lower its first row or accept a lower target.
-- Upper bowl: lowest C-value 54 mm is below the 60 mm minimum.
 
 ### Enclosed NFL stadium — New Nissan-inspired
 
@@ -172,6 +170,7 @@ Precedent: **New Nissan Stadium** (Nashville, Tennessee, USA). Status: under-con
 
 **Assumed by MANICAI:**
 
+- Two suite levels, the upper one wrapping all four stands; the suite count is what fits, not the published ~170
 - Three tiers
 - Row counts fitted to 60,000
 
@@ -189,13 +188,14 @@ Precedent: **Nuovo Stadio Milano** (San Siro, Milan, Italy). Status: in-design (
 
 **Assumed by MANICAI:**
 
+- One suite level between the two rings on both sidelines; the published >13,000 premium seats also include club seating not modelled here
 - Max rake 37° (Italian rules differ from the UK 34°)
 - Generous corner radius for a softer plan (a truly oval, bowed plan needs Round 02 stand curvature)
 - Row counts fitted to 71,500
 
 **Checks raised:**
 
-- Farthest seat is 200 m from the far pitch corner (FIFA maximum 190 m).
+- Farthest seat is 204 m from the far pitch corner (FIFA maximum 190 m).
 
 ### Club stadium with strong ends — Birmingham-inspired
 

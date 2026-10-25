@@ -12,10 +12,13 @@
  *     club seats on 05_PREMIUM, wheelchair positions and companion seats on 04_ACCESSIBILITY, and the positions
  *     removed for vomitories / platforms as named points on 91_ANALYSIS::EXCLUDED_SEATS
  *   • vomitory openings as closed solids on 07_VERTICAL_CIRCULATION::VOMITORIES (the join script subtracts them)
+ *   • Round 03 building: concourse and premium floor plates (closed meshes), suites, program zones and cores
+ *     (closed solids) on 05_PREMIUM, 06_CONCOURSES and 07_VERTICAL_CIRCULATION, each named and carrying its area
  *   • field markings as true lines and arcs; goals as solids
  *   • the full project JSON in the document strings, so MANICAI can reopen the file parametrically
  */
 import { annotations } from '../core/engine/annotations';
+import { bandSolid, PROGRAM_KINDS, PROGRAM_LABEL, SLAB, type BoxMesh } from '../core/engine/building';
 import { isCorner, pointAt, SECTORS, SECTOR_LABEL, SEGMENTS, type SegmentId } from '../core/engine/plan';
 import { tierOutline } from '../core/engine/profile';
 import { SEAT_STATUS, seatId } from '../core/engine/seats';
@@ -27,7 +30,7 @@ import { serializeProject } from '../core/schema';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export type RhinoModule = any;
 
-export const APP_VERSION = '0.2.0';
+export const APP_VERSION = '0.3.0';
 
 /** The MANICAI layer standard. Systems that are not generated yet keep their place in the hierarchy. */
 export const LAYER_TREE: { name: string; color: [number, number, number]; children: string[] }[] = [
@@ -36,9 +39,9 @@ export const LAYER_TREE: { name: string; color: [number, number, number]; childr
   { name: '02_BOWL_GEOMETRY', color: [120, 120, 128], children: ['FRONT_ROW_LINE', 'ROW_LINES'] },
   { name: '03_SEATING', color: [70, 76, 90], children: [] },
   { name: '04_ACCESSIBILITY', color: [30, 96, 190], children: ['WHEELCHAIR_POSITIONS', 'COMPANION_SEATS'] },
-  { name: '05_PREMIUM', color: [170, 130, 60], children: [] },
-  { name: '06_CONCOURSES', color: [160, 150, 140], children: [] },
-  { name: '07_VERTICAL_CIRCULATION', color: [150, 110, 160], children: ['VOMITORIES'] },
+  { name: '05_PREMIUM', color: [170, 130, 60], children: ['LEVELS', 'SUITES'] },
+  { name: '06_CONCOURSES', color: [160, 150, 140], children: ['FLOOR_PLATES', 'PROGRAM', ...PROGRAM_KINDS.map((k) => `PROGRAM::${PROGRAM_LABEL[k].toUpperCase().replace(/[^A-Z0-9]+/g, '_')}`)] },
+  { name: '07_VERTICAL_CIRCULATION', color: [150, 110, 160], children: ['VOMITORIES', 'CORES'] },
   { name: '08_STRUCTURE', color: [110, 112, 118], children: [] },
   { name: '09_ROOF', color: [200, 200, 205], children: [] },
   { name: '10_FACADE', color: [180, 175, 165], children: [] },
@@ -201,6 +204,33 @@ export function exportRhino(rh: RhinoModule, s: Stadium, opts: RhinoExportOption
     add(brep, attrs('07_VERTICAL_CIRCULATION::VOMITORIES', v.id, { tier: tid, section: v.section, width_mm: v.width, rows_removed: v.rowsRemoved, floor_mm: Math.round(v.zFloor) }));
   }
 
+  // ── Round 03 building: floor plates (closed meshes), suites, program and cores (closed solids)
+  const meshOf = (b: BoxMesh) => {
+    const m = new rh.Mesh();
+    for (let k = 0; k < b.positions.length; k += 3) m.vertices().add(b.positions[k], b.positions[k + 1], b.positions[k + 2]);
+    for (let k = 0; k < b.index.length; k += 3) m.faces().addTriFace(b.index[k], b.index[k + 1], b.index[k + 2]);
+    m.normals().computeNormals();
+    m.compact();
+    return m;
+  };
+  const solidOf = (b: BoxMesh) => { const m = meshOf(b); const brep = rh.Brep.createFromMesh(m, true); free(m); return brep; };
+  const B = s.building;
+  for (const l of B.levels) {
+    const layer = l.kind === 'concourse' ? '06_CONCOURSES::FLOOR_PLATES' : '05_PREMIUM::LEVELS';
+    add(meshOf(bandSolid(ring, 'ring', l.d0, l.d1, l.z - SLAB, l.z)), attrs(layer, l.id, { name: l.name, level_mm: Math.round(l.z), area_m2: Math.round(l.area), serves: l.serves }));
+  }
+  for (const st of B.suites) {
+    const h = (p.premium.find((x) => `PREM.${x.id}` === st.level)?.height ?? 4500) - SLAB - 600;
+    add(solidOf(bandSolid(ring, { seg: st.seg, u0: st.u0, u1: st.u1 }, st.d0, st.d1, st.z, st.z + h)), attrs('05_PREMIUM::SUITES', st.id, { seats: st.seats, level_mm: Math.round(st.z) }));
+  }
+  for (const z of B.program) {
+    const layer = `06_CONCOURSES::PROGRAM::${PROGRAM_LABEL[z.kind].toUpperCase().replace(/[^A-Z0-9]+/g, '_')}`;
+    add(solidOf(bandSolid(ring, { seg: z.seg, u0: z.u0, u1: z.u1 }, z.d0 + 200, z.d1 - 200, z.z, z.z + 3200)), attrs(layer, z.id, { use: PROGRAM_LABEL[z.kind], area_m2: z.area.toFixed(1), level_mm: Math.round(z.z) }));
+  }
+  for (const c of B.cores) {
+    add(solidOf(bandSolid(ring, { seg: c.seg, u0: c.u0, u1: c.u1 }, c.d0, c.d1, 0, c.zTop)), attrs('07_VERTICAL_CIRCULATION::CORES', c.id, { stairs: c.stairs, lifts: c.lifts, top_mm: Math.round(c.zTop) }));
+  }
+
   // ── seats: one block per seat width, one named instance per position in use
   if (opts.seats !== false && s.seats.seats.count) {
     const t = s.seats.seats, tierIds = s.profiles.map((x) => x.id);
@@ -265,7 +295,10 @@ export function exportRhino(rh: RhinoModule, s: Stadium, opts: RhinoExportOption
   doc.strings().set('manicai.schema', 'manicai.project');
   doc.strings().set('manicai.appVersion', APP_VERSION);
   doc.strings().set('manicai.project', serializeProject(p));
-  doc.strings().set('manicai.capacity', String(s.metrics.net));
+  doc.strings().set('manicai.capacity', String(s.metrics.total));
+  doc.strings().set('manicai.capacity.bowl_net', String(s.metrics.net));
+  doc.strings().set('manicai.capacity.suites', String(s.metrics.suiteSeats));
+  doc.strings().set('manicai.building.gfa_m2', String(Math.round(s.building.metrics.grossArea)));
   doc.strings().set('manicai.capacity.gross', String(s.metrics.gross));
   doc.strings().set('manicai.coordinateSystem', 'mm; Z up; origin = centre of the playing field at field level; +X field length (east end), +Y field width (north sideline); site north given by manicai.project site.northDeg');
   doc.strings().set('manicai.note', 'Editable Rhino model generated by MANICAI — a conceptual design, not a construction document. Seats are block instances named tier-section-row-seat. Terrace pieces of one tier are grouped; run manicai_join_tiers.py (Export menu) to join each tier into one closed polysurface and cut its vomitory openings. Reopen this file in MANICAI to edit parametrically.');

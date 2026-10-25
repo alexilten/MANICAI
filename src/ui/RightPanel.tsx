@@ -9,6 +9,9 @@ import { KV, Metric, Section, Segmented } from './controls';
 import { Icon } from './icons';
 import { FUTURE_LAYERS, LAYERS, useStore, type AnalysisMetric } from './store';
 import { legendFor } from '../viewport/palette';
+import { PROGRAM_LEGEND, PROGRAM_TONES } from '../viewport/Building';
+import { PROGRAM_KINDS, PROGRAM_LABEL, SLAB } from '../core/engine/building';
+import { tierOutline } from '../core/engine/profile';
 
 const n = (v: number) => Math.round(v).toLocaleString('en-US');
 const pct = (v: number) => `${Math.round(v * 100)}%`;
@@ -23,7 +26,7 @@ export function RightPanel() {
   const toggle = useStore((s) => s.toggleLayer);
   const m = st.metrics;
   const u = p.units;
-  const diff = m.net - m.target;
+  const diff = m.total - m.target;
   const maxTier = Math.max(1, ...m.byTier.map((t) => t.seats));
   const warnings = st.warnings.filter((w) => w.level !== 'info' || w.code === 'capacity.target' || w.code === 'plan.corner');
 
@@ -32,16 +35,16 @@ export function RightPanel() {
       <div className="panel-scroll">
         <SeatInspector />
 
-        <Section title="Capacity" summary={`${n(m.net)} seats`}>
+        <Section title="Capacity" summary={`${n(m.total)} seats`}>
           <div className="capacity-hero">
-            <div className="capacity-num">{n(m.net)}</div>
-            <div className="capacity-sub">net capacity · target {n(m.target)} <span className={Math.abs(diff) <= m.target * 0.02 ? 'ok' : 'warn'}>({diff >= 0 ? '+' : '−'}{n(Math.abs(diff))})</span></div>
+            <div className="capacity-num">{n(m.total)}</div>
+            <div className="capacity-sub">{m.suiteSeats ? `${n(m.net)} bowl + ${n(m.suiteSeats)} suite seats` : 'net capacity'} · target {n(m.target)} <span className={Math.abs(diff) <= m.target * 0.02 ? 'ok' : 'warn'}>({diff >= 0 ? '+' : '−'}{n(Math.abs(diff))})</span></div>
           </div>
           <div className="metric-grid">
             <Metric label="Gross" value={n(m.gross)} sub="every position the geometry allows" />
             <Metric label="Excluded" value={n(m.gross - m.net)} sub={m.exclusions.filter((x) => x.seats).map((x) => `${n(x.seats)} ${x.label.toLowerCase()}`).join(' · ') || 'none'} />
             <Metric label="Wheelchair" value={n(m.accessible.wheelchair)} tone={m.accessible.wheelchair >= m.accessible.required ? 'ok' : 'warn'} sub={`ADA table asks ${n(m.accessible.required)} · ${n(m.accessible.companion)} companions`} />
-            <Metric label="Club / premium" value={n(m.byClass.premium ?? 0)} sub={`${n(m.byClass.general ?? 0)} general admission`} />
+            <Metric label="Club / premium" value={n((m.byClass.premium ?? 0) + m.suiteSeats)} sub={`${st.building.metrics.suites} suites · ${pct(((m.byClass.premium ?? 0) + m.suiteSeats) / Math.max(1, m.total))} of capacity`} />
             <Metric label="Rows" value={m.rows} sub={`${m.sections} sections · ${m.vomitories} vomitories`} />
             <Metric label="Longest row" value={m.maxRowSeats} sub={`max ${p.seating.maxSeatsBetweenAisles} between aisles`} />
           </div>
@@ -80,15 +83,7 @@ export function RightPanel() {
           </Section>
         )}
 
-        <Section title="Building" summary={`${formatLength(m.footprint.length, u)} × ${formatLength(m.footprint.width, u)}`} defaultOpen={false}>
-          <KV k="Bowl footprint" v={`${formatLength(m.footprint.length, u)} × ${formatLength(m.footprint.width, u)}`} />
-          <KV k="Footprint area" v={formatArea(m.footprint.area, u)} />
-          <KV k="Seating bowl area (plan)" v={formatArea(m.bowlArea, u)} />
-          <KV k="Plan area per seat" v={`${(m.bowlArea / 1e6 / Math.max(1, m.net)).toFixed(2)} m²`} />
-          <KV k="Top of bowl (rear barrier)" v={formatLength(m.height, u)} />
-          <KV k="Corner rows to field corner" v={formatLength(st.ring.cornerDistance, u)} />
-          <p className="muted small">Gross floor areas, structure and roof arrive with Rounds 03–04.</p>
-        </Section>
+        <BuildingSection />
 
         <Section title="Layers">
           <ul className="layers">
@@ -203,5 +198,67 @@ function Moves() {
         ))}
       </ul>
     </>
+  );
+}
+
+/** Building metrics and the section through the south stand. */
+function BuildingSection() {
+  const st = useStore((s) => s.stadium);
+  const p = useStore((s) => s.project);
+  const u = p.units;
+  const m = st.metrics, bm = st.building.metrics;
+  const cap = Math.max(1, m.total);
+  return (
+    <Section title="Building & efficiency" summary={`${n(bm.grossArea)} m² GFA`} defaultOpen={false}>
+      <SectionDiagram />
+      <div className="legend">{PROGRAM_LEGEND.map((l) => <span key={l.label}><i style={{ background: l.color }} />{l.label}</span>)}</div>
+      <div className="metric-grid">
+        <Metric label="Gross floor area" value={`${n(bm.grossArea)} m²`} sub="floor plates + cores, bowl excluded" />
+        <Metric label="Per spectator" value={`${(bm.grossArea / cap).toFixed(2)} m²`} sub={`concourse ${(bm.concourseArea / cap).toFixed(2)} m²`} />
+        <Metric label="Program placed" value={`${n(bm.programPlaced)} m²`} tone={bm.programPlaced >= bm.programNeeded * 0.98 ? 'ok' : 'warn'} sub={`of ${n(bm.programNeeded)} m² asked`} />
+        <Metric label="Hospitality" value={n(bm.hospitality)} sub={`guests in ${n(bm.clubLoungeArea)} m² of lounge`} />
+      </div>
+      {PROGRAM_KINDS.filter((k) => bm.programArea[k] > 0).map((k) => <KV key={k} k={<><i className="swatch" style={{ background: PROGRAM_TONES[k] }} />{PROGRAM_LABEL[k]}</>} v={`${n(bm.programArea[k])} m²`} />)}
+      <div className="sub-label">Levels</div>
+      {st.building.levels.slice().sort((a, b) => a.z - b.z).map((l) => <KV key={l.id} k={l.name} v={`+${formatLength(l.z, u)} · ${n(l.area)} m²`} />)}
+      <div className="sub-label">Plan</div>
+      <KV k="Bowl footprint" v={`${formatLength(m.footprint.length, u)} × ${formatLength(m.footprint.width, u)}`} />
+      <KV k="Building footprint" v={formatArea(bm.footprint * 1e6, u)} />
+      <KV k="Top of bowl (rear barrier)" v={formatLength(m.height, u)} />
+      <KV k="Cores" v={`${bm.cores} · ${p.building.cores.stairs} stairs + ${p.building.cores.lifts} lifts each`} />
+      <KV k="Farthest walk to a core" v={`${formatLength(bm.maxToCore, u)} along the concourse`} />
+      <p className="muted small method">Conceptual space planning from your allowances. Exit capacity, travel distance and fixture counts are code checks still to be done (standards: review.egress).</p>
+    </Section>
+  );
+}
+
+/** Building section at the middle of the south stand (north if the south carries no seats). */
+function SectionDiagram() {
+  const st = useStore((s) => s.stadium);
+  const seg = st.layout.rows.S.some((r) => r > 0) ? 'S' : 'N';
+  const W = 300, H = 170, pad = 8;
+  const dField = -st.ring.dist[seg];
+  const items: { pts: [number, number][]; fill: string; stroke?: string }[] = [];
+  st.profiles.forEach((t, i) => { const nr = st.layout.rows[seg][i]; if (nr > 0) items.push({ pts: tierOutline(t, nr), fill: '#e7e5e0', stroke: '#9a9aa2' }); });
+  const rect = (d0: number, d1: number, z0: number, z1: number): [number, number][] => [[d0, z0], [d1, z0], [d1, z1], [d0, z1]];
+  for (const l of st.building.levels) items.push({ pts: rect(l.d0, l.d1, l.z - SLAB, l.z), fill: l.kind === 'concourse' ? '#8e939c' : '#b8a57a' });
+  const mid = st.building.program.filter((z) => z.seg === seg && z.u0 <= 0.5 + 0.2 && z.u1 >= 0.3);
+  const seen = new Set<string>();
+  for (const z of mid) { if (seen.has(z.level)) continue; seen.add(z.level); items.push({ pts: rect(z.d0 + 200, z.d1 - 200, z.z, z.z + 3200), fill: PROGRAM_TONES[z.kind] }); }
+  const suite = st.building.suites.find((x) => x.seg === seg);
+  if (suite) { const h = (p0: string) => (st.project.premium.find((l) => `PREM.${l.id}` === p0)?.height ?? 4500) - SLAB - 600; items.push({ pts: rect(suite.d0, suite.d1, suite.z, suite.z + h(suite.level)), fill: '#9fc3e6' }); }
+  const core = st.building.cores[0];
+  if (core) items.push({ pts: rect(core.d0, core.d1, 0, core.zTop), fill: '#c9ccd2' });
+  const all = items.flatMap((i) => i.pts);
+  const dMax = Math.max(...all.map((q) => q[0])), zMax = Math.max(...all.map((q) => q[1]));
+  const sc = Math.min((W - 2 * pad) / (dMax - dField), (H - 2 * pad) / zMax);
+  const X = (d: number) => pad + (d - dField) * sc, Y = (z: number) => H - pad - z * sc;
+  return (
+    <svg className="section-svg" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Building section">
+      <line x1={0} x2={W} y1={Y(0)} y2={Y(0)} stroke="#c4c4ca" />
+      <line x1={X(dField)} x2={X(0)} y1={Y(0)} y2={Y(0)} stroke="#3aa35b" strokeWidth={3} />
+      {items.map((it, k) => <polygon key={k} points={it.pts.map(([d, z]) => `${X(d).toFixed(1)},${Y(z).toFixed(1)}`).join(' ')} fill={it.fill} stroke={it.stroke ?? 'none'} strokeWidth={0.6} />)}
+      <text x={W - pad} y={pad + 8} textAnchor="end" className="svg-note">Section · {seg === 'S' ? 'south' : 'north'} stand</text>
+    </svg>
   );
 }

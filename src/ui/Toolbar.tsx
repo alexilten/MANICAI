@@ -49,7 +49,7 @@ export function Toolbar() {
     try {
       await new Promise((r) => setTimeout(r, 30));
       const bytes = await export3dm(stadium, { version, seats });
-      toast(`Rhino ${version} file written · ${(bytes / 1e6).toFixed(1)} MB · ${seats ? stadium.metrics.gross.toLocaleString('en-US') + ' seat blocks' : 'no seats'}`);
+      toast(`Rhino ${version} file written · ${(bytes / 1e6).toFixed(1)} MB · ${seats ? stadium.metrics.net.toLocaleString('en-US') + ' seat blocks' : 'no seats'}`);
     } catch (e) { toast(`Export failed: ${(e as Error).message}`); } finally { setBusy(false); }
   };
 

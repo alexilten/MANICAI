@@ -62,7 +62,7 @@ function Hud() {
   const total = t.field + t.plan + t.profiles + t.seats + t.analysis;
   return (
     <div className="hud">
-      <span>{st.metrics.gross.toLocaleString('en-US')} seats</span>
+      <span>{st.metrics.total.toLocaleString('en-US')} seats</span>
       <span>{st.metrics.rows} rows</span>
       <span>origin 0,0,0 · mm</span>
       <span title={`field ${t.field.toFixed(1)} · plan ${t.plan.toFixed(1)} · profiles ${t.profiles.toFixed(1)} · seats ${t.seats.toFixed(1)} · analysis ${t.analysis.toFixed(1)} ms`}>regen {total.toFixed(0)} ms</span>

@@ -9,7 +9,6 @@ import { suggestMoves } from '../src/core/engine/optimize';
 import type { SegmentId } from '../src/core/engine/plan';
 import { platformRaise, VOM_CLEAR, type SeatTable } from '../src/core/engine/seats';
 import type { Stadium } from '../src/core/engine/stadium';
-import { getPreset } from '../src/core/presets';
 import { defaultProject, parseProject, type Project } from '../src/core/schema';
 import { fresh } from './helpers';
 
@@ -136,7 +135,8 @@ describe('N · accessible positions', () => {
 
 describe('O · net vs gross', () => {
   it('can exclude seats below the minimum C-value', () => {
-    const p = getPreset('chiefs').build();
+    // a rake limit low enough that the upper tier cannot reach the minimum everywhere
+    const p = bare(); p.sightlines.maxRakeDeg = 24;
     const a = fresh(p);
     p.sightlines.excludeBelowMin = true;
     const b = fresh(p);
@@ -172,7 +172,7 @@ describe('Q · v1 files', () => {
   it('open with Round 01 seat counts: no stands, vomitories or accessible positions', () => {
     for (const [file, seats] of [['four-stand', 30472], ['generic-soccer', 41868]] as const) {
       const p = parseProject(readFileSync(`tests/fixtures/v1-${file}.manicai.json`, 'utf8'));
-      expect(p.version).toBe(2);
+      expect(p.version).toBe(3);
       const m = fresh(p).metrics;
       expect(m.gross, file).toBe(seats);
       expect(m.net, file).toBe(seats);

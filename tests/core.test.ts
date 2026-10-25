@@ -272,14 +272,14 @@ describe('J · assumptions stay visible', () => {
   });
 
   it('always states the scope limits', () => {
-    expect(fresh().warnings.some((w) => w.code === 'scope.r02')).toBe(true);
+    expect(fresh().warnings.some((w) => w.code === 'scope.r03')).toBe(true);
   });
 
-  it('fits every preset to within 2% of its published capacity (net) and meets the ADA wheelchair count', () => {
+  it('fits every preset to within 2% of its published capacity (bowl net + suites) and meets the ADA wheelchair count', () => {
     for (const pr of PRESETS) {
       const p = pr.build();
       const m = fresh(p).metrics;
-      expect(Math.abs(m.net - p.bowl.targetCapacity) / p.bowl.targetCapacity, pr.id).toBeLessThan(0.02);
+      expect(Math.abs(m.total - p.bowl.targetCapacity) / p.bowl.targetCapacity, pr.id).toBeLessThan(0.02);
       expect(m.accessible.wheelchair, pr.id).toBeGreaterThanOrEqual(m.accessible.required);
     }
   });

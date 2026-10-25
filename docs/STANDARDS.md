@@ -93,6 +93,8 @@ Verification: **checked** means the rule was read in the cited source on the dat
 | `fifa.circulation` | Routes ≥ 1.2 m; wheelchair routes ≥ 1.8 m; head clearance 2.4 m where possible; ideally no more than 36 risers in a stair run. |  | guidance | checked 2026-10-25 | [FIFA Football Stadiums Guidelines §2.3](https://publications.fifa.com/en/football-stadiums-guidelines/general-process-guidelines/design/stadium-bowl) |
 | `manicai.aisle` | Radial aisles 1200 mm clear (FIFA minimum route width) at every sector junction and between sections. |  | assumption | recall | MANICAI default |
 | `manicai.vomitory` | A vomitory opening (default 2.8 m including walls) sits at the centre of every n-th section. Seats are removed from its mouth row back until the treads are 2.7 m above the tunnel floor (2.4 m headroom plus 300 mm structure). The floor is taken level with the tread in front of the mouth; a ramped floor would lose fewer rows. |  | assumption | recall | MANICAI default |
+| `manicai.program` | Concourse program is sized from area allowances per spectator served (defaults: toilets 0.07, concessions 0.06, retail 0.015, first aid 0.003 m², club lounge 1.0 m² per club seat). These are planning placeholders, not code values: toilet fixture counts, ratios and accessible provision come from the governing plumbing and building codes. |  | assumption | recall | MANICAI default; user-editable |
+| `manicai.cores` | Vertical circulation cores (2 stairs of 2.4 m and 2 lifts by default, 9 × 11 m) stand outside the outermost floor plate every 60 m along the building. The distance to the nearest core is reported as a geometric indicator only; permitted travel distances, exit widths and egress time are set by the jurisdiction (review.egress). |  | assumption | recall | MANICAI default |
 | `manicai.crossaisle` | A lateral cross-aisle (default 1.5 m clear) widens the tread behind the seats of the row in front; the row behind is solved for its C-value over the wider gap. People walking in the aisle are not treated as an obstruction. |  | assumption | recall | MANICAI default |
 
 ## Accessibility
@@ -108,6 +110,12 @@ Verification: **checked** means the rule was read in the cited source on the dat
 | id | statement | value | kind | verification | source |
 |---|---|---|---|---|---|
 | `manicai.barrier` | Front-of-tier barrier 800 mm above the first tread for the first-row sightline check (the Green Guide minimum in front of seated rows; 1100 mm where people can walk behind it). Barrier heights are set by local code and loading standards. |  | assumption | recall | MANICAI default |
+
+## Premium
+
+| id | statement | value | kind | verification | source |
+|---|---|---|---|---|---|
+| `manicai.premium` | A premium level (suites or club) is inserted under an upper tier: it lifts that tier by its floor-to-floor height (default 4.5 m) and sets it back (default 4 m) so the tier can keep its C-values. Suite glass sits on the back of the tier below with a 1.8 m balcony in front and a 4 m corridor behind. Suites are 5.5 × 8 m with 16 seats by default; only whole suites are placed, 2 m clear of each end of a stand. |  | assumption | recall | MANICAI default |
 
 ## Bowl plan
 
