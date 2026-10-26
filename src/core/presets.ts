@@ -66,7 +66,22 @@ function fitted(p: Project): Project {
   return p;
 }
 
-const P = (meta: PresetMeta, build: () => Project): Preset => ({ ...meta, build });
+/** Precedent cities (approximate, to a tenth of a degree) for the Round 07 sun study. The pitch orientation of the real sites is not modelled. */
+const CITY: Record<string, { lat: number; lon: number; city: string }> = {
+  'single-end': { lat: 51.6, lon: -0.1, city: 'London' }, 'steep-end': { lat: 53.4, lon: -3.0, city: 'Liverpool' },
+  'freedom-park': { lat: 25.8, lon: -80.2, city: 'Miami' }, allegiant: { lat: 36.1, lon: -115.2, city: 'Las Vegas' },
+  chiefs: { lat: 39.1, lon: -94.5, city: 'Kansas City' }, nissan: { lat: 36.2, lon: -86.8, city: 'Nashville' },
+  milano: { lat: 45.5, lon: 9.1, city: 'Milan' }, birmingham: { lat: 52.5, lon: -1.9, city: 'Birmingham' },
+};
+
+const P = (meta: PresetMeta, build: () => Project): Preset => {
+  const c = CITY[meta.id];
+  if (!c) return { ...meta, build };
+  return {
+    ...meta, assumed: [...meta.assumed, `Site at the latitude of ${c.city} (≈ ${c.lat}° ${c.lat >= 0 ? 'N' : 'S'}) for the sun study; the pitch orientation is the MANICAI default, not the real site's`],
+    build: () => { const p = build(); p.site = { ...p.site, latitude: c.lat, longitude: c.lon }; return p; },
+  };
+};
 
 export const PRESETS: Preset[] = [
   P({ id: 'generic-soccer', name: 'Generic soccer bowl', short: 'Two-tier football bowl, 105 × 68 m pitch', category: 'generic', sport: 'soccer',

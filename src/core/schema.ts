@@ -11,7 +11,7 @@ import { SPORTS, type SportId } from './sports';
 import type { DisplayUnits, Mm } from './units';
 
 export const SCHEMA_ID = 'manicai.project';
-export const SCHEMA_VERSION = 5;
+export const SCHEMA_VERSION = 6;
 
 export type SightlineMode = 'cvalue' | 'riser';
 export type TierKind = 'general' | 'club';
@@ -100,6 +100,45 @@ export type BoardType = 'ends' | 'centre' | 'none';
  * and service access. Conceptual: fixture counts come from a lumen-method estimate with a generic
  * fixture, and plant areas from MANICAI planning ratios. No product or engineered system is implied.
  */
+/**
+ * Round 07 design studies: the inputs of the evaluation methods (egress, sun, materials and carbon,
+ * revenue). They never change geometry; every default is a labelled assumption the user can edit.
+ */
+export interface StudiesParams {
+  egress: {
+    /** rates of passage, persons per metre width per minute, on stepped and level routes (Green Guide, recall) */
+    stepRate: number; levelRate: number;
+    /** time to leave the seating area by its vomitories or tier exits, minutes */
+    targetMin: number;
+    /** travel distance from a seat to its vomitory or tier exit */
+    maxTravel: Mm;
+  };
+  sun: {
+    /** study date and the match kick-off hour (local solar time) */
+    month: number; day: number; hour: number;
+    /** latitude used when the site has none, degrees north */
+    latitude: number;
+  };
+  carbon: {
+    /** reinforced concrete: concrete kgCO₂e/m³, reinforcement kg/m³ and kgCO₂e/kg */
+    concrete: number; rebarRate: number; rebar: number;
+    /** structural steel kgCO₂e/kg; steel share of a steel member's modelled envelope */
+    steel: number; steelFraction: number;
+    /** precast terrace units: equivalent concrete thickness over the seating area */
+    terraceThickness: Mm;
+    /** roof steel kg/m² of roof plan, roof covering kgCO₂e/m², facade kgCO₂e/m² */
+    roofSteel: number; roofCovering: number; facade: number;
+    /** ± share shown as the range */
+    uncertainty: number;
+  };
+  revenue: {
+    currency: string;
+    events: number; occupancy: number;
+    /** average ticket for a general seat and a club seat, per event; suite licence per suite per year */
+    ticket: number; club: number; suite: number;
+  };
+}
+
 export interface SystemsParams {
   lighting: {
     /** fixtures on a catwalk under the roof edge, or on corner masts; auto picks the roof when it rings the field */
@@ -273,6 +312,7 @@ export interface Project {
   building: BuildingParams;
   architecture: ArchitectureParams;
   systems: SystemsParams;
+  studies: StudiesParams;
 }
 
 export const NO_VOMS: VomitoryParams = { enabled: false, every: 2, mouthRow: 8, width: 2800 };
@@ -311,6 +351,15 @@ export function defaultSystems(): SystemsParams {
   };
 }
 
+export function defaultStudies(): StudiesParams {
+  return {
+    egress: { stepRate: 79, levelRate: 109, targetMin: 8, maxTravel: 30000 },
+    sun: { month: 3, day: 21, hour: 15, latitude: 40 },
+    carbon: { concrete: 330, rebarRate: 120, rebar: 1.99, steel: 1.55, steelFraction: 0.05, terraceThickness: 250, roofSteel: 100, roofCovering: 40, facade: 120, uncertainty: 0.3 },
+    revenue: { currency: 'USD', events: 25, occupancy: 0.85, ticket: 60, club: 250, suite: 150000 },
+  };
+}
+
 export function suiteLevel(id: string, belowTier: string, p: Partial<PremiumLevel> = {}): PremiumLevel {
   return { id, name: 'Suite level', belowTier, kind: 'suites', height: 4500, setback: 4000, stands: ['N', 'S'], unitWidth: 5500, unitDepth: 8000, seatsPerUnit: 16, ...p };
 }
@@ -332,6 +381,7 @@ export function defaultProject(): Project {
     building: defaultBuilding(),
     architecture: defaultArchitecture(),
     systems: defaultSystems(),
+    studies: defaultStudies(),
   };
 }
 
@@ -360,6 +410,8 @@ export function serializeProject(p: Project): string {
  * around the bowl and building and never moves a seat.
  * v4 → v5: the systems (lighting, boards, broadcast, MEP, service) take their defaults; they are
  * built around the bowl and never move a seat.
+ * v5 → v6: the design studies (egress, sun, carbon, revenue) take their defaults; they evaluate the
+ * design and never change it.
  */
 export function parseProject(text: string): Project {
   const raw = JSON.parse(text);
@@ -388,6 +440,12 @@ export function parseProject(text: string): Project {
       broadcast: { ...d.systems.broadcast, ...raw.systems?.broadcast },
       mep: { ...d.systems.mep, ...raw.systems?.mep },
       service: { ...d.systems.service, ...raw.systems?.service },
+    },
+    studies: {
+      egress: { ...d.studies.egress, ...raw.studies?.egress },
+      sun: { ...d.studies.sun, ...raw.studies?.sun },
+      carbon: { ...d.studies.carbon, ...raw.studies?.carbon },
+      revenue: { ...d.studies.revenue, ...raw.studies?.revenue },
     },
     tiers: Array.isArray(raw.tiers) && raw.tiers.length
       ? raw.tiers.map((t: Partial<TierParams>, i: number) => {

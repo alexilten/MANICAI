@@ -8,7 +8,7 @@ import { EAVE, roofUnderAt } from '../src/core/engine/architecture';
 import { pointAt, SECTORS, SECTOR_OF, segmentLength, SEGMENTS } from '../src/core/engine/plan';
 import { BOARD_CLEAR_BEHIND, MAX_TILT, MIN_LIGHT_ANGLE, mepNeeds, TRANSFORMER_KVA } from '../src/core/engine/systems';
 import { getPreset } from '../src/core/presets';
-import { defaultProject, parseProject, type Project, type RoofType } from '../src/core/schema';
+import { defaultProject, parseProject, SCHEMA_VERSION, type Project, type RoofType } from '../src/core/schema';
 import { exportRhino, type RhinoModule } from '../src/export/rhino';
 import { inspect3dm } from '../src/export/inspect3dm';
 import { clone, fresh, rhino } from './helpers';
@@ -216,7 +216,7 @@ describe('AI · v4 files and the Rhino systems layers', () => {
   it('v4 files open as v5 with the default systems and unchanged capacity and floor area', () => {
     for (const [f, total, gfa] of [['generic-nfl', 64578, 81097], ['birmingham', 61626, 38271]] as const) {
       const p = parseProject(readFileSync(`tests/fixtures/v4-${f}.manicai.json`, 'utf8'));
-      expect(p.version).toBe(5);
+      expect(p.version).toBe(SCHEMA_VERSION);
       expect(p.systems).toEqual(defaultProject().systems);
       const s = fresh(p);
       expect([s.metrics.total, Math.round(s.architecture.metrics.grossArea)], f).toEqual([total, gfa]);

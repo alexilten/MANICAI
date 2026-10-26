@@ -10,7 +10,7 @@ import type { BoxMesh } from '../src/core/engine/building';
 import { enclosedArea, perimeter, planOffset, pointAt, segmentLength, SEGMENTS } from '../src/core/engine/plan';
 import { soffitZ } from '../src/core/engine/building';
 import { getPreset } from '../src/core/presets';
-import { defaultProject, parseProject, type Project, type RoofType } from '../src/core/schema';
+import { defaultProject, parseProject, SCHEMA_VERSION, type Project, type RoofType } from '../src/core/schema';
 import { exportRhino, type RhinoModule } from '../src/export/rhino';
 import { inspect3dm } from '../src/export/inspect3dm';
 import { clone, fresh, rhino } from './helpers';
@@ -200,7 +200,7 @@ describe('AC · v3 files and the Rhino architecture layers', () => {
   it('v3 files open with the default architecture and their Round 03 capacities', () => {
     for (const [f, total, suites] of [['generic-nfl', 64578, 544], ['allegiant', 64899, 1152]] as const) {
       const p = parseProject(readFileSync(`tests/fixtures/v3-${f}.manicai.json`, 'utf8'));
-      expect(p.version).toBe(5);
+      expect(p.version).toBe(SCHEMA_VERSION);
       expect(p.architecture).toEqual(defaultProject().architecture);
       const m = fresh(p).metrics;
       expect([m.total, m.suiteSeats], f).toEqual([total, suites]);
