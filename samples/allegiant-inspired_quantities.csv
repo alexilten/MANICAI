@@ -1,0 +1,63 @@
+# MANICAI quantity schedule — Compact enclosed NFL bowl (Allegiant-inspired) — conceptual quantities of the modelled envelopes, not a cost plan
+section,item,count,quantity,unit,volume_m3,area_m2,method,status
+Seating,General admission,55439,55439,seats,,,Count of generated seat positions in use (excluded positions not counted),Generic placeholder (not a manufacturer product)
+Seating,Club / premium,7392,7392,seats,,,Count of generated seat positions in use (excluded positions not counted),Generic placeholder (not a manufacturer product)
+Seating,Wheelchair positions,458,458,positions,,,Count of generated seat positions in use (excluded positions not counted),Generic placeholder (not a manufacturer product)
+Seating,Companion seats,458,458,seats,,,Count of generated seat positions in use (excluded positions not counted),Generic placeholder (not a manufacturer product)
+Seating,Lower bowl (T1),24037,24037,seats,,,Count of generated seat positions in use (excluded positions not counted),Generic placeholder (not a manufacturer product)
+Seating,Club level (T2),7656,7656,seats,,,Count of generated seat positions in use (excluded positions not counted),Generic placeholder (not a manufacturer product)
+Seating,Upper bowl (T3),32054,32054,seats,,,Count of generated seat positions in use (excluded positions not counted),Generic placeholder (not a manufacturer product)
+Seating,Suite seats,1152,1152,seats,,,Suite units × seats per unit,Space reservation
+Seating,Total capacity,64899,64899,seats,,,Net bowl seats + suite seats,Computed
+Field,Field: Playing surface,1,420.293,m³ modelled envelope,420.293,,"Exact volume of the modelled solids (extrusions, revolves; tessellated where sloped)",Generic parametric element (conceptual size)
+Field,Field: Goal frame (generic),2,0.747,m³ modelled envelope,0.747,,"Exact volume of the modelled solids (extrusions, revolves; tessellated where sloped)",Generic placeholder (not a manufacturer product)
+Seating terraces,Seating terraces,24,40127.596,m³ modelled envelope,40127.596,,"Exact volume of the modelled solids (extrusions, revolves; tessellated where sloped)",Generic parametric element (conceptual size)
+Concourse floor plates,Concourse floor plates,3,53029.646,m² plan area,15908.894,53029.646,Plan area of the slab outline (true arcs); volume of the modelled slab,Generic parametric element (conceptual size)
+Premium floor plates,Premium floor plates,2,17450.428,m² plan area,5235.128,17450.428,Plan area of the slab outline (true arcs); volume of the modelled slab,Generic parametric element (conceptual size)
+Suites,Suites,72,3168,m² net floor area,11404.800,3168,"Plan area of the space outline (true arcs), m²; volume = area × modelled height",Space reservation
+Concourse program,Concourse program,96,16426.487,m² net floor area,52564.758,16426.487,"Plan area of the space outline (true arcs), m²; volume = area × modelled height",Space reservation
+Vertical circulation cores,Vertical circulation cores,16,1573.796,m² net floor area,81617.053,1573.796,"Plan area of the space outline (true arcs), m²; volume = area × modelled height",Space reservation
+Structure,Structure: rakers,306,3236.066,m³ modelled envelope,3236.066,,"Exact volume of the modelled solids (extrusions, revolves; tessellated where sloped)",Generic parametric element (conceptual size)
+Structure,Structure: columns,510,16178.038,m³ modelled envelope,16178.038,,"Exact volume of the modelled solids (extrusions, revolves; tessellated where sloped)",Generic parametric element (conceptual size)
+Roof,Roof: primary frames,51,15023.644,m³ modelled envelope,15023.644,,"Exact volume of the modelled solids (extrusions, revolves; tessellated where sloped)",Generic parametric element (conceptual size)
+Facade,Facade: mullions / fins,344,504.373,m³ modelled envelope,504.373,,"Exact volume of the modelled solids (extrusions, revolves; tessellated where sloped)",Conceptual mass (form only)
+Roof,Roof: deck,1,18673.884,m³ modelled envelope,18673.884,,"Exact volume of the modelled solids (extrusions, revolves; tessellated where sloped)",Conceptual mass (form only)
+Roof,Roof: cap,1,2356.408,m³ modelled envelope,2356.408,,"Exact volume of the modelled solids (extrusions, revolves; tessellated where sloped)",Conceptual mass (form only)
+Roof,Roof: trusses,4,4966.080,m³ modelled envelope,4966.080,,"Exact volume of the modelled solids (extrusions, revolves; tessellated where sloped)",Conceptual mass (form only)
+Facade,Facade: skin,16,60439.473,m² facade,12087.895,60439.473,Skin volume ÷ 200 mm nominal thickness,Conceptual mass (form only)
+Facade,Facade: bands,32,1073.082,m³ modelled envelope,1073.082,,"Exact volume of the modelled solids (extrusions, revolves; tessellated where sloped)",Conceptual mass (form only)
+Facade,Facade: portal canopies,4,320,m² plan area,256,320,Plan area of the slab outline (true arcs); volume of the modelled slab,Conceptual mass (form only)
+Back of house,Back of house: rooms,19,7760.017,m² net floor area,31760.469,7760.017,"Plan area of the space outline (true arcs), m²; volume = area × modelled height",Space reservation
+Back of house,Back of house: service corridor slab,1,2886.908,m² plan area,866.072,2886.908,Plan area of the slab outline (true arcs); volume of the modelled slab,Generic parametric element (conceptual size)
+Systems,Systems: AV / IT: Video board,2,200.520,m³ modelled envelope,200.520,,"Exact volume of the modelled solids (extrusions, revolves; tessellated where sloped)",Generic placeholder (not a manufacturer product)
+Systems,Systems: AV / IT: Board support frame,2,526.201,m³ modelled envelope,526.201,,"Exact volume of the modelled solids (extrusions, revolves; tessellated where sloped)",Conceptual mass (form only)
+Systems,Systems: AV / IT: LED ribbon board,16,238.924,m³ modelled envelope,238.924,,"Exact volume of the modelled solids (extrusions, revolves; tessellated where sloped)",Generic placeholder (not a manufacturer product)
+Systems,Systems: AV / IT: Speaker cluster,20,127.680,m³ modelled envelope,127.680,,"Exact volume of the modelled solids (extrusions, revolves; tessellated where sloped)",Generic placeholder (not a manufacturer product)
+Systems,Systems: Broadcast: Main camera gantry,1,10,m³ modelled envelope,10,,"Exact volume of the modelled solids (extrusions, revolves; tessellated where sloped)",Generic placeholder (not a manufacturer product)
+Systems,Systems: Broadcast: 20-yard line camera,2,10,m³ modelled envelope,10,,"Exact volume of the modelled solids (extrusions, revolves; tessellated where sloped)",Generic placeholder (not a manufacturer product)
+Systems,Systems: Broadcast: High camera behind the goal,2,10,m³ modelled envelope,10,,"Exact volume of the modelled solids (extrusions, revolves; tessellated where sloped)",Generic placeholder (not a manufacturer product)
+Systems,Systems: Broadcast: Press tribune,1,79.200,m² net floor area,137.016,79.200,"Plan area of the space outline (true arcs), m²; volume = area × modelled height",Space reservation
+Systems,Systems: Site: Service yard (truck court),1,1410.897,m² net floor area,211.635,1410.897,"Plan area of the space outline (true arcs), m²; volume = area × modelled height",Space reservation
+Systems,Systems: HVAC: Central plant,3,4108.245,m² net floor area,36974.208,4108.245,"Plan area of the space outline (true arcs), m²; volume = area × modelled height",Space reservation
+Systems,Systems: Electrical: Main switchgear,1,414.627,m² net floor area,2487.763,414.627,"Plan area of the space outline (true arcs), m²; volume = area × modelled height",Space reservation
+Systems,Systems: Electrical: Transformer yard,1,364.134,m² net floor area,1274.469,364.134,"Plan area of the space outline (true arcs), m²; volume = area × modelled height",Space reservation
+Systems,Systems: Electrical: Generator yard,1,192.777,m² net floor area,867.496,192.777,"Plan area of the space outline (true arcs), m²; volume = area × modelled height",Space reservation
+Systems,Systems: Plumbing: Water storage & fire pumps,1,438.670,m² net floor area,3070.692,438.670,"Plan area of the space outline (true arcs), m²; volume = area × modelled height",Space reservation
+Systems,Systems: AV / IT: Telecom head end (MDF),1,189.937,m² net floor area,949.686,189.937,"Plan area of the space outline (true arcs), m²; volume = area × modelled height",Space reservation
+Systems,Systems: Broadcast: Outside-broadcast compound,1,2500.000,m² net floor area,11250.000,2500.000,"Plan area of the space outline (true arcs), m²; volume = area × modelled height",Space reservation
+Systems,Systems: Site: Field access tunnel,1,628.440,m² net floor area,3142.200,628.440,"Plan area of the space outline (true arcs), m²; volume = area × modelled height",Space reservation
+Systems,Systems: HVAC: Duct riser,16,12058.802,m³ modelled envelope,12058.802,,"Exact volume of the modelled solids (extrusions, revolves; tessellated where sloped)",Space reservation
+Systems,Systems: Electrical: Electrical riser,16,6885.389,m³ modelled envelope,6885.389,,"Exact volume of the modelled solids (extrusions, revolves; tessellated where sloped)",Space reservation
+Systems,Systems: Plumbing: Plumbing riser,16,8437.890,m³ modelled envelope,8437.890,,"Exact volume of the modelled solids (extrusions, revolves; tessellated where sloped)",Space reservation
+Systems,Systems: HVAC: Air-handling room,80,3385.361,m² net floor area,11848.763,3385.361,"Plan area of the space outline (true arcs), m²; volume = area × modelled height",Space reservation
+Systems,Systems: Electrical: Electrical & telecom room,80,1894.639,m² net floor area,6631.237,1894.639,"Plan area of the space outline (true arcs), m²; volume = area × modelled height",Space reservation
+Systems,Systems: Lighting: Lighting catwalk,1,551.341,m² plan area,82.701,551.341,Plan area of the slab outline (true arcs); volume of the modelled slab,Conceptual mass (form only)
+Systems,Systems: HVAC: Duct distribution zone,3,16686.774,m³ modelled envelope,16686.774,,"Exact volume of the modelled solids (extrusions, revolves; tessellated where sloped)",Space reservation
+Systems,Systems: Electrical: Cable tray zone,1,104.208,m³ modelled envelope,104.208,,"Exact volume of the modelled solids (extrusions, revolves; tessellated where sloped)",Space reservation
+Vomitory openings,Vomitory openings,48,833.673,m³ cut from terraces,,,Opening solid volume (includes the 25 mm clearance at the risers),Generic parametric element (conceptual size)
+Building,Gross floor area (GFA),1,89182.535,m²,,89182.535,"Concourse and premium plates, cores and back of house (MANICAI building metrics)",Computed
+Roof,Roof plan area,1,74725.772,m²,,74725.772,Plan area of the roof skin from leading edge to eave (excludes the cap); canopies: covered stands only,Conceptual mass (form only)
+Roof,Roof surface area,1,84374.821,m²,,84374.821,"Skin area along its slope, plus the cap (parabolic dome approximation) and any retractable panels",Conceptual mass (form only)
+Systems,Floodlights (generic),319,319,fixtures,,,Lumen method count (MANICAI estimate),Generic placeholder (not a manufacturer product)
+Systems,Field lighting connected load (assumed),319,478.500,kW,,,319 × 1500 W design assumption — not a manufacturer rating,Design assumption
+Systems,Electrical demand (estimate),1,7912.931,kW,,,MANICAI ratio estimate (manicai.mep); not an electrical design,Design assumption

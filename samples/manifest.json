@@ -7,12 +7,12 @@
     "vomitories": 18,
     "wheelchair": 196,
     "exportedSeats": true,
-    "bytes": 32878690,
-    "exportMs": 4464,
+    "bytes": 26586138,
+    "exportMs": 2704,
     "readBack": {
       "units": "Millimeters",
       "layers": 113,
-      "objects": 33832,
+      "objects": 33831,
       "blocks": [
         {
           "name": "MANICAI_FLOODLIGHT_GENERIC",
@@ -44,8 +44,8 @@
     "vomitories": 42,
     "wheelchair": 290,
     "exportedSeats": false,
-    "bytes": 10698689,
-    "exportMs": 406,
+    "bytes": 3711378,
+    "exportMs": 230,
     "readBack": {
       "units": "Millimeters",
       "layers": 113,
@@ -71,8 +71,8 @@
     "vomitories": 50,
     "wheelchair": 462,
     "exportedSeats": false,
-    "bytes": 18196773,
-    "exportMs": 826,
+    "bytes": 4754472,
+    "exportMs": 204,
     "readBack": {
       "units": "Millimeters",
       "layers": 123,
@@ -99,8 +99,8 @@
     "vomitories": 48,
     "wheelchair": 458,
     "exportedSeats": false,
-    "bytes": 20799336,
-    "exportMs": 817,
+    "bytes": 4875717,
+    "exportMs": 245,
     "readBack": {
       "units": "Millimeters",
       "layers": 123,

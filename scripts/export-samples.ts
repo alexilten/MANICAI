@@ -1,7 +1,8 @@
 /**
  * Writes the sample deliverables: every preset as a project file, Rhino 8 files for two presets
  * (one with seats, one bowl-only) and a seat schedule. Each .3dm is re-read through openNURBS
- * and summarised in samples/manifest.json.
+ * and summarised in samples/manifest.json. Round 06 adds the professional exports for one preset (IFC, glTF,
+ * DXF, quantity and element schedules, the model check) and a seated IFC of the four-stand bowl.
  */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -11,6 +12,12 @@ import { serializeProject } from '../src/core/schema';
 import { seatsCsv } from '../src/export/csv';
 import { inspect3dm } from '../src/export/inspect3dm';
 import { exportRhino } from '../src/export/rhino';
+import { exportDxf } from '../src/export/dxf';
+import { exportGlb } from '../src/export/gltf';
+import { exportIfc } from '../src/export/ifc';
+import { buildModel } from '../src/export/model';
+import { elementsCsv, quantitiesCsv } from '../src/export/quantities';
+import { reportMarkdown, verifyModel } from '../src/export/verify';
 
 mkdirSync('examples', { recursive: true });
 mkdirSync('samples', { recursive: true });
@@ -43,3 +50,25 @@ for (const j of jobs) {
   console.log(`${j.file}: ${(bytes.byteLength / 1e6).toFixed(1)} MB, ${info.objects.length} objects, ${Math.round(ms)} ms`);
 }
 writeFileSync('samples/manifest.json', JSON.stringify(manifest, null, 2) + '\n');
+
+// ── Round 06: professional exports
+const stamp = new Date('2026-01-01T00:00:00Z');
+const pro = [
+  { id: 'allegiant', base: 'allegiant-inspired', seats: false },
+  { id: 'four-stand', base: 'four-stand-30k', seats: true },
+];
+for (const j of pro) {
+  clearStadiumCache();
+  const s = resolveStadium(getPreset(j.id).build());
+  const model = buildModel(s);
+  const ifc = exportIfc(s, { model, seats: j.seats, timestamp: stamp });
+  writeFileSync(`samples/${j.base}${j.seats ? '_seats' : ''}.ifc`, ifc);
+  const report = verifyModel(s, model, ifc);
+  console.log(`${j.base}.ifc: ${(ifc.length / 1e6).toFixed(1)} MB · model check ${report.pass} pass, ${report.warn} warn, ${report.fail} fail`);
+  if (j.seats) continue;
+  writeFileSync(`samples/${j.base}.glb`, exportGlb(s, { model }));
+  writeFileSync(`samples/${j.base}.dxf`, exportDxf(s, { model, seats: false }));
+  writeFileSync(`samples/${j.base}_quantities.csv`, quantitiesCsv(s, model));
+  writeFileSync(`samples/${j.base}_elements.csv`, elementsCsv(s, model));
+  writeFileSync(`samples/${j.base}_model-check.md`, reportMarkdown(s, report));
+}
