@@ -315,3 +315,43 @@ code { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
 .warnings li.ok { background: rgba(36,138,61,.07); color: #1d6b31; }
 .warnings.checks li { cursor: default; }
 .export-wrap .menu { background: rgba(250, 250, 249, 0.97); width: 300px; max-height: calc(100vh - 110px); overflow-y: auto; }
+
+/* ── Round 07: design studies, compare and optimise */
+button.link { background: none; border: 0; padding: 0; color: var(--accent); font: inherit; font-size: 11.5px; cursor: pointer; }
+button.link:hover { text-decoration: underline; }
+button.link.small { display: block; margin: 6px 0 2px; }
+.small.bad, p.bad { color: #c53030; }
+.btn-sm.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.histo { width: 100%; height: 52px; margin: 2px 0 6px; }
+.histo rect.poor { fill: #d6453d; } .histo rect.fair { fill: #efb43a; } .histo rect.good { fill: #3aa36c; }
+.histo .svg-note, .scatter .svg-note { font-size: 8px; fill: var(--ink-3); }
+.compare { position: absolute; left: 332px; right: 320px; top: 78px; bottom: 64px; z-index: 8; border-radius: var(--radius); display: flex; flex-direction: column; background: rgba(250, 250, 249, 0.96); animation: pop 0.22s var(--ease) both; overflow: hidden; }
+.compare-head { display: flex; align-items: center; gap: 8px; padding: 12px 16px 8px; border-bottom: 0.5px solid var(--line-2); }
+.compare-head .close { margin-left: auto; font-size: 18px; line-height: 1; }
+.compare-body { flex: 1; overflow-y: auto; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 18px; padding: 10px 16px 16px; }
+.compare-col { min-width: 0; }
+.scenario-bar { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 8px; }
+.compare-table-wrap { overflow-x: auto; }
+.compare-table { width: 100%; border-collapse: collapse; font-size: 11.5px; font-variant-numeric: tabular-nums; }
+.compare-table th { text-align: right; font-weight: 600; padding: 4px 6px; vertical-align: bottom; white-space: nowrap; }
+.compare-table th .col-name { display: block; }
+.compare-table th .col-actions { display: flex; gap: 6px; justify-content: flex-end; font-weight: 400; }
+.compare-table td { text-align: right; padding: 3px 6px; border-top: 0.5px solid var(--line); white-space: nowrap; }
+.compare-table td.row-label { text-align: left; color: var(--ink-2); white-space: normal; }
+.compare-table tr.group-start td { border-top: 0.5px solid var(--line-2); }
+.compare-table td.best { font-weight: 700; color: #1e7a4a; }
+.scatter { width: 100%; height: auto; margin: 6px 0; background: rgba(255,255,255,.7); border-radius: 10px; box-shadow: 0 0 0 0.5px var(--line-2); }
+.scatter .grid { stroke: var(--line); stroke-width: 0.6; }
+.scatter .target { stroke: #b7791f; stroke-dasharray: 3 3; stroke-width: 0.8; }
+.scatter .front { fill: none; stroke: var(--accent); stroke-width: 1.2; opacity: 0.7; }
+.scatter .pt { cursor: pointer; }
+.scatter .pt.ok { fill: #a1a1a6; } .scatter .pt.pareto { fill: var(--accent); } .scatter .pt.bad { fill: none; stroke: #d6453d; stroke-width: 1; }
+.scatter .pt.current { fill: #1d1d1f; } .scatter .pt.sel { stroke: #1d1d1f; stroke-width: 1.6; }
+.scatter .svg-label { font-size: 10px; font-weight: 700; fill: var(--ink); }
+.alts { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 8px; }
+.alts .chip.on { background: var(--accent-soft); box-shadow: 0 0 0 1px var(--accent); color: var(--accent); }
+.pick { padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,.75); box-shadow: 0 0 0 0.5px var(--line-2); margin: 6px 0; }
+.pick-title { font-weight: 600; margin-bottom: 4px; }
+.pick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 10px; font-variant-numeric: tabular-nums; font-size: 12px; }
+.pick-grid em { font-style: normal; color: var(--ink-3); font-size: 11px; }
+@media (max-width: 1100px) { .compare { left: 14px; right: 14px; } .compare-body { grid-template-columns: 1fr; } }

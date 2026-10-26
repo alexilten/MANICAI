@@ -2,11 +2,13 @@ import { create } from 'zustand';
 import { resolveStadium, type Stadium } from '../core/engine/stadium';
 import { DEFAULT_PRESET, getPreset } from '../core/presets';
 import type { SegmentId } from '../core/engine/plan';
-import type { Project } from '../core/schema';
+import { parseProject, type Project } from '../core/schema';
 
 export type Mode = 'explore' | 'technical' | 'analysis';
 export type CameraView = 'perspective' | 'plan' | 'elevation' | 'section' | 'iso' | 'fieldLevel' | 'exterior';
-export type AnalysisMetric = 'cvalue' | 'distance' | 'tier' | 'sector' | 'class';
+export type AnalysisMetric = 'cvalue' | 'distance' | 'quality' | 'egress' | 'sun' | 'tier' | 'sector' | 'class';
+/** metrics coloured from a Round 07 study (one value per seat) */
+export const STUDY_METRICS: AnalysisMetric[] = ['quality', 'egress', 'sun'];
 
 export type LayerKey = 'field' | 'seats' | 'terraces' | 'premium' | 'concourses' | 'cores' | 'structure' | 'roof' | 'facade' | 'lighting' | 'hvac' | 'electrical' | 'plumbing' | 'avit' | 'broadcast' | 'boh' | 'site' | 'dimensions' | 'reference';
 export const LAYERS: { key: LayerKey; label: string; rhino: string }[] = [
@@ -39,6 +41,20 @@ export const SYSTEM_LAYERS: LayerKey[] = ['lighting', 'hvac', 'electrical', 'plu
 
 export interface Cut { enabled: boolean; axis: 'x' | 'y'; offset: number }
 
+/** a saved design option to compare against (Round 07); kept in this browser */
+export interface Scenario { id: string; name: string; project: Project; savedAt: string }
+const SCENARIO_KEY = 'manicai.scenarios.v1';
+function readScenarios(): Scenario[] {
+  try {
+    const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(SCENARIO_KEY) : null;
+    if (!raw) return [];
+    return (JSON.parse(raw) as Scenario[]).flatMap((x) => { try { return [{ ...x, project: parseProject(JSON.stringify(x.project)) }]; } catch { return []; } });
+  } catch { return []; }
+}
+function writeScenarios(s: Scenario[]) {
+  try { localStorage.setItem(SCENARIO_KEY, JSON.stringify(s)); } catch { /* storage unavailable: scenarios last for this session */ }
+}
+
 interface State {
   project: Project;
   stadium: Stadium;
@@ -65,6 +81,12 @@ interface State {
   /** stand or corner being edited in the Stands panel */
   region: SegmentId;
   toast: string | null;
+  /** the Compare & optimise panel */
+  compareOpen: boolean;
+  scenarios: Scenario[];
+  setCompareOpen: (on: boolean) => void;
+  saveScenario: (name: string, p?: Project) => void;
+  removeScenario: (id: string) => void;
   edit: (fn: (p: Project) => void, key?: string) => void;
   load: (p: Project) => void;
   loadPreset: (id: string) => void;
@@ -104,6 +126,20 @@ export const useStore = create<State>((set, get) => ({
   cut: { enabled: false, axis: 'x', offset: 0 },
   region: 'E',
   toast: null,
+  compareOpen: false,
+  scenarios: readScenarios(),
+  setCompareOpen: (compareOpen) => set({ compareOpen }),
+  saveScenario: (name, p) => {
+    const project = structuredClone(p ?? get().project);
+    const scenarios = [...get().scenarios, { id: `S${Date.now().toString(36)}${Math.floor(Math.random() * 1e4)}`, name, project, savedAt: new Date().toISOString() }].slice(-8);
+    writeScenarios(scenarios);
+    set({ scenarios });
+  },
+  removeScenario: (id) => {
+    const scenarios = get().scenarios.filter((s) => s.id !== id);
+    writeScenarios(scenarios);
+    set({ scenarios });
+  },
 
   edit: (fn, key) => {
     const { project, past, lastEditKey, lastEditAt } = get();

@@ -84,6 +84,7 @@ Precedent: **Tottenham Hotspur Stadium** (London, England). Status: completed. C
 - Lower tier extended at the west end to about 1¾ times its depth, upper tier dropped there; 35° rake limit
 - Two tiers elsewhere; row counts fitted to 62,850 net
 - Not the architects' geometry — rake, tier split and distances are MANICAI assumptions
+- Site at the latitude of London (≈ 51.6° N) for the sun study; the pitch orientation is the MANICAI default, not the real site's
 
 **Checks raised:**
 
@@ -107,6 +108,7 @@ Precedent: **Hill Dickinson Stadium (Everton)** (Bramley-Moore Dock, Liverpool, 
 - Four separate stands with square corners
 - The single-tier home end is the west end here, at the 34° limit with tight 7 m goal-line distance
 - Two tiers on the other three stands; row counts fitted to 52,888 net
+- Site at the latitude of Liverpool (≈ 53.4° N) for the sun study; the pitch orientation is the MANICAI default, not the real site's
 
 **Checks raised:**
 
@@ -130,6 +132,7 @@ Precedent: **Inter Miami Freedom Park Stadium** (Miami, Florida, USA). Status: c
 - First row 6 m from touchlines, 7.5 m from goal lines
 - Two tiers; row counts fitted to 25,000
 - Pitch 105 × 68 m
+- Site at the latitude of Miami (≈ 25.8° N) for the sun study; the pitch orientation is the MANICAI default, not the real site's
 
 **Checks raised:**
 
@@ -154,6 +157,7 @@ Precedent: **Allegiant Stadium** (Paradise (Las Vegas), Nevada, USA). Status: co
 - Three tiers (lower, club/suite, upper) — tier split not published
 - First row 15 m from sidelines
 - ETFE roof drawn as a shallow dome on long-span trusses; heights and spans are MANICAI assumptions
+- Site at the latitude of Las Vegas (≈ 36.1° N) for the sun study; the pitch orientation is the MANICAI default, not the real site's
 
 **Checks raised:**
 
@@ -179,6 +183,7 @@ Precedent: **Kansas City Chiefs Stadium** (Wyandotte County, Kansas, USA). Statu
 - Tight 14 m sideline distance
 - ETFE roof drawn as a shallow dome on long-span trusses
 - Row counts fitted to 70,000
+- Site at the latitude of Kansas City (≈ 39.1° N) for the sun study; the pitch orientation is the MANICAI default, not the real site's
 
 **Checks raised:**
 
@@ -202,6 +207,7 @@ Precedent: **New Nissan Stadium** (Nashville, Tennessee, USA). Status: under-con
 - Three tiers
 - ETFE roof drawn as a shallow dome on long-span trusses
 - Row counts fitted to 60,000
+- Site at the latitude of Nashville (≈ 36.2° N) for the sun study; the pitch orientation is the MANICAI default, not the real site's
 
 ### European two-tier bowl — Milan-inspired
 
@@ -222,6 +228,7 @@ Precedent: **Nuovo Stadio Milano** (San Siro, Milan, Italy). Status: in-design (
 - Roof over the stands only (pitch open), drawn as a perimeter canopy
 - Generous corner radius for a softer plan (a truly oval, bowed plan needs Round 02 stand curvature)
 - Row counts fitted to 71,500
+- Site at the latitude of Milan (≈ 45.5° N) for the sun study; the pitch orientation is the MANICAI default, not the real site's
 
 **Checks raised:**
 
@@ -244,6 +251,7 @@ Precedent: **Birmingham City Football Club Stadium (Powerhouse Stadium)** (Birmi
 - Retractable roof drawn as two sliding panels on track trusses; the published chimneys are not modelled
 - Two tiers, tight end stands (7 m from goal lines)
 - Row counts fitted to 62,000
+- Site at the latitude of Birmingham (≈ 52.5° N) for the sun study; the pitch orientation is the MANICAI default, not the real site's
 
 **Checks raised:**
 

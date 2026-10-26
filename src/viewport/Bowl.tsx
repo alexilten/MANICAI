@@ -9,7 +9,10 @@ import type { SeatTable, Vomitory } from '../core/engine/seats';
 import { sweepTier } from '../core/engine/sweep';
 import { vomTriangles } from '../core/engine/vomGeometry';
 import type { Project } from '../core/schema';
-import { useStore, type AnalysisMetric, type Mode } from '../ui/store';
+import { STUDY_METRICS, useStore, type AnalysisMetric, type Mode } from '../ui/store';
+import { egress } from '../studies/egress';
+import { viewQuality } from '../studies/quality';
+import { seatSun } from '../studies/sun';
 import { seatColor } from './palette';
 
 /** Terrace solids: one swept mesh per tier, rebuilt only when that tier's profile changes. */
@@ -93,13 +96,20 @@ export function Seats({ seats, project, clip }: { seats: SeatTable; project: Pro
     im.computeBoundingSphere();
   }, [seats, n, showExcluded]);
 
+  const stadium = useStore((s) => s.stadium);
+  // Round 07 study metrics colour seats from a per-seat result (each study is cached per design)
+  const values = useMemo(() => {
+    if (mode !== 'analysis' || !STUDY_METRICS.includes(metric) || stadium.seats.seats !== seats) return undefined;
+    return metric === 'quality' ? viewQuality(stadium).score : metric === 'egress' ? egress(stadium).travel : seatSun(stadium).sun;
+  }, [mode, metric, stadium, seats]);
+
   useLayoutEffect(() => {
     const im = ref.current;
     if (!im) return;
-    for (let i = 0; i < n; i++) im.setColorAt(i, seatColor(seats, i, project, mode, metric, _c));
+    for (let i = 0; i < n; i++) im.setColorAt(i, seatColor(seats, i, project, mode, metric, _c, values));
     if (selected != null && selected < n) im.setColorAt(selected, _c.set('#0a84ff'));
     if (im.instanceColor) im.instanceColor.needsUpdate = true;
-  }, [seats, n, mode, metric, selected, project]);
+  }, [seats, n, mode, metric, selected, project, values]);
 
   const onClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();

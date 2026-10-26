@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { PRESETS } from '../core/presets';
-import { export3dm, exportDxfFile, exportElements, exportGlbFile, exportIfcFile, exportJoinScript, exportProject, exportQuantities, exportReport, exportSeatsCsv, loadRhino, openProjectFile } from '../export/browser';
+import { export3dm, exportDxfFile, exportElements, exportGlbFile, exportIfcFile, exportJoinScript, exportProject, exportQuantities, exportReport, exportSeatsCsv, exportStudies, loadRhino, openProjectFile } from '../export/browser';
 import { Segmented } from './controls';
 import { Icon } from './icons';
 import { useStore, type CameraView, type Mode } from './store';
@@ -17,6 +17,8 @@ export function Toolbar() {
   const mode = useStore((s) => s.mode);
   const setMode = useStore((s) => s.setMode);
   const toast = useStore((s) => s.showToast);
+  const compareOpen = useStore((s) => s.compareOpen);
+  const setCompare = useStore((s) => s.setCompareOpen);
   const fileRef = useRef<HTMLInputElement>(null);
   const [menu, setMenu] = useState<'export' | 'presets' | null>(null);
   const [busy, setBusy] = useState(false);
@@ -34,6 +36,8 @@ export function Toolbar() {
       if (modes[e.key]) st.setMode(modes[e.key]);
       const views: Record<string, CameraView> = { '1': 'perspective', '2': 'plan', '3': 'elevation', '4': 'section', '5': 'iso', '6': 'fieldLevel', '7': 'exterior' };
       if (views[e.key]) st.setView(views[e.key]);
+      if (e.key === 'o') st.setCompareOpen(!st.compareOpen);
+      if (e.key === 'Escape' && st.compareOpen) { st.setCompareOpen(false); return; }
       if (e.key === 'Escape') { if (st.seatView) st.setSeatView(false); else st.selectSeat(null); }
     };
     window.addEventListener('keydown', onKey);
@@ -80,6 +84,7 @@ export function Toolbar() {
       </div>
       <div className="tb-group">
         <Segmented value={mode} onChange={setMode} options={[{ value: 'explore', label: 'Explore', title: 'E' }, { value: 'technical', label: 'Technical', title: 'T' }, { value: 'analysis', label: 'Analysis', title: 'A' }]} />
+        <button className={`chip ${compareOpen ? 'on' : ''}`} onClick={() => setCompare(!compareOpen)} title="Compare saved options and explore capacity against proximity (O)">Compare</button>
       </div>
       <div className="tb-group">
         <Segmented size="sm" value={project.units} onChange={(v) => edit((p) => { p.units = v; }, 'units')} options={[{ value: 'metric', label: 'm' }, { value: 'imperial', label: 'ft' }]} />
@@ -110,6 +115,7 @@ export function Toolbar() {
               <button className="menu-item" onClick={() => run('Element schedule', () => exportElements(stadium))}>Element schedule<span>.csv</span></button>
               <button className="menu-item" onClick={() => { exportSeatsCsv(stadium); setMenu(null); }}>Seat schedule<span>.csv</span></button>
               <button className="menu-item" onClick={() => run('Model check report', () => exportReport(stadium))}>Model check report<span>.md</span></button>
+              <button className="menu-item" onClick={() => run('Design studies report', () => exportStudies(stadium))}>Design studies report<span>.md</span></button>
               <button className="menu-item" onClick={() => { exportProject(project); setMenu(null); }}>Project<span>.json</span></button>
             </div>
           )}

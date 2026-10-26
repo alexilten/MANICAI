@@ -9,7 +9,7 @@ import { accessLevel, bandSolid, BALCONY_DEPTH, soffitZ, type BoxMesh } from '..
 import { capacityOf } from '../src/core/engine/optimize';
 import { enclosedArea, perimeter, segmentLength } from '../src/core/engine/plan';
 import { getPreset } from '../src/core/presets';
-import { defaultProject, parseProject, suiteLevel, type Project } from '../src/core/schema';
+import { defaultProject, parseProject, SCHEMA_VERSION, suiteLevel, type Project } from '../src/core/schema';
 import { exportRhino, type RhinoModule } from '../src/export/rhino';
 import { inspect3dm } from '../src/export/inspect3dm';
 import { clone, fresh, rhino } from './helpers';
@@ -147,7 +147,7 @@ describe('W · v2 files and the Rhino building layers', () => {
   it('v2 files open with no premium levels and their Round 02 capacities', () => {
     for (const [f, gross, net] of [['generic-soccer', 44180, 41998], ['generic-nfl', 67720, 64580]] as const) {
       const p = parseProject(readFileSync(`tests/fixtures/v2-${f}.manicai.json`, 'utf8'));
-      expect(p.version).toBe(5);
+      expect(p.version).toBe(SCHEMA_VERSION);
       expect(p.premium).toEqual([]);
       const m = fresh(p).metrics;
       expect([m.gross, m.net, m.total], f).toEqual([gross, net, net]);
