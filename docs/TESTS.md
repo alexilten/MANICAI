@@ -1,6 +1,6 @@
-# Acceptance tests (Rounds 01–05)
+# Acceptance tests (Rounds 01–06)
 
-`npm test` runs 89 tests in `tests/`. All 89 pass as of 2026-10-26 (Node 22, vitest 3). A–J are the Round 01 tests, K–Q came with Round 02, R–W with Round 03, X–AC with Round 04 and AD–AI with Round 05.
+`npm test` runs 102 tests in `tests/`. All 102 pass as of 2026-10-26 (Node 22, vitest 3). A–J are the Round 01 tests, K–Q came with Round 02, R–W with Round 03, X–AC with Round 04, AD–AI with Round 05 and AJ–AO with Round 06.
 
 | Test | What is checked | File |
 |---|---|---|
@@ -37,10 +37,18 @@
 | AG · MEP | Demand and transformer counts follow the ratios, an enclosed bowl adds conditioned area, and the energy centre sits on the yard frontage beyond the eave with its plant area. Every core has duct, electrical and plumbing risers beside it to its top, and an air-handling and an electrical room for every level it serves. A duct zone sits under every concourse ceiling, a deep one is flagged, and a plant allowance the frontage cannot hold is flagged. | `round05.test.ts` |
 | AH · service access | The service yard follows the loading dock's frontage (or the stand opposite the main stand), the field access tunnel runs from the field edge to the facade on its stand, and both respond to their settings. | `round05.test.ts` |
 | AI · v4 files and Rhino | v4 files open as v5 with the default systems and their Round 04 capacity and floor area (64,578 / 81,097 m² and 61,626 / 38,271 m²). The .3dm has one aimed `MANICAI_FLOODLIGHT_GENERIC` instance and one aiming line per fixture, four masts with heads, three risers per core, the air-handling rooms, duct zones, boards, camera platforms and view lines and the field access on their layers, and a mast extrusion's box matches the engine. | `round05.test.ts` |
+| AJ · element model | Elements, masses, reservations and placeholders are kept apart, every element has an IFC class and a layer, spaces are always reservations and ids are unique. Ring-loop areas with arcs follow the exact parallel-curve formula, and exact and tessellated volumes agree within 1 % for every extruded or revolved element. | `round06.test.ts` |
+| AK · IFC 4 | The same design exports byte-identical IFC4 with stable 22-character GlobalIds, and non-ASCII text is encoded. One project, site and building, a storey per level, one `IfcFurniture` per net seat, one `IfcLightFixture` per floodlight, an opening and a voids relation per vomitory, no inline entities and no custom `Pset_` names. | `round06.test.ts` |
+| AL · schedules | Every quantity row states a method and status, terrace volumes sum to the element model's, and the element CSV has one line per element. | `round06.test.ts` |
+| AM · model check | All 15 checks pass on all 12 presets, including the IFC read-back census; a crossing polygon is detected. | `round06.test.ts` |
+| AN · glTF and DXF | The GLB header, chunk lengths and JSON are valid, seat instances equal net capacity, and coordinates are in metres. DXF layer names are unique, R12-safe and at most 31 characters, and the file is AC1009 ending in EOF. | `round06.test.ts` |
+| AO · tier sections | Every tier outline of every preset (first row, half and full depth) is a simple polygon. | `round06.test.ts` |
 | I · performance | A fitted bowl of about 75,000 seats regenerates from scratch in under 1.5 s. This is a CI guard; see the benchmark below. | `bench.test.ts` |
 | J · assumptions visible | Every preset lists its assumptions and precedent presets list published facts. Every rule has a kind, verification and source, and every referenced rule exists. The scope warning is always shown. Every preset fits within 2% of its target net capacity and meets the ADA wheelchair count. | `core.test.ts` |
 
 The sample `.3dm` files are also checked independently with the Python rhino3dm bindings (`npm run verify:3dm`). `four-stand-30k_rhino8.3dm` reads back in millimetres with 53 layers, 30,248 `MANICAI_SEAT_500MM` instances and 196 `MANICAI_WHEELCHAIR_1400x900MM` instances, which together equal its 30,444 net capacity (31,560 gross). All vomitory, suite, program and core solids in the samples read back as closed (`IsSolid`), including the 34 suites in `generic-nfl_building_rhino8.3dm`. In `allegiant-inspired_architecture_rhino8.3dm` all 816 rakers and columns, 51 roof frames and 344 mullions (exact extrusions), 4 trusses, 52 facade pieces and 19 back-of-house rooms read back as closed solids. Its Round 05 systems read back in millimetres with 319 aimed `MANICAI_FLOODLIGHT_GENERIC` instances, and all 265 system reservations (HVAC, electrical, plumbing, AV / IT, broadcast and site extrusions) are closed.
+
+The Round 06 samples are also checked independently: `npm run verify:ifc` (IfcOpenShell 0.9 schema and express-rule validation, with `--geometry` building every element) reports no issues for every preset, and element bounding boxes match MANICAI's within 0.5 mm; the GLB passes the Khronos glTF validator with no errors; `npm run verify:dxf` (ezdxf audit) reports no errors.
 
 ## Benchmark (`npm run bench`)
 

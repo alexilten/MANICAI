@@ -1,12 +1,12 @@
 # MANICAI
 
-**A generative stadium design engine.** You set a sport, a field and a handful of bowl rules. MANICAI generates a continuous seating bowl with every seat placed, sightlines solved row by row, and live capacity. It exports a native Rhino model that an architect can keep working in.
+**A generative stadium design engine.** You set a sport, a field and a handful of bowl rules. MANICAI generates a continuous seating bowl with every seat placed, sightlines solved row by row, and live capacity. It exports a native Rhino model that an architect can keep working in, an IFC 4 model for BIM tools, glTF, DXF drawings and quantity schedules.
 
 > MANICAI is an independent experimental product. It is not an official product of MANICA Architecture and is not endorsed by MANICA or any studio named in this repository. Precedent presets are parametric studies built from public facts, not the architects' geometry.
 
 ![Generic soccer bowl, perspective](docs/screenshots/01-perspective.png)
 
-## Status after Round 05
+## Status after Round 06
 
 | Area | What works now |
 |---|---|
@@ -27,8 +27,9 @@
 | Analysis | Seats can be coloured by C-value, distance to the far corner (FIFA 150 m and 190 m), tier, sector or class (with excluded positions shown). A seat inspector and "view from this seat" are included. |
 | Views | Perspective, plan, elevation, section with a live cut plane, iso, field level and an exterior view from the plaza. X-ray makes the roof and facade see-through. Explore, Technical (with dimensions, level datums, the structural grid and floodlight aiming) and Analysis modes. A Systems view isolates the building systems, and a Night view lights the field. |
 | Files | Save and open `.manicai.json`. Export to Rhino 8 or 7 `.3dm` with or without seats (structural grid, rakers and columns as exact extrusions, roof deck, cap, frames and trusses, facade skin, mullions and portals, back-of-house rooms, floodlights as aimed blocks with aiming lines, catwalk or masts, video and ribbon boards, broadcast positions, MEP risers, rooms, duct zones, energy centre yards and the service yard as exact extrusions, floor plates, suites, program zones and cores, vomitory solids, wheelchair and companion positions, club seats and excluded positions on their own layers), a seat schedule `.csv` with class and status, and a RhinoPython script that joins each tier and cuts its vomitories. A MANICAI `.3dm` can be reopened in MANICAI. |
+| Interoperability | One BIM element model behind every export, with each element marked as a generic parametric element, conceptual mass, space reservation or generic placeholder. **IFC 4** with project, site, building and storeys, typed seats and floodlights, vomitory openings voiding the terraces, property and quantity sets and stable GlobalIds (validated with IfcOpenShell). **glTF** (.glb) with instanced seats, a **plan and section DXF**, **quantity and element schedules** (CSV) and a 15-check **model check** with a report. See [INTEROP.md](docs/INTEROP.md) for the IFC mapping and Revit notes. |
 
-What is **not** in yet: a point-by-point lighting calculation, engineered MEP, loges and press boxes, engineered structure, site and precinct, and any egress calculation. See [ROADMAP.md](docs/ROADMAP.md).
+What is **not** in yet: testing in Revit (the notes are untested), direct DWG, a point-by-point lighting calculation, engineered MEP, loges and press boxes, engineered structure, site and precinct, and any egress calculation. See [ROADMAP.md](docs/ROADMAP.md).
 
 ### Round 02 views
 
@@ -64,15 +65,22 @@ What is **not** in yet: a point-by-point lighting calculation, engineered MEP, l
 | **Corner masts** at night on the horseshoe | **Technical systems** panel and lighting controls |
 | ![Masts](docs/screenshots/27-masts-night.png) | ![Systems panel](docs/screenshots/28-systems-panel.png) |
 
+### Round 06 views
+
+| Export menu: BIM & CAD, schedules and data | Model check in the right panel |
+|---|---|
+| ![Export menu](docs/screenshots/29-export-menu.png) | ![Model check](docs/screenshots/30-model-check.png) |
+
 ## Run it
 
 ```bash
 npm ci
 npm run dev          # http://localhost:5173
-npm test             # acceptance tests A–AI (89 tests)
+npm test             # acceptance tests A–AO (102 tests)
 npm run bench        # regeneration benchmarks at 25k, 50k, 75k and 100k seats
 npm run build        # typecheck and production build
 npm run export:samples && npm run verify:3dm   # needs: pip install rhino3dm
+npm run verify:ifc && npm run verify:dxf       # needs: pip install ifcopenshell ezdxf
 npm run docs         # regenerates STANDARDS, PRESETS and PRECEDENTS from the data
 ```
 
@@ -89,17 +97,18 @@ The world origin `(0, 0, 0)` is the centre of the field at field level. **+X** r
 - [STANDARDS.md](docs/STANDARDS.md): every rule applied, tagged governing, guidance, assumption or engineer-review, and checked or recall.
 - [PRESETS.md](docs/PRESETS.md) and [PRECEDENTS.md](docs/PRECEDENTS.md): presets with what is published and what is assumed, plus the sourced precedent library.
 - [ROADMAP.md](docs/ROADMAP.md): limitations and next rounds.
-- [TESTS.md](docs/TESTS.md): acceptance tests A–AI and benchmark results.
+- [INTEROP.md](docs/INTEROP.md): the element model, IFC 4 mapping, Revit workflow notes, glTF, DXF and the model check.
+- [TESTS.md](docs/TESTS.md): acceptance tests A–AO and benchmark results.
 
 ## Layout
 
 ```
 src/core/          engine: sports, schema, plan, profiles, seats, stadium, optimize, presets, data
-src/export/        Rhino .3dm writer and reader, CSV, browser download helpers, join script
+src/export/        element model, IFC 4, glTF, DXF, schedules, model check, Rhino .3dm writer and reader, CSV, downloads
 src/viewport/      three.js / react-three-fiber scene
 src/ui/            panels, toolbar, store (zustand)
-tests/             vitest acceptance tests A–AI (v1–v4 fixtures in tests/fixtures)
-scripts/           bench, sample export, Python .3dm verifier, docs generator
+tests/             vitest acceptance tests A–AO (v1–v4 fixtures in tests/fixtures)
+scripts/           bench, sample export, Python .3dm, IFC and DXF verifiers, docs generator
 examples/          every preset as a .manicai.json
-samples/           Rhino 8 samples, seat schedule and a read-back manifest
+samples/           Rhino 8, IFC, GLB and DXF samples, schedules, model check and a read-back manifest
 ```

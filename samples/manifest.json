@@ -8,7 +8,7 @@
     "wheelchair": 196,
     "exportedSeats": true,
     "bytes": 26586138,
-    "exportMs": 2704,
+    "exportMs": 2912,
     "readBack": {
       "units": "Millimeters",
       "layers": 113,
@@ -45,7 +45,7 @@
     "wheelchair": 290,
     "exportedSeats": false,
     "bytes": 3711378,
-    "exportMs": 230,
+    "exportMs": 236,
     "readBack": {
       "units": "Millimeters",
       "layers": 113,
@@ -72,7 +72,7 @@
     "wheelchair": 462,
     "exportedSeats": false,
     "bytes": 4754472,
-    "exportMs": 204,
+    "exportMs": 210,
     "readBack": {
       "units": "Millimeters",
       "layers": 123,
@@ -100,7 +100,7 @@
     "wheelchair": 458,
     "exportedSeats": false,
     "bytes": 4875717,
-    "exportMs": 245,
+    "exportMs": 261,
     "readBack": {
       "units": "Millimeters",
       "layers": 123,
