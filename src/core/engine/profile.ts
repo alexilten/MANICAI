@@ -207,5 +207,8 @@ export function tierOutline(prof: TierProfile, n: number): [number, number][] {
 }
 
 function dedupe(p: [number, number][]) {
-  return p.filter((q, i) => i === 0 || Math.hypot(q[0] - p[i - 1][0], q[1] - p[i - 1][1]) > 0.01);
+  const out = p.filter((q, i) => i === 0 || Math.hypot(q[0] - p[i - 1][0], q[1] - p[i - 1][1]) > 0.01);
+  // the outline is closed: a last point on the first is the same corner
+  while (out.length > 3 && Math.hypot(out[0][0] - out[out.length - 1][0], out[0][1] - out[out.length - 1][1]) <= 0.01) out.pop();
+  return out;
 }

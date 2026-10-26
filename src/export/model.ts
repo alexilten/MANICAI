@@ -393,11 +393,11 @@ export function buildModel(s: Stadium): BimModel {
   for (const q of AR.facade.canopies) add({ id: q.id, name: 'Entrance canopy', layer: '10_FACADE::PORTALS', category: 'Facade: portal canopies', ifc: { cls: 'IfcSlab', type: 'USERDEFINED', objectType: 'Entrance canopy' }, status: 'mass', base: q.z0, shapes: [pieceShape(ring, q)], mesh: () => pieceSolid(ring, q), props: { ClearHeight: Math.round(q.z0) } });
   for (const z of AR.boh.zones) {
     const q = { seg: z.seg, u0: z.u0, u1: z.u1, d0: z.d0 + 250, d1: z.d1 - 250 };
-    add({ id: z.id, name: BOH_LABEL[z.kind], layer: `16_BACK_OF_HOUSE::${slug(BOH_LABEL[z.kind])}`, category: 'Back of house', ifc: { cls: 'IfcSpace', type: 'INTERNAL', objectType: BOH_LABEL[z.kind] }, status: 'reservation', base: z.z0,
+    add({ id: z.id, name: BOH_LABEL[z.kind], layer: `16_BACK_OF_HOUSE::${slug(BOH_LABEL[z.kind])}`, category: 'Back of house: rooms', ifc: { cls: 'IfcSpace', type: 'INTERNAL', objectType: BOH_LABEL[z.kind] }, status: 'reservation', base: z.z0,
       shapes: [bandShape(ring, q, q.d0, q.d1, z.z0, z.z1 - 400)], space: { area: pieceArea(ring, q), external: false, height: z.z1 - 400 - z.z0 }, props: { Use: BOH_LABEL[z.kind], ProgramAreaM2: +z.area.toFixed(1) } });
   }
   const cor = AR.boh.corridor;
-  if (cor) add({ id: 'BOH.SERVICE_CORRIDOR', name: 'Service corridor slab', layer: '16_BACK_OF_HOUSE::SERVICE_CORRIDOR', category: 'Back of house', ifc: { cls: 'IfcSlab', type: 'FLOOR', objectType: 'Service corridor' }, status: 'element', base: -SLAB,
+  if (cor) add({ id: 'BOH.SERVICE_CORRIDOR', name: 'Service corridor slab', layer: '16_BACK_OF_HOUSE::SERVICE_CORRIDOR', category: 'Back of house: service corridor slab', ifc: { cls: 'IfcSlab', type: 'FLOOR', objectType: 'Service corridor' }, status: 'element', base: -SLAB,
     shapes: [bandShape(ring, 'ring', cor.d0, cor.d1, -SLAB, 0)], mesh: () => bandSolid(ring, 'ring', cor.d0, cor.d1, -SLAB, 0), props: { Width: Math.round(cor.d1 - cor.d0) } });
 
   // ── Round 05 systems
