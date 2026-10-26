@@ -1,6 +1,6 @@
-# Acceptance tests (Rounds 01–03)
+# Acceptance tests (Rounds 01–04)
 
-`npm test` runs 61 tests in `tests/`. All 61 pass as of 2026-10-25 (Node 22, vitest 3). A–J are the Round 01 tests, K–Q came with Round 02 and R–W with Round 03.
+`npm test` runs 74 tests in `tests/`. All 74 pass as of 2026-10-26 (Node 22, vitest 3). A–J are the Round 01 tests, K–Q came with Round 02, R–W with Round 03 and X–AC with Round 04.
 
 | Test | What is checked | File |
 |---|---|---|
@@ -24,11 +24,17 @@
 | T · concourses | A tier with vomitories gets its concourse at the vomitory floor, starting under the tier where the soffit clears the concourse height; without them, behind its back row. Program areas follow the allowances and the spectators served, sit behind the concourse, and a shortfall is flagged. | `round03.test.ts` |
 | U · cores | Cores stand outside every plate, at the set spacing, above the top level; the reported walk to a core is half the spacing. | `round03.test.ts` |
 | V · solids | A ring floor plate is closed and outward-facing with the volume of its plan band; a span box has the analytical volume. | `round03.test.ts` |
-| W · v2 files and Rhino | v2 files open as v3 with no premium levels and their Round 02 capacities. The .3dm has the plates, suites, program and cores on their layers in the right numbers. | `round03.test.ts` |
+| W · v2 files and Rhino | v2 files open (now as v4) with no premium levels and their Round 02 capacities. The .3dm has the plates, suites, program and cores on their layers in the right numbers. | `round03.test.ts` |
+| X · structural grid | Radial frames sit at the bay along the outer column line in every region, and a smaller bay adds frames. Ring lines are lettered outward at least 2.5 m apart, ending on the outer column line. Rakers follow each tier's soffit at the set depth and columns stop at the raker underside. | `round04.test.ts` |
+| Y · roof typologies | A perimeter canopy's deck clears the top row by the set clearance, carries its frames above at the set depth, and covers every seat it overhangs; pulling its edge back uncovers the front rows. A partial canopy covers exactly its stand's seats; open air builds nothing. The high-ball view equals a separately computed back-row sightline under the edge, and a low, falling roof is reported. Enclosed, ETFE and truss roofs cap the field (trusses where expected); retractable panels slide open. | `round04.test.ts` |
+| Z · facade and envelope | The facade stands at the set offset beyond the cores, meets the top of the roof deck, splits at four portals with canopies, and its area and footprint match the analytic values. One mullion or fin per module; none on a solid facade. | `round04.test.ts` |
+| AA · back-of-house | Rooms line the event-level corridor within the clear height, the tunnel runs to the corridor at the main stand centre with locker rooms either side, the assumed areas are all placed on the generic NFL bowl, and GFA adds them. A larger allowance than the band holds is reported. | `round04.test.ts` |
+| AB · solids and inward offsets | Members (upright and sloped) have the volume of their section times their width; a flat cap has the volume of its plan area times its thickness. Past the corner radius the plan path is a sharp rectangle: straights shorten, corners close to a point, and the perimeter and offset are exact. | `round04.test.ts` |
+| AC · v3 files and Rhino | v3 files open as v4 with the default architecture and their Round 03 capacities (64,578 and 64,899). The .3dm has the grid, rakers, columns, roof frames, cap, trusses, mullions, portals and back-of-house rooms on their layers in the right numbers, and a column extrusion's bounding box matches the engine's. | `round04.test.ts` |
 | I · performance | A fitted bowl of about 75,000 seats regenerates from scratch in under 1.5 s. This is a CI guard; see the benchmark below. | `bench.test.ts` |
 | J · assumptions visible | Every preset lists its assumptions and precedent presets list published facts. Every rule has a kind, verification and source, and every referenced rule exists. The scope warning is always shown. Every preset fits within 2% of its target net capacity and meets the ADA wheelchair count. | `core.test.ts` |
 
-The sample `.3dm` files are also checked independently with the Python rhino3dm bindings (`npm run verify:3dm`). `four-stand-30k_rhino8.3dm` reads back in millimetres with 53 layers, 30,248 `MANICAI_SEAT_500MM` instances and 196 `MANICAI_WHEELCHAIR_1400x900MM` instances, which together equal its 30,444 net capacity (31,560 gross). All vomitory, suite, program and core solids in the samples read back as closed (`IsSolid`), including the 34 suites in `generic-nfl_building_rhino8.3dm`.
+The sample `.3dm` files are also checked independently with the Python rhino3dm bindings (`npm run verify:3dm`). `four-stand-30k_rhino8.3dm` reads back in millimetres with 53 layers, 30,248 `MANICAI_SEAT_500MM` instances and 196 `MANICAI_WHEELCHAIR_1400x900MM` instances, which together equal its 30,444 net capacity (31,560 gross). All vomitory, suite, program and core solids in the samples read back as closed (`IsSolid`), including the 34 suites in `generic-nfl_building_rhino8.3dm`. In `allegiant-inspired_architecture_rhino8.3dm` all 816 rakers and columns, 51 roof frames and 344 mullions (exact extrusions), 4 trusses, 52 facade pieces and 19 back-of-house rooms read back as closed solids.
 
 ## Benchmark (`npm run bench`)
 

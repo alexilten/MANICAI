@@ -32,7 +32,7 @@ export function Toolbar() {
       if (mod) return;
       const modes: Record<string, Mode> = { e: 'explore', t: 'technical', a: 'analysis' };
       if (modes[e.key]) st.setMode(modes[e.key]);
-      const views: Record<string, CameraView> = { '1': 'perspective', '2': 'plan', '3': 'elevation', '4': 'section', '5': 'iso', '6': 'fieldLevel' };
+      const views: Record<string, CameraView> = { '1': 'perspective', '2': 'plan', '3': 'elevation', '4': 'section', '5': 'iso', '6': 'fieldLevel', '7': 'exterior' };
       if (views[e.key]) st.setView(views[e.key]);
       if (e.key === 'Escape') { if (st.seatView) st.setSeatView(false); else st.selectSeat(null); }
     };

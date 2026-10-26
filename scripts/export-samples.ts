@@ -24,6 +24,7 @@ const jobs = [
   { id: 'four-stand', seats: true, file: 'four-stand-30k_rhino8.3dm' },
   { id: 'generic-soccer', seats: false, file: 'generic-soccer_bowl-only_rhino8.3dm' },
   { id: 'generic-nfl', seats: false, file: 'generic-nfl_building_rhino8.3dm' },
+  { id: 'allegiant', seats: false, file: 'allegiant-inspired_architecture_rhino8.3dm' },
 ];
 const manifest = [];
 for (const j of jobs) {

@@ -10,7 +10,7 @@ export const PROGRAM_TONES: Record<ProgramKind, string> = {
 export const PROGRAM_LEGEND = (Object.keys(PROGRAM_TONES) as ProgramKind[]).map((k) => ({ label: PROGRAM_LABEL[k], color: PROGRAM_TONES[k] }));
 
 /** Merge closed solids into one geometry, optionally with a colour per solid (one draw call per material). */
-function merge(parts: { m: BoxMesh; color?: string }[]) {
+export function merge(parts: { m: BoxMesh; color?: string }[]) {
   let nv = 0, ni = 0;
   for (const { m } of parts) { nv += m.positions.length / 3; ni += m.index.length; }
   const pos = new Float32Array(nv * 3), col = new Float32Array(nv * 3), idx = new Uint32Array(ni);
@@ -34,7 +34,7 @@ function merge(parts: { m: BoxMesh; color?: string }[]) {
   return flat;
 }
 
-function useGeo(build: () => THREE.BufferGeometry | null, deps: unknown[]) {
+export function useGeo(build: () => THREE.BufferGeometry | null, deps: unknown[]) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const g = useMemo(build, deps);
   useEffect(() => () => g?.dispose(), [g]);

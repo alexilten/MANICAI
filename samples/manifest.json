@@ -7,12 +7,12 @@
     "vomitories": 18,
     "wheelchair": 196,
     "exportedSeats": true,
-    "bytes": 26429992,
-    "exportMs": 2541,
+    "bytes": 32199189,
+    "exportMs": 4551,
     "readBack": {
       "units": "Millimeters",
-      "layers": 63,
-      "objects": 32025,
+      "layers": 87,
+      "objects": 32955,
       "blocks": [
         {
           "name": "MANICAI_SEAT_500MM",
@@ -39,12 +39,12 @@
     "vomitories": 42,
     "wheelchair": 290,
     "exportedSeats": false,
-    "bytes": 4216858,
-    "exportMs": 92,
+    "bytes": 10017517,
+    "exportMs": 288,
     "readBack": {
       "units": "Millimeters",
-      "layers": 63,
-      "objects": 604,
+      "layers": 87,
+      "objects": 1576,
       "blocks": [],
       "groups": [
         "TERRACE_T1",
@@ -60,12 +60,34 @@
     "vomitories": 50,
     "wheelchair": 462,
     "exportedSeats": false,
-    "bytes": 7860214,
-    "exportMs": 176,
+    "bytes": 17440028,
+    "exportMs": 707,
     "readBack": {
       "units": "Millimeters",
-      "layers": 73,
-      "objects": 1173,
+      "layers": 97,
+      "objects": 2565,
+      "blocks": [],
+      "groups": [
+        "TERRACE_T1",
+        "TERRACE_T2",
+        "TERRACE_T3"
+      ]
+    }
+  },
+  {
+    "file": "allegiant-inspired_architecture_rhino8.3dm",
+    "preset": "allegiant",
+    "seats": 63747,
+    "grossSeats": 66780,
+    "vomitories": 48,
+    "wheelchair": 458,
+    "exportedSeats": false,
+    "bytes": 19969349,
+    "exportMs": 659,
+    "readBack": {
+      "units": "Millimeters",
+      "layers": 97,
+      "objects": 2587,
       "blocks": [],
       "groups": [
         "TERRACE_T1",

@@ -127,7 +127,20 @@ Verification: **checked** means the rule was read in the cited source on the dat
 
 | id | statement | value | kind | verification | source |
 |---|---|---|---|---|---|
+| `manicai.structure` | Radial structural frames are set out at the bay (default 10 m) along the outer column line, parallel on the straights and radial in the corners. Each tier gets a raker along its soffit on every frame (default 1.1 m deep) and columns on ring grid lines at the back of each tier, a mid support under each upper tier and the outer column line 1.5 m inside the facade. These are coordination geometry: member sizes, spans, transfer structure and bracing are not designed (review.structure). |  | assumption | recall | MANICAI method; user-editable |
 | `review.structure` | Tier soffits, overhangs and tier gaps are architectural envelopes, not structural designs. Raker spans, cantilevers and vibration need a structural engineer. |  | engineer-review | recall | MANICAI scope |
+
+## Roof
+
+| id | statement | value | kind | verification | source |
+|---|---|---|---|---|---|
+| `manicai.roof` | The roof bears on the outer column line. Its deck underside clears the highest tread by the set clearance (default 9 m) and rises toward the field at the set pitch; primary frames taper from the set depth to a quarter of it at the leading edge, above the deck on open roofs and below it on enclosed ones. Coverage counts seats inside the roof outline in plan (wind-driven rain is not modelled). The high-ball view is the height over the centre spot of the back-row sightline under the leading edge; the 20 m default is a MANICAI assumption, not a published standard. Long-span truss depth defaults to span / 12. |  | assumption | recall | MANICAI method; user-editable |
+
+## Back of house
+
+| id | statement | value | kind | verification | source |
+|---|---|---|---|---|---|
+| `manicai.boh` | Back-of-house rooms line a service corridor (default 6 m) at event level, in a band (default 16 m) starting under the lower tier where its soffit clears the rooms. Areas are MANICAI placeholders: team locker rooms 900 m² (soccer) or 1,800 m² (NFL) for two teams, officials 120 m², medical 150 m² + 0.002 m² per seat, press and broadcast 300 m² + 0.008, kitchens 0.02, storage 0.02, loading dock 1,200 m², waste 200 m² + 0.003, groundskeeping 500 m², event operations 250 m² + 0.002, all scaled by the allowance. Operators, leagues and broadcasters set the real brief. |  | assumption | recall | MANICAI default; user-editable |
 
 ## Egress
 

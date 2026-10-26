@@ -1,6 +1,6 @@
 {
   "schema": "manicai.project",
-  "version": 3,
+  "version": 4,
   "name": "Four stands with a steep home end (Everton-inspired)",
   "units": "metric",
   "site": {
@@ -110,6 +110,45 @@
       "stairs": 2,
       "stairWidth": 2400,
       "lifts": 2
+    }
+  },
+  "architecture": {
+    "structure": {
+      "bay": 10000,
+      "column": 900,
+      "rakerDepth": 1100,
+      "material": "steel"
+    },
+    "roof": {
+      "type": "perimeter",
+      "stands": [
+        "N",
+        "S"
+      ],
+      "overhang": 2000,
+      "clearance": 9000,
+      "pitch": 4,
+      "depth": 5000,
+      "frameEvery": 2,
+      "open": 1,
+      "skyView": 20000,
+      "material": "ptfe"
+    },
+    "facade": {
+      "type": "glazed",
+      "module": 3000,
+      "offset": 3000,
+      "portals": 4,
+      "portalWidth": 12000,
+      "portalHeight": 7000,
+      "material": "glass"
+    },
+    "boh": {
+      "mainStand": "S",
+      "corridor": 6000,
+      "depth": 16000,
+      "clear": 4500,
+      "scale": 1
     }
   },
   "presetId": "steep-end"

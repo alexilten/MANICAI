@@ -78,7 +78,7 @@ export const PRESETS: Preset[] = [
       return fitted(p);
     }),
   P({ id: 'generic-nfl', name: 'Generic NFL bowl', short: 'Three-tier football bowl with a club level', category: 'generic', sport: 'nfl',
-      verified: [], assumed: ['One suite level between the club level and the upper bowl, suites on both sidelines', 'All dimensions are MANICAI planning defaults.'], confidence: 'generic' },
+      verified: [], assumed: ['One suite level between the club level and the upper bowl, suites on both sidelines', 'Canopies over both sideline stands', 'All dimensions are MANICAI planning defaults.'], confidence: 'generic' },
     () => {
       const p = base('nfl', 'Generic NFL bowl', 'generic-nfl');
       p.bowl.targetCapacity = 65000; p.bowl.cornerRadius = 16000;
@@ -89,6 +89,7 @@ export const PRESETS: Preset[] = [
       ];
       p.sightlines.maxRakeDeg = 35;
       p.premium = [suiteLevel('P1', 'T3', { name: 'Suite level' })];
+      p.architecture.roof = { ...p.architecture.roof, type: 'canopy', stands: ['N', 'S'] };
       return fitted(p);
     }),
   P({ id: 'four-stand', name: 'Four-stand ground', short: 'Square corners: four separate stands', category: 'generic', sport: 'soccer',
@@ -106,11 +107,12 @@ export const PRESETS: Preset[] = [
       p.bowl.targetCapacity = 32000; p.bowl.cornerRadius = 9000;
       p.bowl.stands = { E: { open: true } };
       p.tiers = [tier('T1', 'Lower tier', { rows: 24, elevation: 1300 }), tier('T2', 'Upper tier', { rows: 18, elevation: 4500, overhang: -4500, targetC: 60 })];
+      p.architecture.roof = { ...p.architecture.roof, type: 'canopy', stands: ['N', 'S', 'W'] };
       return fitted(p);
     }),
   P({ id: 'single-end', name: 'Big single-tier end — Tottenham-inspired', short: '62,850 · two-tier bowl with one huge single-tier end', category: 'precedent', sport: 'soccer', precedent: 'tottenham',
       verified: ['Premier League stadium (Populous), opened 2019', 'Capacity 62,850 (recalled)', 'Single-tier South Stand of about 17,500 seats (recalled)'],
-      assumed: ['The single-tier end is the west end here (MANICAI puts the ends on ±X)', 'Lower tier extended at the west end to about 1¾ times its depth, upper tier dropped there; 35° rake limit', 'Two tiers elsewhere; row counts fitted to 62,850 net', 'Not the architects\' geometry — rake, tier split and distances are MANICAI assumptions'], confidence: 'low' },
+      assumed: ['Roof modelled as a continuous perimeter canopy', 'The single-tier end is the west end here (MANICAI puts the ends on ±X)', 'Lower tier extended at the west end to about 1¾ times its depth, upper tier dropped there; 35° rake limit', 'Two tiers elsewhere; row counts fitted to 62,850 net', 'Not the architects\' geometry — rake, tier split and distances are MANICAI assumptions'], confidence: 'low' },
     () => {
       const p = base('soccer', 'Big single-tier end (Tottenham-inspired)', 'single-end');
       p.field.runoffSide = 5500; p.field.runoffEnd = 6000;
@@ -121,11 +123,12 @@ export const PRESETS: Preset[] = [
       // the west end: one tier as deep as both tiers together, and no upper tier
       const deep = Math.min(ROWS_LIMIT, Math.round(p.tiers[0].rows + p.tiers[1].rows * 0.75));
       p.bowl.stands = { W: { rows: { T1: deep, T2: 0 } } };
+      p.architecture.roof.type = 'perimeter';
       return fitted(p);
     }),
   P({ id: 'steep-end', name: 'Four stands with a steep home end — Everton-inspired', short: '52,888 · square corners, single-tier end at the rake limit', category: 'precedent', sport: 'soccer', precedent: 'everton',
       verified: ['Premier League stadium (MEIS lead, BDP), opened 2025', 'Capacity 52,888', 'Single-tier South Stand at 33.89° maximum rake, "as steep as regulations allow" (RIBAJ)'],
-      assumed: ['Four separate stands with square corners', 'The single-tier home end is the west end here, at the 34° limit with tight 7 m goal-line distance', 'Two tiers on the other three stands; row counts fitted to 52,888 net'], confidence: 'low' },
+      assumed: ['Roof modelled as a continuous perimeter canopy', 'Four separate stands with square corners', 'The single-tier home end is the west end here, at the 34° limit with tight 7 m goal-line distance', 'Two tiers on the other three stands; row counts fitted to 52,888 net'], confidence: 'low' },
     () => {
       const p = base('soccer', 'Four stands with a steep home end (Everton-inspired)', 'steep-end');
       p.field.runoffSide = 5500; p.field.runoffEnd = 6000;
@@ -134,21 +137,23 @@ export const PRESETS: Preset[] = [
       fitted(p);
       const deep = Math.min(ROWS_LIMIT, Math.round(p.tiers[0].rows + p.tiers[1].rows * 0.75));
       p.bowl.stands = { W: { distance: 7000, rows: { T1: deep, T2: 0 } } };
+      p.architecture.roof.type = 'perimeter';
       return fitted(p);
     }),
   P({ id: 'freedom-park', name: 'Intimate soccer bowl — Inter Miami-inspired', short: '25,000 · soccer-specific, close to the pitch', category: 'precedent', sport: 'soccer', precedent: 'miami-freedom-park',
       verified: ['MLS soccer-specific stadium (MANICA), opened Apr 2026', 'Published capacity 25,000 (Dezeen; Wikipedia gives 26,700)', 'Lower and upper bowl'],
-      assumed: ['First row 6 m from touchlines, 7.5 m from goal lines', 'Two tiers; row counts fitted to 25,000', 'Pitch 105 × 68 m'], confidence: 'low' },
+      assumed: ['Roof modelled as a continuous perimeter canopy', 'First row 6 m from touchlines, 7.5 m from goal lines', 'Two tiers; row counts fitted to 25,000', 'Pitch 105 × 68 m'], confidence: 'low' },
     () => {
       const p = base('soccer', 'Intimate soccer bowl (Inter Miami-inspired)', 'freedom-park');
       p.field.runoffSide = 5000; p.field.runoffEnd = 6500;
       p.bowl = { sideDistance: 6000, endDistance: 7500, cornerRadius: 7000, targetCapacity: 25000, stands: {} };
       p.tiers = [tier('T1', 'Lower bowl', { rows: 20, elevation: 1200 }), tier('T2', 'Upper bowl', { rows: 12, elevation: 4200, overhang: -6000, targetC: 60 })];
+      p.architecture.roof.type = 'perimeter';
       return fitted(p);
     }),
   P({ id: 'allegiant', name: 'Compact enclosed NFL bowl — Allegiant-inspired', short: '65,000 · enclosed multipurpose NFL', category: 'precedent', sport: 'nfl', precedent: 'allegiant',
       verified: ['NFL stadium, MANICA design architect with HNTB, opened 2020', 'Capacity 65,000 (expandable to 71,835)', 'Fixed translucent ETFE roof; ten-level building; 128 suites'],
-      assumed: ['Two suite levels on both sidelines; the suite count is what fits at 5.5 m per suite, not the published 128', 'Three tiers (lower, club/suite, upper) — tier split not published', 'First row 15 m from sidelines', 'Roof not generated until Round 04'], confidence: 'low' },
+      assumed: ['Two suite levels on both sidelines; the suite count is what fits at 5.5 m per suite, not the published 128', 'Three tiers (lower, club/suite, upper) — tier split not published', 'First row 15 m from sidelines', 'ETFE roof drawn as a shallow dome on long-span trusses; heights and spans are MANICAI assumptions'], confidence: 'low' },
     () => {
       const p = base('nfl', 'Compact enclosed NFL bowl (Allegiant-inspired)', 'allegiant');
       p.bowl = { sideDistance: 15000, endDistance: 11000, cornerRadius: 14000, targetCapacity: 65000, stands: {} };
@@ -159,11 +164,12 @@ export const PRESETS: Preset[] = [
         tier('T3', 'Upper bowl', { rows: 26, elevation: 5200, overhang: -2000, targetC: 60 }),
       ];
       p.premium = [suiteLevel('P1', 'T2', { name: 'Lower suite level', setback: 6000 }), suiteLevel('P2', 'T3', { name: 'Upper suite level', setback: 9000 })];
+      p.architecture.roof = { ...p.architecture.roof, type: 'etfe', material: 'etfe' };
       return fitted(p);
     }),
   P({ id: 'chiefs', name: 'Large NFL atmosphere bowl — Chiefs-inspired', short: '≈70,000 · enclosed, steep and loud', category: 'precedent', sport: 'nfl', precedent: 'kc-chiefs',
       verified: ['In design (renderings Jul 2026), MANICA lead design architect, HNTB architect of record', 'About 70,000 seats', 'Enclosed translucent ETFE roof; bowl described as recalling Arrowhead, shaped for crowd noise'],
-      assumed: ['One suite level on both sidelines (suite count not published)', 'Three tiers with a steep upper bowl (35°)', 'Tight 14 m sideline distance', 'Row counts fitted to 70,000'], confidence: 'low' },
+      assumed: ['One suite level on both sidelines (suite count not published)', 'Three tiers with a steep upper bowl (35°)', 'Tight 14 m sideline distance', 'ETFE roof drawn as a shallow dome on long-span trusses', 'Row counts fitted to 70,000'], confidence: 'low' },
     () => {
       const p = base('nfl', 'Large NFL atmosphere bowl (Chiefs-inspired)', 'chiefs');
       p.bowl = { sideDistance: 14000, endDistance: 10000, cornerRadius: 18000, targetCapacity: 70000, stands: {} };
@@ -174,11 +180,12 @@ export const PRESETS: Preset[] = [
         tier('T3', 'Upper bowl', { rows: 30, elevation: 4800, overhang: -4500, targetC: 60 }),
       ];
       p.premium = [suiteLevel('P1', 'T3', { name: 'Suite level', setback: 9000 })];
+      p.architecture.roof = { ...p.architecture.roof, type: 'etfe', material: 'etfe' };
       return fitted(p);
     }),
   P({ id: 'nissan', name: 'Enclosed NFL stadium — New Nissan-inspired', short: '60,000 · enclosed, tiered football seating', category: 'precedent', sport: 'nfl', precedent: 'new-nissan',
       verified: ['Under construction, MANICA designer, opening 2027', 'Capacity 60,000 (55–60,000 proposed)', 'Enclosed translucent ETFE roof; ~170 suites'],
-      assumed: ['Two suite levels, the upper one wrapping all four stands; the suite count is what fits, not the published ~170', 'Three tiers', 'Row counts fitted to 60,000'], confidence: 'low' },
+      assumed: ['Two suite levels, the upper one wrapping all four stands; the suite count is what fits, not the published ~170', 'Three tiers', 'ETFE roof drawn as a shallow dome on long-span trusses', 'Row counts fitted to 60,000'], confidence: 'low' },
     () => {
       const p = base('nfl', 'Enclosed NFL stadium (New Nissan-inspired)', 'nissan');
       p.bowl = { sideDistance: 15000, endDistance: 11000, cornerRadius: 15000, targetCapacity: 60000, stands: {} };
@@ -189,27 +196,30 @@ export const PRESETS: Preset[] = [
         tier('T3', 'Upper bowl', { rows: 24, elevation: 5000, overhang: -2000, targetC: 60 }),
       ];
       p.premium = [suiteLevel('P1', 'T2', { name: 'Lower suite level', setback: 6000 }), suiteLevel('P2', 'T3', { name: 'Upper suite level', setback: 9000, stands: ['N', 'S', 'E', 'W'] })];
+      p.architecture.roof = { ...p.architecture.roof, type: 'etfe', material: 'etfe' };
       return fitted(p);
     }),
   P({ id: 'milano', name: 'European two-tier bowl — Milan-inspired', short: '71,500 · two large tiers, oval, steep', category: 'precedent', sport: 'soccer', precedent: 'milano',
       verified: ['In design (Foster + Partners and MANICA)', '71,500 seats, > 13,000 premium', 'Two large tiers, more oval than the Meazza; curve sections up to ~37° (preliminary press figure)'],
-      assumed: ['One suite level between the two rings on both sidelines; the published >13,000 premium seats also include club seating not modelled here', 'Max rake 37° (Italian rules differ from the UK 34°)', 'Generous corner radius for a softer plan (a truly oval, bowed plan needs Round 02 stand curvature)', 'Row counts fitted to 71,500'], confidence: 'low' },
+      assumed: ['One suite level between the two rings on both sidelines; the published >13,000 premium seats also include club seating not modelled here', 'Max rake 37° (Italian rules differ from the UK 34°)', 'Roof over the stands only (pitch open), drawn as a perimeter canopy', 'Generous corner radius for a softer plan (a truly oval, bowed plan needs Round 02 stand curvature)', 'Row counts fitted to 71,500'], confidence: 'low' },
     () => {
       const p = base('soccer', 'European two-tier bowl (Milan-inspired)', 'milano');
       p.bowl = { sideDistance: 8500, endDistance: 10500, cornerRadius: 16000, targetCapacity: 71500, stands: {} };
       p.sightlines.maxRakeDeg = 37;
       p.tiers = [tier('T1', 'First ring', { rows: 30, elevation: 1500 }), tier('T2', 'Second ring', { rows: 32, elevation: 5000, overhang: -6000, targetC: 60 })];
       p.premium = [suiteLevel('P1', 'T2', { name: 'Suite level', setback: 6000 })];
+      p.architecture.roof.type = 'perimeter';
       return fitted(p);
     }),
   P({ id: 'birmingham', name: 'Club stadium with strong ends — Birmingham-inspired', short: '62,000 · traditional bowl, big home end', category: 'precedent', sport: 'soccer', precedent: 'birmingham-city',
       verified: ['In design: Heatherwick Studio lead, MANICA collaborating', '62,000 seats', '"Traditional seating bowl"; roof hung from 12 brick chimneys'],
-      assumed: ['Two tiers, tight end stands (7 m from goal lines)', 'Row counts fitted to 62,000'], confidence: 'low' },
+      assumed: ['Retractable roof drawn as two sliding panels on track trusses; the published chimneys are not modelled', 'Two tiers, tight end stands (7 m from goal lines)', 'Row counts fitted to 62,000'], confidence: 'low' },
     () => {
       const p = base('soccer', 'Club stadium with strong ends (Birmingham-inspired)', 'birmingham');
       p.field.runoffEnd = 6000;
       p.bowl = { sideDistance: 8000, endDistance: 7000, cornerRadius: 8000, targetCapacity: 62000, stands: {} };
       p.tiers = [tier('T1', 'Lower tier', { rows: 26, elevation: 1300 }), tier('T2', 'Upper tier', { rows: 30, elevation: 4800, overhang: -6000, targetC: 60 })];
+      p.architecture.roof = { ...p.architecture.roof, type: 'retractable', material: 'metal' };
       return fitted(p);
     }),
 ];

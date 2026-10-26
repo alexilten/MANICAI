@@ -24,6 +24,8 @@ function ViewBar() {
   const setView = useStore((s) => s.setView);
   const cut = useStore((s) => s.cut);
   const setCut = useStore((s) => s.setCut);
+  const xray = useStore((s) => s.xray);
+  const setXray = useStore((s) => s.setXray);
   const seatView = useStore((s) => s.seatView);
   const setSeatView = useStore((s) => s.setSeatView);
   const st = useStore((s) => s.stadium);
@@ -40,9 +42,10 @@ function ViewBar() {
     <div className="viewbar glass">
       <Segmented value={view} onChange={(v: CameraView) => setView(v)} options={[
         { value: 'perspective', label: 'Perspective', title: '1' }, { value: 'plan', label: 'Plan', title: '2' }, { value: 'elevation', label: 'Elevation', title: '3' },
-        { value: 'section', label: 'Section', title: '4' }, { value: 'iso', label: 'Iso', title: '5' }, { value: 'fieldLevel', label: 'Field level', title: '6' },
+        { value: 'section', label: 'Section', title: '4' }, { value: 'iso', label: 'Iso', title: '5' }, { value: 'fieldLevel', label: 'Field level', title: '6' }, { value: 'exterior', label: 'Exterior', title: '7' },
       ]} />
       <span className="tb-sep" />
+      <button className={`chip ${xray ? 'on' : ''}`} onClick={() => setXray(!xray)} title="See through the roof and facade">X-ray</button>
       <button className={`chip ${cut.enabled ? 'on' : ''}`} onClick={() => setCut({ enabled: !cut.enabled })} title="Section cut">Cut</button>
       {cut.enabled && (
         <>
