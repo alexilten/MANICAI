@@ -5,6 +5,8 @@
 import { extents, type Stadium } from './stadium';
 
 export type P3 = [number, number, number];
+/** dim: a dimension line, labelled at its middle. level: a leader from the level (from) to a datum
+ *  column beside the section (to), labelled there; value is the level. */
 export interface Annotation { id: string; from: P3; to: P3; value: number; label: string; kind: 'dim' | 'level' }
 
 export function annotations(s: Stadium): Annotation[] {
@@ -20,7 +22,10 @@ export function annotations(s: Stadium): Annotation[] {
   if (Math.abs(ring.dist.S - ring.dist.N) > 1) out.push({ id: 'DIM.BOWL.SIDE_DISTANCE_S', kind: 'dim', from: [0, -W2, 0], to: [0, yS, 0], value: ring.dist.S, label: 'Touchline to first row (south)' });
   out.push({ id: 'DIM.BOWL.END_DISTANCE', kind: 'dim', from: [L2, 0, 0], to: [xE, 0, 0], value: ring.dist.E, label: 'Goal line to first row' });
   if (Math.abs(ring.dist.W - ring.dist.E) > 1) out.push({ id: 'DIM.BOWL.END_DISTANCE_W', kind: 'dim', from: [-L2, 0, 0], to: [xW, 0, 0], value: ring.dist.W, label: 'Goal line to first row (west)' });
-  // tier levels and depths on a sideline section (x = 0): the south stand, or the north one where the south does not carry the tier
+  // tier levels and depths on a sideline section (x = 0): the south stand, or the north one where the south does not carry the tier.
+  // Level marks lead out to one datum column beyond the building, sorted and spaced so their labels never overlap.
+  const levels: { id: string; at: [number, number]; z: number; label: string }[] = [];
+  const ySec = layout.rows.S.some((r) => r > 0) ? -1 : 1, yBase = ySec < 0 ? ring.cy - ring.hy : ring.cy + ring.hy;
   for (const t of profiles) {
     const south = layout.rows.S[t.index] > 0;
     const n = (south ? layout.rows.S : layout.rows.N)[t.index];
@@ -28,15 +33,21 @@ export function annotations(s: Stadium): Annotation[] {
     const sgn = south ? -1 : 1, y = south ? yS : yN;
     const back = t.rows[n - 1].d + t.rowDepth, top = t.rows[n - 1].z;
     const y0 = y + sgn * t.front, y1 = y + sgn * back;
-    out.push({ id: `DIM.${t.id}.FIRST_ROW_LEVEL`, kind: 'level', from: [0, y0, 0], to: [0, y0, t.bottom], value: t.bottom, label: `${t.name} first row` });
-    out.push({ id: `DIM.${t.id}.TOP_ROW_LEVEL`, kind: 'level', from: [0, y1, 0], to: [0, y1, top], value: top, label: `${t.name} top row` });
+    levels.push({ id: `DIM.${t.id}.FIRST_ROW_LEVEL`, at: [y0, t.bottom], z: t.bottom, label: `${t.name} first row` });
+    levels.push({ id: `DIM.${t.id}.TOP_ROW_LEVEL`, at: [y1, top], z: top, label: `${t.name} top row` });
     out.push({ id: `DIM.${t.id}.DEPTH`, kind: 'dim', from: [0, y0, top + 1500], to: [0, y1, top + 1500], value: back - t.front, label: `${t.name} depth` });
   }
   // building levels (Round 03) on the same section, at the front of each floor plate
-  const ySec = layout.rows.S.some((r) => r > 0) ? -1 : 1, yBase = ySec < 0 ? yS : yN;
-  for (const l of s.building.levels) {
-    const y = yBase + ySec * (l.d0 + 1500);
-    out.push({ id: `DIM.LEVEL.${l.id}`, kind: 'level', from: [0, y, 0], to: [0, y, l.z], value: l.z, label: l.name });
+  for (const l of s.building.levels) levels.push({ id: `DIM.LEVEL.${l.id}`, at: [yBase + ySec * (l.d0 + 1500), l.z], z: l.z, label: l.name });
+  if (s.architecture?.metrics.roofTop) levels.push({ id: 'DIM.ROOF.TOP', at: [yBase + ySec * s.architecture.roof.dIn, s.architecture.metrics.roofTop], z: s.architecture.metrics.roofTop, label: 'Top of roof' });
+  // the datum column stands over the field, a quarter of the way in from this stand, clear of the building
+  const yCol = yBase - ySec * (ring.dist[ySec < 0 ? 'S' : 'N'] + field.width / 4);
+  levels.sort((a, b) => a.z - b.z);
+  let zPrev = -Infinity;
+  for (const l of levels) {
+    const zl = Math.max(l.z, zPrev + 6500);
+    zPrev = zl;
+    out.push({ id: l.id, kind: 'level', from: [0, l.at[0], l.at[1]], to: [0, yCol, zl], value: l.z, label: l.label });
   }
   // overall footprint
   const e = extents(ring, layout, profiles);

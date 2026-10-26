@@ -14,10 +14,14 @@
  *   • vomitory openings as closed solids on 07_VERTICAL_CIRCULATION::VOMITORIES (the join script subtracts them)
  *   • Round 03 building: concourse and premium floor plates (closed meshes), suites, program zones and cores
  *     (closed solids) on 05_PREMIUM, 06_CONCOURSES and 07_VERTICAL_CIRCULATION, each named and carrying its area
+ *   • Round 04 architecture: structural grid lines, rakers and columns (08_STRUCTURE), roof deck, cap,
+ *     primary frames, trusses and panels (09_ROOF), facade skin, mullions or fins, bands and portals
+ *     (10_FACADE), back-of-house rooms and the service corridor (16_BACK_OF_HOUSE)
  *   • field markings as true lines and arcs; goals as solids
  *   • the full project JSON in the document strings, so MANICAI can reopen the file parametrically
  */
 import { annotations } from '../core/engine/annotations';
+import { BOH_KINDS, BOH_LABEL, boxSolid, capSolid, pieceSolid, roofSkin, stationsAt, type Member } from '../core/engine/architecture';
 import { bandSolid, PROGRAM_KINDS, PROGRAM_LABEL, SLAB, type BoxMesh } from '../core/engine/building';
 import { isCorner, pointAt, SECTORS, SECTOR_LABEL, SEGMENTS, type SegmentId } from '../core/engine/plan';
 import { tierOutline } from '../core/engine/profile';
@@ -30,7 +34,7 @@ import { serializeProject } from '../core/schema';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export type RhinoModule = any;
 
-export const APP_VERSION = '0.3.0';
+export const APP_VERSION = '0.4.0';
 
 /** The MANICAI layer standard. Systems that are not generated yet keep their place in the hierarchy. */
 export const LAYER_TREE: { name: string; color: [number, number, number]; children: string[] }[] = [
@@ -42,20 +46,21 @@ export const LAYER_TREE: { name: string; color: [number, number, number]; childr
   { name: '05_PREMIUM', color: [170, 130, 60], children: ['LEVELS', 'SUITES'] },
   { name: '06_CONCOURSES', color: [160, 150, 140], children: ['FLOOR_PLATES', 'PROGRAM', ...PROGRAM_KINDS.map((k) => `PROGRAM::${PROGRAM_LABEL[k].toUpperCase().replace(/[^A-Z0-9]+/g, '_')}`)] },
   { name: '07_VERTICAL_CIRCULATION', color: [150, 110, 160], children: ['VOMITORIES', 'CORES'] },
-  { name: '08_STRUCTURE', color: [110, 112, 118], children: [] },
-  { name: '09_ROOF', color: [200, 200, 205], children: [] },
-  { name: '10_FACADE', color: [180, 175, 165], children: [] },
+  { name: '08_STRUCTURE', color: [110, 112, 118], children: ['GRID', 'RAKERS', 'COLUMNS'] },
+  { name: '09_ROOF', color: [200, 200, 205], children: ['DECK', 'CAP', 'PRIMARY_FRAMES', 'TRUSSES', 'PANELS'] },
+  { name: '10_FACADE', color: [180, 175, 165], children: ['SKIN', 'MULLIONS', 'BANDS', 'PORTALS'] },
   { name: '11_HVAC', color: [60, 150, 200], children: [] },
   { name: '12_ELECTRICAL', color: [230, 170, 30], children: [] },
   { name: '13_PLUMBING', color: [40, 120, 200], children: [] },
   { name: '14_LIGHTING', color: [240, 200, 60], children: [] },
   { name: '15_AV_IT', color: [0, 150, 170], children: [] },
-  { name: '16_BACK_OF_HOUSE', color: [140, 140, 120], children: [] },
+  { name: '16_BACK_OF_HOUSE', color: [140, 140, 120], children: ['SERVICE_CORRIDOR', ...BOH_KINDS.map((k) => slugOf(BOH_LABEL[k]))] },
   { name: '17_SITE', color: [120, 150, 110], children: [] },
   { name: '90_DIMENSIONS', color: [10, 132, 255], children: [] },
   { name: '91_ANALYSIS', color: [230, 40, 40], children: ['SIGHTLINES', 'EXCLUDED_SEATS'] },
 ];
 
+function slugOf(s: string) { return s.toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_|_$/g, ''); }
 const free = (...xs: unknown[]) => { for (const x of xs) (x as { delete?: () => void } | null)?.delete?.(); };
 const rgba = ([r, g, b]: [number, number, number]) => ({ r, g, b, a: 255 });
 const slug = (s: string) => s.toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_|_$/g, '');
@@ -231,6 +236,39 @@ export function exportRhino(rh: RhinoModule, s: Stadium, opts: RhinoExportOption
     add(solidOf(bandSolid(ring, { seg: c.seg, u0: c.u0, u1: c.u1 }, c.d0, c.d1, 0, c.zTop)), attrs('07_VERTICAL_CIRCULATION::CORES', c.id, { stairs: c.stairs, lifts: c.lifts, top_mm: Math.round(c.zTop) }));
   }
 
+  // ── Round 04 architecture
+  const AR = s.architecture;
+  {
+    // grid: radial frames and ring lines at grade
+    const d0 = Math.min(...AR.rings.map((r) => r.d)) - 4000, d1 = AR.facade.d + 9000;
+    for (const fr of AR.frames) {
+      const a = pointAt(ring, fr.seg, fr.u, d0), b = pointAt(ring, fr.seg, fr.u, d1);
+      add(new rh.LineCurve([a.x, a.y, 0], [b.x, b.y, 0]), attrs('08_STRUCTURE::GRID', fr.id, { segment: fr.seg, u: fr.u.toFixed(4) }));
+    }
+    for (const rl of AR.rings) {
+      const pl = new rh.Polyline(0);
+      const pts = stationsAt(ring, rl.d);
+      for (const [x, y] of [...pts, pts[0]]) pl.add(x, y, 0);
+      add(pl.toPolylineCurve(), attrs('08_STRUCTURE::GRID', rl.id, { offset_mm: Math.round(rl.d), role: rl.role }));
+      free(pl);
+    }
+    const memberLayer = { raker: '08_STRUCTURE::RAKERS', column: '08_STRUCTURE::COLUMNS', roofFrame: '09_ROOF::PRIMARY_FRAMES', mullion: '10_FACADE::MULLIONS' } as const;
+    for (const m of AR.members) {
+      add(memberExtrusion(rh, ring, m), attrs(memberLayer[m.kind], m.id, { kind: m.kind, ...(m.frame ? { grid: m.frame } : {}), width_mm: Math.round(m.width) }));
+    }
+    const r = AR.roof;
+    const sk = roofSkin(ring, r);
+    sk.deck.forEach((m, i) => add(meshOf(m), attrs('09_ROOF::DECK', `ROOF.DECK${sk.deck.length > 1 ? `.${i + 1}` : ''}`, { type: r.type, material: p.architecture.roof.material })));
+    if (r.cap) add(meshOf(capSolid(ring, r.dIn, r.cap.z, r.cap.rise)), attrs('09_ROOF::CAP', 'ROOF.CAP', { type: r.type, rise_mm: Math.round(r.cap.rise) }));
+    for (const b of r.boxes) add(solidOf(boxSolid(b.min, b.max)), attrs(b.kind === 'truss' ? '09_ROOF::TRUSSES' : '09_ROOF::PANELS', b.id, { depth_mm: Math.round(b.max[2] - b.min[2]) }));
+    for (const q of AR.facade.pieces) add(solidOf(pieceSolid(ring, q)), attrs('10_FACADE::SKIN', q.id, { type: p.architecture.facade.type, material: p.architecture.facade.material, height_mm: Math.round(q.z1 - q.z0) }));
+    for (const q of AR.facade.bands) add(solidOf(pieceSolid(ring, q)), attrs('10_FACADE::BANDS', q.id));
+    for (const q of AR.facade.canopies) add(solidOf(pieceSolid(ring, q)), attrs('10_FACADE::PORTALS', q.id, { clear_height_mm: Math.round(q.z0) }));
+    for (const z of AR.boh.zones) add(solidOf(bandSolid(ring, { seg: z.seg, u0: z.u0, u1: z.u1 }, z.d0 + 250, z.d1 - 250, z.z0, z.z1 - 400)), attrs(`16_BACK_OF_HOUSE::${slugOf(BOH_LABEL[z.kind])}`, z.id, { use: BOH_LABEL[z.kind], area_m2: z.area.toFixed(1) }));
+    const c = AR.boh.corridor;
+    if (c) add(meshOf(bandSolid(ring, 'ring', c.d0, c.d1, -SLAB, 0)), attrs('16_BACK_OF_HOUSE::SERVICE_CORRIDOR', 'BOH.SERVICE_CORRIDOR', { width_mm: Math.round(c.d1 - c.d0) }));
+  }
+
   // ── seats: one block per seat width, one named instance per position in use
   if (opts.seats !== false && s.seats.seats.count) {
     const t = s.seats.seats, tierIds = s.profiles.map((x) => x.id);
@@ -298,7 +336,9 @@ export function exportRhino(rh: RhinoModule, s: Stadium, opts: RhinoExportOption
   doc.strings().set('manicai.capacity', String(s.metrics.total));
   doc.strings().set('manicai.capacity.bowl_net', String(s.metrics.net));
   doc.strings().set('manicai.capacity.suites', String(s.metrics.suiteSeats));
-  doc.strings().set('manicai.building.gfa_m2', String(Math.round(s.building.metrics.grossArea)));
+  doc.strings().set('manicai.building.gfa_m2', String(Math.round(s.architecture.metrics.grossArea)));
+  doc.strings().set('manicai.roof.type', p.architecture.roof.type);
+  doc.strings().set('manicai.roof.coverage', s.architecture.metrics.coverage.toFixed(3));
   doc.strings().set('manicai.capacity.gross', String(s.metrics.gross));
   doc.strings().set('manicai.coordinateSystem', 'mm; Z up; origin = centre of the playing field at field level; +X field length (east end), +Y field width (north sideline); site north given by manicai.project site.northDeg');
   doc.strings().set('manicai.note', 'Editable Rhino model generated by MANICAI — a conceptual design, not a construction document. Seats are block instances named tier-section-row-seat. Terrace pieces of one tier are grouped; run manicai_join_tiers.py (Export menu) to join each tier into one closed polysurface and cut its vomitory openings. Reopen this file in MANICAI to edit parametrically.');
@@ -344,6 +384,26 @@ function terracePiece(rh: RhinoModule, ring: Stadium['ring'], seg: SegmentId, ou
   const rev = rh.RevSurface.create(crv, axis, 0, Math.PI / 2);
   free(pl, crv);
   return rev ?? null;
+}
+
+/** A frame member as an exact capped extrusion: its (d, z) section extruded across the frame by its width. */
+function memberExtrusion(rh: RhinoModule, ring: Stadium['ring'], m: Member) {
+  const st = pointAt(ring, m.seg, m.u, 0);
+  const dx = -st.ny, dy = st.nx; // path tangent
+  const pl = new rh.Polyline(0);
+  for (const [d, z] of m.section) pl.add(d, z, 0);
+  pl.add(m.section[0][0], m.section[0][1], 0);
+  const crv = pl.toPolylineCurve();
+  const ext = rh.Extrusion.create(crv, m.width, true);
+  free(pl, crv);
+  // X → outward normal, Y → up, Z → back along the tangent (a proper rotation), centred on the grid line
+  const xf = new rh.Transform(1);
+  xf.m00 = st.nx; xf.m01 = 0; xf.m02 = -dx; xf.m03 = st.x + (dx * m.width) / 2;
+  xf.m10 = st.ny; xf.m11 = 0; xf.m12 = -dy; xf.m13 = st.y + (dy * m.width) / 2;
+  xf.m20 = 0; xf.m21 = 1; xf.m22 = 0; xf.m23 = 0;
+  ext.transform(xf);
+  free(xf);
+  return ext;
 }
 
 function segmentCurve(rh: RhinoModule, ring: Stadium['ring'], seg: SegmentId, d: number, z: number) {

@@ -1,6 +1,6 @@
 # Limitations and roadmap
 
-## Known limitations after Round 03
+## Known limitations after Round 04
 
 - **Net capacity covers vomitories, wheelchair platforms and (optionally) poor sightlines.** Camera and media positions, kill-offs behind structure, and segregation gaps are not modelled yet.
 - **Aisles and vomitories are geometric.** Radial aisles, lateral cross-aisles and vomitory openings are placed and counted, but there is no stair geometry inside aisles and no egress calculation: exit widths, travel distances and egress time still need a code analysis (`review.egress`).
@@ -9,8 +9,10 @@
 - **The building is conceptual space planning.** Concourses, program zones and cores are set out from the bowl with allowances you set. There are no stair runs, escalators or ramps inside the cores, no toilet fixture counts, and no exit-capacity or travel-distance check (`review.egress`, `manicai.program`, `manicai.cores`).
 - **Premium levels are full rings.** A suite or club level runs all the way round its tier (suites only on the chosen stands); loge boxes, field-level clubs and press boxes are not modelled yet.
 - **Vomitories are not cut from the terrace solids in the .3dm.** They are separate closed solids; `manicai_join_tiers.py` joins each tier and subtracts them in Rhino.
-- **Structure is an envelope.** Soffits, fascias and tier gaps are architectural placeholders. No rakers, columns, cantilever checks or vibration (`review.structure`).
-- **No roof yet**, so no roof sightline check (FIFA's 15 m high-ball rule), sun or shade study, or acoustics.
+- **Structure is coordination geometry.** Radial frames, rakers and columns are set out from the bowl, but member sizes, spans, cantilevers, transfer structure, bracing and vibration are not designed (`manicai.structure`, `review.structure`).
+- **Roofs are parametric massing.** Seven typologies bear on the outer column line with simple tapering frames, a shallow dome or flat deck over the field and box trusses. There's no roof shading, sun or acoustic study, and coverage is plan projection (driven rain is not modelled). The high-ball view target (20 m by default) is a MANICAI assumption, not a published rule (`manicai.roof`).
+- **One facade line.** The facade follows the plan ring at one offset with one family and module all the way round; there's no bowed or leaning facade, no sculpted geometry, and portals sit at the stand (and corner) centres.
+- **Back-of-house is a single band at event level** with MANICAI area placeholders. Real briefs come from the operator, league and broadcasters (`manicai.boh`).
 - **Sightlines** use C-values to the nearest field line at field level, on the section and along each seat's plan sightline. There's no check for obstruction by the tier above.
 - **Rhino terraces arrive uncapped in pieces** because rhino3dm cannot join or cap. Run `manicai_join_tiers.py` in Rhino to make closed polysurfaces.
 - **Big `.3dm` files:** about 0.75 KB per seat.
@@ -24,7 +26,9 @@
 |---|---|
 | ~~R02 · Bowl detail~~ | Done: independent stands and corners, open ends, per-stand rows, club tiers, cross-aisles, vomitories, wheelchair platforms with companions, net vs gross, capacity suggestions. Carried over: media and camera positions, egress scaffolding, upper-tier obstruction check, oval and bowed stands. |
 | ~~R03 · Premium and circulation~~ | Done: premium levels (suites, club) inserted into the section, concourses at each tier's access level, program zones from per-spectator allowances, cores, building metrics and a section diagram. Carried over: loges, field-level clubs, press boxes, escalators and ramps. |
-| **R04 · Roof and envelope** | Roof types (fixed, retractable, ETFE), the FIFA high-ball check, shade and sun, and envelope options. |
-| **R05 · Site** | Geolocation, orientation optimisation (north), site footprint and massing. |
-| **R06 · Interop** | IFC, GLB and DWG/DXF. Grasshopper definition. Seats-as-points `.3dm` option. |
+| ~~R04 · Stadium architecture~~ | Done: structural grid, rakers and columns, seven roof typologies with coverage and the high-ball view, facade families with portals and materials, back-of-house at event level, exterior view and x-ray, Rhino layers 08, 09, 10 and 16. Carried over: transfer structure and bracing zones, sun and shade, bowed facades. |
+| **R05 · Technical infrastructure** | Field lighting on the roof, electrical, HVAC and plumbing zones, AV/IT, scoreboards and video boards, broadcast positions and service access. |
+| **R06 · Professional interoperability** | IFC, Revit workflow, improved CAD geometry, quantity schedules, model verification, GLB and DWG/DXF. |
+| **R07 · Optimization** | Multivariable optimisation, scenarios, sightline heat maps, circulation, environmental studies, quantities and carbon. |
+| **R08 · Product refinement** | Performance, polish, preset library, sharing and documentation. Site and orientation tools. |
 | **Later** | Arenas (MANICA's arena work), baseball, revenue modelling, acoustics. |

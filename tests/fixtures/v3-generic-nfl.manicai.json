@@ -1,0 +1,148 @@
+{
+  "schema": "manicai.project",
+  "version": 3,
+  "name": "Generic NFL bowl",
+  "units": "imperial",
+  "site": {
+    "northDeg": 90
+  },
+  "sport": "nfl",
+  "field": {
+    "length": 109728,
+    "width": 48768,
+    "runoffSide": 10972.8,
+    "runoffEnd": 4572
+  },
+  "bowl": {
+    "sideDistance": 16000,
+    "endDistance": 12000,
+    "cornerRadius": 16000,
+    "targetCapacity": 65000,
+    "stands": {}
+  },
+  "seating": {
+    "seatWidth": 500,
+    "aisleWidth": 1200,
+    "maxSeatsBetweenAisles": 28,
+    "eyeHeight": 1200,
+    "crossAisleWidth": 1500,
+    "wheelchairEyeHeight": 1150
+  },
+  "sightlines": {
+    "mode": "cvalue",
+    "targetC": 90,
+    "minC": 60,
+    "riserStep": 10,
+    "maxRakeDeg": 35,
+    "excludeBelowMin": false
+  },
+  "tiers": [
+    {
+      "id": "T1",
+      "name": "Lower bowl",
+      "rows": 31,
+      "rowDepth": 800,
+      "riser": 380,
+      "elevation": 1800,
+      "overhang": 0,
+      "barrier": 800,
+      "kind": "general",
+      "crossAisles": [],
+      "vomitories": {
+        "enabled": true,
+        "every": 2,
+        "mouthRow": 12,
+        "width": 2800
+      },
+      "accessible": {
+        "perSection": 4,
+        "row": 0
+      }
+    },
+    {
+      "id": "T2",
+      "name": "Club level",
+      "rows": 10,
+      "rowDepth": 900,
+      "riser": 380,
+      "elevation": 4500,
+      "overhang": -4000,
+      "barrier": 800,
+      "kind": "club",
+      "crossAisles": [],
+      "vomitories": {
+        "enabled": false,
+        "every": 2,
+        "mouthRow": 8,
+        "width": 2800
+      },
+      "accessible": {
+        "perSection": 3,
+        "row": 1
+      },
+      "targetC": 60,
+      "seatWidth": 550
+    },
+    {
+      "id": "T3",
+      "name": "Upper bowl",
+      "rows": 24,
+      "rowDepth": 800,
+      "riser": 380,
+      "elevation": 4500,
+      "overhang": -2500,
+      "barrier": 800,
+      "kind": "general",
+      "crossAisles": [],
+      "vomitories": {
+        "enabled": true,
+        "every": 2,
+        "mouthRow": 10,
+        "width": 2800
+      },
+      "accessible": {
+        "perSection": 3,
+        "row": 1
+      },
+      "targetC": 60
+    }
+  ],
+  "premium": [
+    {
+      "id": "P1",
+      "name": "Suite level",
+      "belowTier": "T3",
+      "kind": "suites",
+      "height": 4500,
+      "setback": 4000,
+      "stands": [
+        "N",
+        "S"
+      ],
+      "unitWidth": 5500,
+      "unitDepth": 8000,
+      "seatsPerUnit": 16
+    }
+  ],
+  "building": {
+    "concourseWidth": 10000,
+    "programDepth": 10000,
+    "concourseClear": 4000,
+    "allowances": {
+      "concessions": 0.06,
+      "restrooms": 0.07,
+      "retail": 0.015,
+      "firstAid": 0.003,
+      "clubLounge": 1
+    },
+    "cores": {
+      "spacing": 60000,
+      "width": 9000,
+      "depth": 11000,
+      "stairs": 2,
+      "stairWidth": 2400,
+      "lifts": 2
+    }
+  },
+  "presetId": "generic-nfl"
+}

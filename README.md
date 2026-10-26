@@ -6,7 +6,7 @@
 
 ![Generic soccer bowl, perspective](docs/screenshots/01-perspective.png)
 
-## Status after Round 03
+## Status after Round 04
 
 | Area | What works now |
 |---|---|
@@ -16,12 +16,16 @@
 | Sightlines | Risers are solved row by row to a target C-value (FIFA: 60, 90 or 120 mm), rounded to a riser step and capped at a maximum rake. A constant-riser mode is also available. Each seat's C-value is measured along its true plan sightline, so corners are checked obliquely. |
 | Seats | Real seats are placed along every row. Radial aisles sit at each sector change and between sections, with at most 28 seats between aisles. Each seat has an id such as `T1-104-R12-S07`. |
 | Building | Premium levels (suites or club) inserted under an upper tier lift and set it back, so the section and the upper tier's sightlines respond. Each tier gets a concourse at its access level (vomitory floor or back row) with concessions, toilets, retail, first aid and club lounges sized from per-spectator allowances. Stair and lift cores stand outside at a set spacing. Gross floor area, area per spectator and a live building section. |
+| Structure | A structural grid set out from the bowl: radial frames at a set bay along the outer column line (parallel on the straights, radial in the corners) and lettered ring grid lines at the tier supports. A raker under every tier on every frame and columns down to the tier below or grade. Coordination geometry, not an engineered design. |
+| Roof | Seven typologies: open air, partial canopy, perimeter canopy, fixed enclosed, translucent ETFE, long-span truss and retractable. Leading edge, clearance over the top row, pitch, structural depth, frame density and (retractable) how far the panels are open. The roof clears the bowl, levels and cores; it reports seat coverage, roof area and the back-row high-ball view over the centre spot (or the clear height under an enclosed roof). |
+| Facade & envelope | A facade wrapping the building at a set offset beyond the cores, up to the roof or a parapet. Glazed, fins, screen or solid families on a module, with slab-edge bands, 4 or 8 entry portals with canopies, and material finishes. Envelope footprint, perimeter, facade area and module count. |
+| Back of house | Event-level rooms along a service corridor under and behind the lower tier: the players' tunnel on the main stand with home and away locker rooms either side, officials, medical, press and broadcast, kitchens, storage, loading, waste, groundskeeping and event operations, sized from MANICAI allowances you can scale. |
 | Capacity | Live net capacity (after vomitories, wheelchair platforms and optionally seats below the minimum C) and gross, by tier, sector, stand and class, with the ADA wheelchair count. "Fit rows to target" and "Suggest moves", which tries geometric changes and flags the rules each would break. |
 | Analysis | Seats can be coloured by C-value, distance to the far corner (FIFA 150 m and 190 m), tier, sector or class (with excluded positions shown). A seat inspector and "view from this seat" are included. |
-| Views | Perspective, plan, elevation, section with a live cut plane, iso and field level. Explore, Technical (with dimensions) and Analysis modes. |
-| Files | Save and open `.manicai.json`. Export to Rhino 8 or 7 `.3dm` with or without seats (floor plates, suites, program zones and cores, vomitory solids, wheelchair and companion positions, club seats and excluded positions on their own layers), a seat schedule `.csv` with class and status, and a RhinoPython script that joins each tier and cuts its vomitories. A MANICAI `.3dm` can be reopened in MANICAI. |
+| Views | Perspective, plan, elevation, section with a live cut plane, iso, field level and an exterior view from the plaza. X-ray makes the roof and facade see-through. Explore, Technical (with dimensions, level datums and the structural grid) and Analysis modes. |
+| Files | Save and open `.manicai.json`. Export to Rhino 8 or 7 `.3dm` with or without seats (structural grid, rakers and columns as exact extrusions, roof deck, cap, frames and trusses, facade skin, mullions and portals, back-of-house rooms, floor plates, suites, program zones and cores, vomitory solids, wheelchair and companion positions, club seats and excluded positions on their own layers), a seat schedule `.csv` with class and status, and a RhinoPython script that joins each tier and cuts its vomitories. A MANICAI `.3dm` can be reopened in MANICAI. |
 
-What is **not** in yet: structure, roof, façade, loges and press boxes, and any egress calculation. See [ROADMAP.md](docs/ROADMAP.md).
+What is **not** in yet: lighting, MEP and AV systems, scoreboards, loges and press boxes, engineered structure, and any egress calculation. See [ROADMAP.md](docs/ROADMAP.md).
 
 ### Round 02 views
 
@@ -37,12 +41,22 @@ What is **not** in yet: structure, roof, façade, loges and press boxes, and any
 |---|---|
 | ![NFL building](docs/screenshots/13-nfl-building.png) | ![Section](docs/screenshots/14-building-section.png) |
 
+### Round 04 views
+
+| Exterior from the plaza: ETFE roof, glazed facade, portal | Perimeter canopy with exposed radial frames |
+|---|---|
+| ![Exterior](docs/screenshots/16-exterior-etfe.png) | ![Perimeter canopy](docs/screenshots/17-perimeter-canopy.png) |
+| **X-ray** through the ETFE roof and facade | **Structural grid** (Technical plan, roof hidden): frames, ring lines, back-of-house |
+| ![X-ray](docs/screenshots/18-xray-etfe.png) | ![Grid](docs/screenshots/19-structure-grid-plan.png) |
+| **Section** with rakers, columns, roof trusses and level datums | **Retractable roof** (panels open) |
+| ![Section](docs/screenshots/20-architecture-section.png) | ![Retractable](docs/screenshots/21-retractable.png) |
+
 ## Run it
 
 ```bash
 npm ci
 npm run dev          # http://localhost:5173
-npm test             # acceptance tests A–W (61 tests)
+npm test             # acceptance tests A–AC (74 tests)
 npm run bench        # regeneration benchmarks at 25k, 50k, 75k and 100k seats
 npm run build        # typecheck and production build
 npm run export:samples && npm run verify:3dm   # needs: pip install rhino3dm

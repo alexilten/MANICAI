@@ -278,12 +278,20 @@ function spanStations(ring: PlanRing, span: Span, cornerSteps = 24): { seg: Segm
  * a program zone, a core). Faces wind outward; a full ring has no end caps.
  */
 export function bandSolid(ring: PlanRing, span: Span, d0: Mm, d1: Mm, z0: Mm, z1: Mm): BoxMesh {
+  return sweepSolid(ring, span, [[d0, z0], [d1, z0], [d1, z1], [d0, z1]]);
+}
+
+/**
+ * A quadrilateral section in (d, z), swept along a span: inner-bottom, outer-bottom, outer-top,
+ * inner-top (counter-clockwise with d to the right and z up). Sloped sections (a roof, a raker
+ * band) are swept the same way as rectangles. Faces wind outward; a full ring has no end caps.
+ */
+export function sweepSolid(ring: PlanRing, span: Span, section: [number, number][]): BoxMesh {
   const st = spanStations(ring, span);
   const closed = span === 'ring';
   const pos: number[] = [];
   for (const s of st) {
-    const p = pointAt(ring, s.seg, s.u, 0);
-    for (const [d, z] of [[d0, z0], [d1, z0], [d1, z1], [d0, z1]]) pos.push(p.x + p.nx * d, p.y + p.ny * d, z);
+    for (const [d, z] of section) { const p = pointAt(ring, s.seg, s.u, d); pos.push(p.x, p.y, z); }
   }
   const idx: number[] = [];
   const m = st.length, segs = closed ? m : m - 1;

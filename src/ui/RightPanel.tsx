@@ -12,6 +12,8 @@ import { legendFor } from '../viewport/palette';
 import { PROGRAM_LEGEND, PROGRAM_TONES } from '../viewport/Building';
 import { PROGRAM_KINDS, PROGRAM_LABEL, SLAB } from '../core/engine/building';
 import { tierOutline } from '../core/engine/profile';
+import { BOH_KINDS, BOH_LABEL, COLUMN_SETBACK, EAVE, ROOF_LABEL, ROOF_SKIN, type BohKind } from '../core/engine/architecture';
+import { BOH_TONES, FACADE_FINISH, ROOF_FINISH, STRUCTURE_FINISH } from '../viewport/Architecture';
 
 const n = (v: number) => Math.round(v).toLocaleString('en-US');
 const pct = (v: number) => `${Math.round(v * 100)}%`;
@@ -84,6 +86,7 @@ export function RightPanel() {
         )}
 
         <BuildingSection />
+        <EnvelopeSection />
 
         <Section title="Layers">
           <ul className="layers">
@@ -237,7 +240,7 @@ function SectionDiagram() {
   const st = useStore((s) => s.stadium);
   const seg = st.layout.rows.S.some((r) => r > 0) ? 'S' : 'N';
   const W = 300, H = 170, pad = 8;
-  const dField = -st.ring.dist[seg];
+  const dField = Math.min(-st.ring.dist[seg], st.architecture.roof.spans.length ? st.architecture.roof.dIn - 2000 : 0);
   const items: { pts: [number, number][]; fill: string; stroke?: string }[] = [];
   st.profiles.forEach((t, i) => { const nr = st.layout.rows[seg][i]; if (nr > 0) items.push({ pts: tierOutline(t, nr), fill: '#e7e5e0', stroke: '#9a9aa2' }); });
   const rect = (d0: number, d1: number, z0: number, z1: number): [number, number][] => [[d0, z0], [d1, z0], [d1, z1], [d0, z1]];
@@ -249,6 +252,20 @@ function SectionDiagram() {
   if (suite) { const h = (p0: string) => (st.project.premium.find((l) => `PREM.${l.id}` === p0)?.height ?? 4500) - SLAB - 600; items.push({ pts: rect(suite.d0, suite.d1, suite.z, suite.z + h(suite.level)), fill: '#9fc3e6' }); }
   const core = st.building.cores[0];
   if (core) items.push({ pts: rect(core.d0, core.d1, 0, core.zTop), fill: '#c9ccd2' });
+  // Round 04: back-of-house, columns, facade and roof on the same section
+  const A = st.architecture, P = st.project.architecture;
+  for (const z of A.boh.zones) if (z.seg === seg && z.u0 <= 0.62 && z.u1 >= 0.38) items.push({ pts: rect(z.d0 + 250, z.d1 - 250, z.z0, z.z1 - 400), fill: BOH_TONES[z.kind] });
+  const fr = A.frames.find((f) => f.seg === seg && f.u >= 0.4) ?? A.frames.find((f) => f.seg === seg);
+  for (const m of A.members) if (fr && m.frame === fr.id && (m.kind === 'raker' || m.kind === 'column')) items.push({ pts: m.section, fill: STRUCTURE_FINISH[P.structure.material].color, stroke: '#8e939c' });
+  items.push({ pts: rect(A.facade.d, A.facade.d + 400, 0, A.facade.top[seg]), fill: FACADE_FINISH[P.facade.material].color, stroke: '#8e939c' });
+  const R = A.roof;
+  if (R.spans.some((sp) => sp === 'ring' || sp.seg === seg)) {
+    const dCol = R.dOut - EAVE - COLUMN_SETBACK;
+    const top = (d: number) => R.zTop0 + (dCol - d) * R.slope;
+    items.push({ pts: [[R.dIn, top(R.dIn) - ROOF_SKIN], [R.dOut, top(R.dOut) - ROOF_SKIN], [R.dOut, top(R.dOut)], [R.dIn, top(R.dIn)]], fill: ROOF_FINISH[P.roof.material].color, stroke: '#8e939c' });
+    const rf = A.members.find((m) => m.kind === 'roofFrame' && m.seg === seg);
+    if (rf) items.push({ pts: rf.section, fill: STRUCTURE_FINISH[P.structure.material].color, stroke: '#8e939c' });
+  }
   const all = items.flatMap((i) => i.pts);
   const dMax = Math.max(...all.map((q) => q[0])), zMax = Math.max(...all.map((q) => q[1]));
   const sc = Math.min((W - 2 * pad) / (dMax - dField), (H - 2 * pad) / zMax);
@@ -260,5 +277,41 @@ function SectionDiagram() {
       {items.map((it, k) => <polygon key={k} points={it.pts.map(([d, z]) => `${X(d).toFixed(1)},${Y(z).toFixed(1)}`).join(' ')} fill={it.fill} stroke={it.stroke ?? 'none'} strokeWidth={0.6} />)}
       <text x={W - pad} y={pad + 8} textAnchor="end" className="svg-note">Section · {seg === 'S' ? 'south' : 'north'} stand</text>
     </svg>
+  );
+}
+
+/** Structure, roof, facade and back-of-house metrics. */
+function EnvelopeSection() {
+  const st = useStore((s) => s.stadium);
+  const p = useStore((s) => s.project);
+  const u = p.units;
+  const am = st.architecture.metrics, A = p.architecture;
+  const roofed = A.roof.type !== 'open';
+  const byKind = BOH_KINDS.map((k) => ({ k, area: st.architecture.boh.zones.filter((z) => z.kind === k).reduce((a, z) => a + z.area, 0) })).filter((x) => x.area > 0 && x.k !== 'tunnel');
+  return (
+    <Section title="Envelope & structure" summary={`${ROOF_LABEL[A.roof.type]} · ${n(am.grossArea)} m² GFA`} defaultOpen={false}>
+      <div className="metric-grid">
+        <Metric label="Roof coverage" value={roofed ? `${Math.round(am.coverage * 100)}%` : '—'} sub={roofed ? `${n(am.covered)} seats under the roof (plan)` : 'open air'} />
+        <Metric label={A.roof.type === 'canopy' || A.roof.type === 'perimeter' ? 'High-ball view' : 'Clear over field'} value={roofed ? formatLength(am.viewClear, u) : '—'} tone={!roofed ? undefined : am.viewClear >= A.roof.skyView ? 'ok' : 'warn'} sub={`over the centre spot · ${formatLength(A.roof.skyView, u)} wanted`} />
+        <Metric label="Roof area" value={roofed ? `${n(am.roofSurface)} m²` : '—'} sub={roofed ? `${n(am.roofPlan)} m² in plan` : undefined} />
+        <Metric label="Gross floor area" value={`${n(am.grossArea)} m²`} sub="building + back-of-house" />
+      </div>
+      <div className="sub-label">Envelope</div>
+      <KV k="Envelope footprint" v={formatArea(am.envelopeFootprint * 1e6, u)} />
+      <KV k="Facade perimeter · area" v={`${formatLength(am.envelopePerimeter, u)} · ${n(am.facadeArea)} m²`} />
+      <KV k="Facade modules" v={`${n(am.facadeModules)} at ${formatLength(A.facade.module, u)}`} />
+      <KV k="Building height" v={formatLength(Math.max(am.roofTop, am.facadeTop), u)} />
+      {roofed && <KV k="Eave · top of roof" v={`${formatLength(am.eave, u)} · ${formatLength(am.roofTop, u)}`} />}
+      <div className="sub-label">Structure</div>
+      <KV k="Radial frames" v={`${am.frames} at ${formatLength(A.structure.bay, u)}`} />
+      <KV k="Ring grid lines" v={st.architecture.rings.map((r) => r.id.slice(3)).join(' · ')} />
+      <KV k="Rakers · columns" v={`${n(am.rakers)} · ${n(am.columns)}`} />
+      {roofed && <KV k="Primary roof frames" v={`${am.roofFrames}${st.architecture.roof.boxes.some((b) => b.kind === 'truss') ? ` + ${st.architecture.roof.boxes.filter((b) => b.kind === 'truss').length} trusses` : ''}`} />}
+      <div className="sub-label">Back of house · event level</div>
+      <div className="legend">{byKind.map(({ k }) => <span key={k}><i style={{ background: BOH_TONES[k as BohKind] }} />{BOH_LABEL[k as BohKind]}</span>)}</div>
+      {byKind.map(({ k, area }) => <KV key={k} k={BOH_LABEL[k as BohKind]} v={`${n(area)} m²`} />)}
+      <KV k="Placed" v={`${n(am.bohArea)} of ${n(am.bohNeeded)} m²`} tone={am.bohArea >= am.bohNeeded * 0.98 ? 'ok' : 'warn'} />
+      <p className="muted small method">Roof coverage is the share of seats inside the roof's plan outline (rain driven at an angle is not modelled). Back-of-house areas are MANICAI planning assumptions. Structure is a coordination model, not an engineered design (standards: manicai.structure, manicai.roof, manicai.boh).</p>
+    </Section>
   );
 }

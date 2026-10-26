@@ -5,10 +5,10 @@ import type { SegmentId } from '../core/engine/plan';
 import type { Project } from '../core/schema';
 
 export type Mode = 'explore' | 'technical' | 'analysis';
-export type CameraView = 'perspective' | 'plan' | 'elevation' | 'section' | 'iso' | 'fieldLevel';
+export type CameraView = 'perspective' | 'plan' | 'elevation' | 'section' | 'iso' | 'fieldLevel' | 'exterior';
 export type AnalysisMetric = 'cvalue' | 'distance' | 'tier' | 'sector' | 'class';
 
-export type LayerKey = 'field' | 'seats' | 'terraces' | 'premium' | 'concourses' | 'cores' | 'dimensions' | 'reference';
+export type LayerKey = 'field' | 'seats' | 'terraces' | 'premium' | 'concourses' | 'cores' | 'structure' | 'roof' | 'facade' | 'boh' | 'dimensions' | 'reference';
 export const LAYERS: { key: LayerKey; label: string; rhino: string }[] = [
   { key: 'field', label: 'Field', rhino: '01_FIELD' },
   { key: 'terraces', label: 'Terraces', rhino: '02_BOWL_GEOMETRY' },
@@ -16,12 +16,15 @@ export const LAYERS: { key: LayerKey; label: string; rhino: string }[] = [
   { key: 'premium', label: 'Premium levels', rhino: '05_PREMIUM' },
   { key: 'concourses', label: 'Concourses & program', rhino: '06_CONCOURSES' },
   { key: 'cores', label: 'Stairs & lifts', rhino: '07_VERTICAL_CIRCULATION' },
+  { key: 'structure', label: 'Structure', rhino: '08_STRUCTURE' },
+  { key: 'roof', label: 'Roof', rhino: '09_ROOF' },
+  { key: 'facade', label: 'Facade', rhino: '10_FACADE' },
+  { key: 'boh', label: 'Back of house', rhino: '16_BACK_OF_HOUSE' },
   { key: 'dimensions', label: 'Dimensions', rhino: '90_DIMENSIONS' },
   { key: 'reference', label: 'Reference', rhino: '00_REFERENCE' },
 ];
 /** systems the platform is planned to generate — listed (disabled) so the layer model is visible from day one */
 export const FUTURE_LAYERS: { label: string; round: string }[] = [
-  { label: 'Structure', round: 'R04' }, { label: 'Roof', round: 'R04' }, { label: 'Facade', round: 'R04' },
   { label: 'Lighting', round: 'R05' }, { label: 'HVAC', round: 'R05' }, { label: 'Electrical', round: 'R05' }, { label: 'Plumbing', round: 'R05' }, { label: 'AV / IT', round: 'R05' },
   { label: 'Site', round: 'later' },
 ];
@@ -40,6 +43,8 @@ interface State {
   view: CameraView;
   viewNonce: number;
   layers: Record<LayerKey, boolean>;
+  /** roof and facade drawn see-through */
+  xray: boolean;
   /** selected seat index into stadium.seats.seats */
   seat: number | null;
   /** looking from the selected seat */
@@ -57,6 +62,7 @@ interface State {
   setMetric: (m: AnalysisMetric) => void;
   setView: (v: CameraView) => void;
   toggleLayer: (k: LayerKey) => void;
+  setXray: (on: boolean) => void;
   selectSeat: (i: number | null) => void;
   setSeatView: (on: boolean) => void;
   setCut: (c: Partial<Cut>) => void;
@@ -75,7 +81,8 @@ export const useStore = create<State>((set, get) => ({
   past: [], future: [], lastEditKey: null, lastEditAt: 0,
   mode: 'explore', metric: 'cvalue',
   view: 'perspective', viewNonce: 0,
-  layers: { field: true, seats: true, terraces: true, premium: true, concourses: true, cores: true, dimensions: false, reference: false },
+  layers: { field: true, seats: true, terraces: true, premium: true, concourses: true, cores: true, structure: true, roof: true, facade: true, boh: true, dimensions: false, reference: false },
+  xray: false,
   seat: null, seatView: false,
   cut: { enabled: false, axis: 'x', offset: 0 },
   region: 'E',
@@ -112,6 +119,7 @@ export const useStore = create<State>((set, get) => ({
   setMetric: (metric) => set({ metric }),
   setView: (view) => set({ view, viewNonce: get().viewNonce + 1, seatView: false, cut: view === 'section' ? { ...get().cut, enabled: true } : get().cut }),
   toggleLayer: (k) => set({ layers: { ...get().layers, [k]: !get().layers[k] } }),
+  setXray: (xray) => set({ xray }),
   selectSeat: (seat) => set({ seat, seatView: seat == null ? false : get().seatView }),
   setSeatView: (seatView) => set({ seatView, viewNonce: seatView ? get().viewNonce : get().viewNonce + 1 }),
   setCut: (c) => set({ cut: { ...get().cut, ...c } }),

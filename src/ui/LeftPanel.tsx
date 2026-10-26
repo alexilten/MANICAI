@@ -1,8 +1,10 @@
 import { fitRowsToTarget, ROWS_MAX, ROWS_MIN } from '../core/engine/optimize';
 import { CORNER_NEIGHBOURS, SEGMENTS, type SegmentId } from '../core/engine/plan';
-import { suiteLevel, switchSport, tier, type CornerId, type PremiumLevel, type Project, type StandId, type StandParams, type TierParams } from '../core/schema';
+import { suiteLevel, switchSport, tier, type ArchitectureParams, type CornerId, type PremiumLevel, type Project, type RoofType, type StandId, type StandParams, type TierParams } from '../core/schema';
 import { SPORTS, type SportId } from '../core/sports';
 import { formatLength } from '../core/units';
+import { ROOF_LABEL } from '../core/engine/architecture';
+import { FACADE_FINISH, ROOF_FINISH, STRUCTURE_FINISH } from '../viewport/Architecture';
 import { LengthControl, NumberControl, Section, Segmented, Toggle } from './controls';
 import { useStore } from './store';
 
@@ -97,8 +99,10 @@ export function LeftPanel() {
 
         <PremiumControls />
         <ConcourseControls />
-        <Section title="Structure & facade" badge="R04" defaultOpen={false}><p className="muted small">Structural grid, rakers, facade and envelope generate from the bowl and building section in Round 04.</p></Section>
-        <Section title="Roof" badge="R04" defaultOpen={false}><p className="muted small">Open, canopy, fixed ETFE and retractable typologies coordinated with tier heights and sightlines — Round 04.</p></Section>
+        <RoofControls />
+        <StructureControls />
+        <FacadeControls />
+        <BohControls />
       </div>
     </aside>
   );
@@ -307,6 +311,109 @@ function ConcourseControls() {
       <NumberControl label="Stairs per core" value={b.cores.stairs} min={1} max={4} step={1} onChange={(v) => set((x) => { x.cores = { ...x.cores, stairs: v }; }, 'st')} />
       <NumberControl label="Lifts per core" value={b.cores.lifts} min={0} max={8} step={1} onChange={(v) => set((x) => { x.cores = { ...x.cores, lifts: v }; }, 'lf')} />
       <LengthControl label="Stair width" units={u} value={b.cores.stairWidth} min={1100} max={4000} step={100} onChange={(v) => set((x) => { x.cores = { ...x.cores, stairWidth: v }; }, 'sw')} />
+    </Section>
+  );
+}
+
+/** Material swatches. */
+function Finishes<T extends string>({ value, options, onChange }: { value: T; options: Record<T, { label: string; color: string }>; onChange: (v: T) => void }) {
+  return (
+    <div className="finish-row">
+      {(Object.keys(options) as T[]).map((k) => (
+        <button key={k} className={`finish ${k === value ? 'on' : ''}`} onClick={() => onChange(k)}><i style={{ background: options[k].color }} />{options[k].label}</button>
+      ))}
+    </div>
+  );
+}
+
+function useArch() {
+  const p = useStore((s) => s.project);
+  const st = useStore((s) => s.stadium);
+  const edit = useStore((s) => s.edit);
+  const set = <K extends keyof ArchitectureParams>(k: K, fn: (x: ArchitectureParams[K]) => void, key: string) => edit((x) => fn(x.architecture[k]), `arch.${k}.${key}`);
+  return { p, st, u: p.units, A: p.architecture, am: st.architecture.metrics, set };
+}
+
+const ROOF_TYPES: RoofType[] = ['open', 'canopy', 'perimeter', 'enclosed', 'etfe', 'truss', 'retractable'];
+
+/** Roof typology and its controls, coordinated with the bowl heights and sightlines. */
+function RoofControls() {
+  const { u, A, am, set } = useArch();
+  const r = A.roof;
+  const roofed = r.type !== 'open';
+  return (
+    <Section title="Roof" summary={roofed ? `${ROOF_LABEL[r.type]} · ${Math.round(am.coverage * 100)}% covered` : 'Open air'} defaultOpen={false}>
+      <select className="select" value={r.type} onChange={(e) => set('roof', (x) => { x.type = e.target.value as RoofType; if (x.type === 'etfe') x.material = 'etfe'; else if (x.material === 'etfe') x.material = 'ptfe'; }, 'type')}>
+        {ROOF_TYPES.map((t) => <option key={t} value={t}>{ROOF_LABEL[t]}</option>)}
+      </select>
+      {r.type === 'canopy' && <>
+        <div className="sub-label">Canopies over</div>
+        <div className="regions"><Segmented size="sm" wrap value={'' as string} onChange={(g) => set('roof', (x) => { const sId = g as StandId; x.stands = x.stands.includes(sId) ? x.stands.filter((q) => q !== sId) : [...x.stands, sId]; }, 'stands')}
+          options={STAND_IDS.map((g) => ({ value: g, label: r.stands.includes(g) ? <b>{g} ✓</b> : g }))} /></div>
+      </>}
+      {roofed && <>
+        <LengthControl label="Leading edge past the first row" units={u} value={r.overhang} min={-20000} max={30000} step={500} hint="Positive reaches over the field; enclosed roofs cap the opening inside it" onChange={(v) => set('roof', (x) => { x.overhang = v; }, 'ov')} />
+        <LengthControl label="Clearance over the top row" units={u} value={r.clearance} min={3000} max={40000} step={500} hint={`Eave at ${formatLength(am.eave, u)} · top of roof ${formatLength(am.roofTop, u)}`} onChange={(v) => set('roof', (x) => { x.clearance = v; }, 'cl')} />
+        <NumberControl label="Pitch toward the field" value={r.pitch} min={-10} max={20} step={0.5} suffix="°" onChange={(v) => set('roof', (x) => { x.pitch = v; }, 'pitch')} />
+        <LengthControl label="Structural depth" units={u} value={r.depth} min={1500} max={15000} step={250} hint="Primary frames at the column line, tapering to the edge" onChange={(v) => set('roof', (x) => { x.depth = v; }, 'depth')} />
+        <NumberControl label="Primary frame every n grid lines" value={r.frameEvery} min={1} max={6} step={1} hint={`${am.roofFrames} primary frames`} onChange={(v) => set('roof', (x) => { x.frameEvery = v; }, 'every')} />
+        {r.type === 'retractable' && <NumberControl label="Retractable panels open" value={Math.round(r.open * 100)} min={0} max={100} step={5} suffix="%" onChange={(v) => set('roof', (x) => { x.open = v / 100; }, 'open')} />}
+        <LengthControl label="High-ball view wanted" units={u} value={r.skyView} min={5000} max={60000} step={1000} hint="MANICAI assumption: height over the centre spot the back row should see under the edge (enclosed: clear height)" onChange={(v) => set('roof', (x) => { x.skyView = v; }, 'sky')} />
+        <div className="sub-label">Membrane / deck</div>
+        <Finishes value={r.material} options={ROOF_FINISH} onChange={(v) => set('roof', (x) => { x.material = v; }, 'mat')} />
+      </>}
+    </Section>
+  );
+}
+
+/** Structural grid and members. */
+function StructureControls() {
+  const { u, A, am, set } = useArch();
+  const S = A.structure;
+  return (
+    <Section title="Structure" summary={`${am.frames} frames · ${am.columns} columns`} defaultOpen={false}>
+      <LengthControl label="Bay (radial frame spacing)" units={u} value={S.bay} min={5000} max={20000} step={250} hint="Measured along the outer column line; frames are radial in the corners" onChange={(v) => set('structure', (x) => { x.bay = v; }, 'bay')} />
+      <LengthControl label="Column size" units={u} value={S.column} min={400} max={2000} step={50} onChange={(v) => set('structure', (x) => { x.column = v; }, 'col')} />
+      <LengthControl label="Raker depth" units={u} value={S.rakerDepth} min={500} max={2500} step={50} onChange={(v) => set('structure', (x) => { x.rakerDepth = v; }, 'rk')} />
+      <div className="sub-label">Finish</div>
+      <Finishes value={S.material} options={STRUCTURE_FINISH} onChange={(v) => set('structure', (x) => { x.material = v; }, 'mat')} />
+      <p className="muted small">Grid and members are set out from the bowl for coordination. Member sizes are not engineered.</p>
+    </Section>
+  );
+}
+
+/** Facade family, module, portals and material. */
+function FacadeControls() {
+  const { u, A, am, set } = useArch();
+  const F = A.facade;
+  return (
+    <Section title="Facade & envelope" summary={`${F.type} · ${am.facadeModules} modules`} defaultOpen={false}>
+      <Segmented size="sm" value={F.type} onChange={(v) => set('facade', (x) => { x.type = v; }, 'type')} options={[{ value: 'glazed', label: 'Glazed' }, { value: 'fins', label: 'Fins' }, { value: 'perforated', label: 'Screen' }, { value: 'solid', label: 'Solid' }]} />
+      <LengthControl label="Module" units={u} value={F.module} min={1200} max={9000} step={100} onChange={(v) => set('facade', (x) => { x.module = v; }, 'mod')} />
+      <LengthControl label="Offset beyond the cores" units={u} value={F.offset} min={0} max={20000} step={500} onChange={(v) => set('facade', (x) => { x.offset = v; }, 'off')} />
+      <Segmented size="sm" value={String(F.portals) as '0' | '4' | '8'} onChange={(v) => set('facade', (x) => { x.portals = +v as 0 | 4 | 8; }, 'portals')} options={[{ value: '0', label: 'No portals' }, { value: '4', label: '4 portals' }, { value: '8', label: '8 portals' }]} />
+      {F.portals > 0 && <>
+        <LengthControl label="Portal width" units={u} value={F.portalWidth} min={4000} max={40000} step={500} onChange={(v) => set('facade', (x) => { x.portalWidth = v; }, 'pw')} />
+        <LengthControl label="Portal height" units={u} value={F.portalHeight} min={3000} max={20000} step={250} onChange={(v) => set('facade', (x) => { x.portalHeight = v; }, 'ph')} />
+      </>}
+      <div className="sub-label">Material</div>
+      <Finishes value={F.material} options={FACADE_FINISH} onChange={(v) => set('facade', (x) => { x.material = v; }, 'mat')} />
+    </Section>
+  );
+}
+
+/** Back-of-house band at event level. */
+function BohControls() {
+  const { u, A, am, set } = useArch();
+  const B = A.boh;
+  return (
+    <Section title="Back of house" summary={`${fmtInt(am.bohArea)} m²`} defaultOpen={false}>
+      <div className="sub-label">Team areas and tunnel on</div>
+      <Segmented size="sm" value={B.mainStand} onChange={(v) => set('boh', (x) => { x.mainStand = v; }, 'main')} options={STAND_IDS.map((g) => ({ value: g, label: g }))} />
+      <LengthControl label="Service corridor" units={u} value={B.corridor} min={3000} max={15000} step={250} onChange={(v) => set('boh', (x) => { x.corridor = v; }, 'cor')} />
+      <LengthControl label="Room band depth" units={u} value={B.depth} min={6000} max={40000} step={500} onChange={(v) => set('boh', (x) => { x.depth = v; }, 'depth')} />
+      <LengthControl label="Clear height wanted" units={u} value={B.clear} min={3000} max={8000} step={100} hint={`${formatLength(am.bohHeight, u)} available under the lowest concourse`} onChange={(v) => set('boh', (x) => { x.clear = v; }, 'clear')} />
+      <NumberControl label="Area allowance" value={Math.round(B.scale * 100)} min={25} max={300} step={5} suffix="%" hint={`${fmtInt(am.bohArea)} of ${fmtInt(am.bohNeeded)} m² placed (MANICAI assumptions)`} onChange={(v) => set('boh', (x) => { x.scale = v / 100; }, 'scale')} />
     </Section>
   );
 }

@@ -8,6 +8,7 @@ import type { Stadium } from '../core/engine/stadium';
 import { formatLength } from '../core/units';
 import { useStore, type CameraView } from '../ui/store';
 import { Seats, Terraces, Vomitories, WheelchairPads } from './Bowl';
+import { BackOfHouse, Facade, Grid, Plaza, Roof, Structure } from './Architecture';
 import { Cores, Floors, Suites } from './Building';
 import { Field } from './Field';
 
@@ -23,6 +24,8 @@ export function Viewport() {
   const mode = useStore((s) => s.mode);
   const cut = useStore((s) => s.cut);
   const selectSeat = useStore((s) => s.selectSeat);
+  const xray = useStore((s) => s.xray);
+  const view = useStore((s) => s.view);
   const tech = mode === 'technical';
   const b = stadium.bounds;
   const span = Math.max(b.max[0] - b.min[0], b.max[1] - b.min[1]) * MM;
@@ -66,11 +69,20 @@ export function Viewport() {
         {layers.premium && <Floors ring={stadium.ring} building={stadium.building} clip={clip} premium />}
         {layers.premium && <Suites ring={stadium.ring} building={stadium.building} project={project} clip={clip} />}
         {layers.cores && <Cores ring={stadium.ring} building={stadium.building} clip={clip} />}
+        {layers.structure && <Structure ring={stadium.ring} arch={stadium.architecture} project={project} clip={clip} />}
+        {layers.structure && tech && <Grid ring={stadium.ring} arch={stadium.architecture} labels={view !== 'section' && view !== 'elevation'} />}
+        {layers.boh && <BackOfHouse ring={stadium.ring} arch={stadium.architecture} clip={clip} />}
+        {/* analysis colours the seats: the roof and facade step aside */}
+        {layers.roof && mode !== 'analysis' && <Roof ring={stadium.ring} arch={stadium.architecture} project={project} clip={clip} xray={xray} />}
+        {layers.facade && mode !== 'analysis' && <Facade ring={stadium.ring} arch={stadium.architecture} project={project} clip={clip} xray={xray} />}
+        {layers.facade && !tech && <Plaza ring={stadium.ring} arch={stadium.architecture} />}
         <SelectedSeat stadium={stadium} />
         {layers.dimensions && <Dimensions stadium={stadium} />}
         {layers.reference && <Reference stadium={stadium} />}
       </group>
 
+      {/* ground: a soft site tone in explore mode, and a shadow catcher */}
+      {!tech && <mesh rotation-x={-Math.PI / 2} position={[0, -0.03, 0]}><circleGeometry args={[span * 6, 96]} /><meshBasicMaterial color="#e9e7e3" /></mesh>}
       {/* shadow-catching ground */}
       <mesh rotation-x={-Math.PI / 2} position={[0, -0.01, 0]} receiveShadow>
         <planeGeometry args={[span * 8, span * 8]} />
@@ -100,7 +112,9 @@ function SelectedSeat({ stadium }: { stadium: Stadium }) {
 
 function Dimensions({ stadium }: { stadium: Stadium }) {
   const units = useStore((s) => s.project.units);
-  const items = useMemo(() => annotations(stadium), [stadium]);
+  const view = useStore((s) => s.view);
+  // level datums stand in a vertical column: in plan they would all land on one spot
+  const items = useMemo(() => annotations(stadium).filter((a) => view !== 'plan' || a.kind !== 'level'), [stadium, view]);
   return (
     <group>
       {items.map((a) => {
@@ -153,6 +167,15 @@ function viewFor(view: CameraView, s: Stadium) {
     case 'elevation': return { fov: 10, pos: new THREE.Vector3(0, h * 0.45, sz * 6.2), target: new THREE.Vector3(0, h * 0.45, 0) };
     case 'section': return { fov: 10, pos: new THREE.Vector3(sz * 6.2, h * 0.45, 0), target: new THREE.Vector3(0, h * 0.45, 0) };
     case 'iso': return { fov: 20, pos: new THREE.Vector3(sz * 1.45, sz * 1.2, sz * 1.45), target: new THREE.Vector3(0, h * 0.15, 0) };
+    case 'exterior': {
+      // from the plaza beyond the south-west corner, at a standing eye height
+      const R = s.architecture.facade.d, H = Math.max(s.architecture.metrics.facadeTop, s.architecture.metrics.roofTop);
+      // close to a corner with a wide lens, so two facades recede and the roof edge reads against the sky
+      const reach = Math.hypot(s.ring.hx + R, s.ring.hy + R) * 0.8 + H * 1.5;
+      const a = Math.atan2(-(s.ring.hy + R), -(s.ring.hx + R) * 1.2);
+      const eye = toThree([s.ring.cx + Math.cos(a) * reach, s.ring.cy + Math.sin(a) * reach, 1700]);
+      return { fov: 58, pos: eye, target: toThree([s.ring.cx, s.ring.cy, H * 0.62]) };
+    }
     case 'fieldLevel': {
       const f = s.field;
       return { fov: 55, pos: toThree([-f.length * 0.18, -(f.width / 2 + 2500), 1700]), target: toThree([f.length * 0.05, (s.ring.cy + s.ring.hy) * 0.9, 9000]) };

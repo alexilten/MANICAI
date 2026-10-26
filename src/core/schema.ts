@@ -11,7 +11,7 @@ import { SPORTS, type SportId } from './sports';
 import type { DisplayUnits, Mm } from './units';
 
 export const SCHEMA_ID = 'manicai.project';
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 export type SightlineMode = 'cvalue' | 'riser';
 export type TierKind = 'general' | 'club';
@@ -79,6 +79,71 @@ export interface BuildingParams {
   /** gross program area per spectator served, m² (MANICAI planning assumptions, not standards) */
   allowances: { concessions: number; restrooms: number; retail: number; firstAid: number; clubLounge: number };
   cores: { spacing: Mm; width: Mm; depth: Mm; stairs: number; stairWidth: Mm; lifts: number };
+}
+
+export type RoofType = 'open' | 'canopy' | 'perimeter' | 'enclosed' | 'etfe' | 'truss' | 'retractable';
+export type FacadeType = 'glazed' | 'solid' | 'perforated' | 'fins';
+export type StructureMaterial = 'steel' | 'steelDark' | 'concrete';
+export type RoofMaterial = 'ptfe' | 'etfe' | 'metal';
+export type FacadeMaterial = 'glass' | 'aluminium' | 'bronze' | 'precast';
+
+/**
+ * The architecture around the bowl and building (Round 04): structural grid, roof, facade and
+ * back-of-house. Everything is set out from the bowl in its plan frame, so it follows the bowl.
+ * Conceptual and spatial: not a structural design.
+ */
+export interface ArchitectureParams {
+  structure: {
+    /** radial frame spacing, measured along the outer column line */
+    bay: Mm;
+    /** square column section */
+    column: Mm;
+    /** depth of the raker beams under each tier */
+    rakerDepth: Mm;
+    material: StructureMaterial;
+  };
+  roof: {
+    type: RoofType;
+    /** stands a partial canopy covers */
+    stands: StandId[];
+    /** leading edge in front of the first row (+ reaches over the field) */
+    overhang: Mm;
+    /** underside of the roof structure above the highest tread, at the back of the bowl */
+    clearance: Mm;
+    /** rise of the roof toward the field, degrees (negative falls toward the field) */
+    pitch: number;
+    /** depth of the primary roof frames at the outer column line (they taper to the leading edge) */
+    depth: Mm;
+    /** a primary roof frame on every n-th structural grid line */
+    frameEvery: number;
+    /** retractable roofs: how far the panels are open, 0–1 */
+    open: number;
+    /** high-ball view: the back-row sightline under the leading edge should clear this height over the centre spot (MANICAI assumption) */
+    skyView: Mm;
+    material: RoofMaterial;
+  };
+  facade: {
+    type: FacadeType;
+    /** mullion / fin / panel module along the perimeter */
+    module: Mm;
+    /** facade line beyond the outer face of the cores */
+    offset: Mm;
+    /** public entry portals: at the stand centres (4) or the stand and corner centres (8) */
+    portals: 0 | 4 | 8;
+    portalWidth: Mm; portalHeight: Mm;
+    material: FacadeMaterial;
+  };
+  /** back-of-house at event level, under and behind the lower tier */
+  boh: {
+    /** the stand with the team areas and the players' tunnel */
+    mainStand: StandId;
+    /** service corridor (the event-level ring road) and the room band behind it */
+    corridor: Mm; depth: Mm;
+    /** clear height wanted for back-of-house rooms */
+    clear: Mm;
+    /** multiplier on MANICAI's back-of-house area assumptions */
+    scale: number;
+  };
 }
 
 export interface TierParams {
@@ -156,6 +221,7 @@ export interface Project {
   /** premium levels inserted into the section */
   premium: PremiumLevel[];
   building: BuildingParams;
+  architecture: ArchitectureParams;
 }
 
 export const NO_VOMS: VomitoryParams = { enabled: false, every: 2, mouthRow: 8, width: 2800 };
@@ -172,6 +238,15 @@ export function defaultBuilding(): BuildingParams {
     concourseWidth: 10000, programDepth: 10000, concourseClear: 4000,
     allowances: { concessions: 0.06, restrooms: 0.07, retail: 0.015, firstAid: 0.003, clubLounge: 1.0 },
     cores: { spacing: 60000, width: 9000, depth: 11000, stairs: 2, stairWidth: 2400, lifts: 2 },
+  };
+}
+
+export function defaultArchitecture(): ArchitectureParams {
+  return {
+    structure: { bay: 10000, column: 900, rakerDepth: 1100, material: 'steel' },
+    roof: { type: 'perimeter', stands: ['N', 'S'], overhang: 2000, clearance: 9000, pitch: 4, depth: 5000, frameEvery: 2, open: 1, skyView: 20000, material: 'ptfe' },
+    facade: { type: 'glazed', module: 3000, offset: 3000, portals: 4, portalWidth: 12000, portalHeight: 7000, material: 'glass' },
+    boh: { mainStand: 'S', corridor: 6000, depth: 16000, clear: 4500, scale: 1 },
   };
 }
 
@@ -194,6 +269,7 @@ export function defaultProject(): Project {
     ],
     premium: [],
     building: defaultBuilding(),
+    architecture: defaultArchitecture(),
   };
 }
 
@@ -218,6 +294,8 @@ export function serializeProject(p: Project): string {
  * none of these, so a v1 bowl keeps exactly its v1 geometry and seat count.
  * v2 → v3: no premium levels; building allowances take their defaults (they add geometry around the
  * bowl but never move a seat).
+ * v3 → v4: the architecture (structure, roof, facade, back-of-house) takes its defaults; it is built
+ * around the bowl and building and never moves a seat.
  */
 export function parseProject(text: string): Project {
   const raw = JSON.parse(text);
@@ -234,6 +312,12 @@ export function parseProject(text: string): Project {
     bowl: { ...d.bowl, ...raw.bowl, stands: { ...raw.bowl?.stands } },
     premium: Array.isArray(raw.premium) ? raw.premium.map((l: Partial<PremiumLevel>, i: number) => suiteLevel(l.id ?? `P${i + 1}`, l.belowTier ?? 'T2', l)) : [],
     building: { ...d.building, ...raw.building, allowances: { ...d.building.allowances, ...raw.building?.allowances }, cores: { ...d.building.cores, ...raw.building?.cores } },
+    architecture: {
+      structure: { ...d.architecture.structure, ...raw.architecture?.structure },
+      roof: { ...d.architecture.roof, ...raw.architecture?.roof },
+      facade: { ...d.architecture.facade, ...raw.architecture?.facade },
+      boh: { ...d.architecture.boh, ...raw.architecture?.boh },
+    },
     tiers: Array.isArray(raw.tiers) && raw.tiers.length
       ? raw.tiers.map((t: Partial<TierParams>, i: number) => {
         const x = tier(t.id ?? `T${i + 1}`, t.name ?? `Tier ${i + 1}`, t);

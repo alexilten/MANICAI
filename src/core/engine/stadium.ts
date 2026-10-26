@@ -14,6 +14,7 @@
 import type { Project } from '../schema';
 import { SPORTS, type FieldModel } from '../sports';
 import { adaRequired } from './accessibility';
+import { buildArchitecture, ENCLOSED, ROOF_LABEL, type Architecture } from './architecture';
 import { buildBuilding, type Building } from './building';
 import { regionRows, standDistances, type Layout } from './layout';
 import { isCorner, makeRing, pointAt, SECTORS, SECTOR_LABEL, SECTOR_OF, SEGMENTS, STANDS, type PlanRing, type Sector, type SegmentId } from './plan';
@@ -62,6 +63,8 @@ export interface Stadium {
   seats: SeatResult;
   /** concourses, premium levels, program and cores (Round 03) */
   building: Building;
+  /** structure, roof, facade and back-of-house (Round 04) */
+  architecture: Architecture;
   metrics: Metrics;
   warnings: Warning[];
   /** ms spent per stage on the last resolve (0 = cache hit) */
@@ -94,19 +97,21 @@ export function resolveStadium(p: Project): Stadium {
   const profiles = stage('profiles', profKey, timing, () => solveProfiles(p, ring, layout.rows));
   const seatKey = JSON.stringify([profKey, p.seating, p.tiers.map((t) => [t.kind, t.seatWidth, t.vomitories, t.accessible])]);
   const seats = stage('seats', seatKey, timing, () => generateSeats(p, ring, profiles, layout.rows, { focus: field.boundary, fieldLW: [field.length, field.width] }));
-  const anaKey = JSON.stringify([seatKey, p.bowl.targetCapacity, p.tiers.map((t) => t.name), p.premium, p.building]);
-  const { metrics, warnings, building } = stage('analysis', anaKey, timing, () => {
+  const anaKey = JSON.stringify([seatKey, p.bowl.targetCapacity, p.tiers.map((t) => t.name), p.premium, p.building, p.architecture]);
+  const { metrics, warnings, building, architecture } = stage('analysis', anaKey, timing, () => {
     const a = analyse(p, field, ring, layout, profiles, seats);
-    return { ...a, building: addBuilding(p, ring, profiles, a.metrics, a.warnings) };
+    const building = addBuilding(p, ring, profiles, a.metrics, a.warnings);
+    return { ...a, building, architecture: addArchitecture(p, ring, layout, profiles, building, seats, field, a.metrics, a.warnings) };
   });
   const ext = extents(ring, layout, profiles);
-  const outer = Math.max(...profiles.map((t) => t.rows[t.rows.length - 1].z), ...building.cores.map((c) => c.zTop));
-  const o = building.metrics.outerD;
+  const am = architecture.metrics;
+  const outer = Math.max(...profiles.map((t) => t.rows[t.rows.length - 1].z), ...building.cores.map((c) => c.zTop), am.roofTop, am.facadeTop);
+  const o = Math.max(building.metrics.outerD, architecture.roof.spans.length ? architecture.roof.dOut : 0, am.facadeD + 5000);
   const bounds = {
     min: [Math.min(ext.minX, ring.cx - ring.hx - o), Math.min(ext.minY, ring.cy - ring.hy - o), 0] as [number, number, number],
     max: [Math.max(ext.maxX, ring.cx + ring.hx + o), Math.max(ext.maxY, ring.cy + ring.hy + o), outer + 2500] as [number, number, number],
   };
-  return { project: p, field, ring, layout, profiles, seats, building, metrics, warnings, timing, bounds };
+  return { project: p, field, ring, layout, profiles, seats, building, architecture, metrics, warnings, timing, bounds };
 }
 
 /** plan offset of the back of the bowl in each region (0 where a region carries no seats) */
@@ -233,4 +238,18 @@ function addBuilding(p: Project, ring: PlanRing, profiles: TierProfile[], m: Met
   }
   if (b.metrics.maxToCore > 60000) w.push({ level: 'info', code: 'core.spacing', rule: 'manicai.cores', message: `Up to ${(b.metrics.maxToCore / 1000).toFixed(0)} m along the concourse to the nearest core. Reduce the core spacing if the code's travel distance is shorter.` });
   return b;
+}
+
+/** Round 04: structure, roof, facade and back-of-house, and their checks. */
+function addArchitecture(p: Project, ring: PlanRing, layout: Layout, profiles: TierProfile[], b: Building, seats: SeatResult, field: FieldModel, m: Metrics, w: Warning[]): Architecture {
+  const a = buildArchitecture(p, ring, layout, profiles, b, { seats: seats.seats, net: m.net, fieldLength: field.length, fieldWidth: field.width });
+  const r = p.architecture.roof, am = a.metrics;
+  const open = !ENCLOSED.includes(r.type) || (r.type === 'retractable' && r.open > 0.5);
+  if (r.type !== 'open' && am.viewClear < r.skyView) w.push({ level: 'warn', code: 'roof.view', rule: 'manicai.roof', message: open
+    ? `${ROOF_LABEL[r.type]}: the back-row sightline under the roof edge reaches only ${(am.viewClear / 1000).toFixed(1)} m over the centre spot (${(r.skyView / 1000).toFixed(0)} m wanted for high balls). Raise the roof, pull its edge back or pitch it up.`
+    : `${ROOF_LABEL[r.type]}: ${(am.viewClear / 1000).toFixed(1)} m clear over the centre spot (${(r.skyView / 1000).toFixed(0)} m wanted). Raise the roof clearance.` });
+  if (am.bohArea < am.bohNeeded * 0.98) w.push({ level: 'warn', code: 'boh.short', rule: 'manicai.boh', message: `Back-of-house: ${Math.round(am.bohArea).toLocaleString('en-US')} m² placed of the ${Math.round(am.bohNeeded).toLocaleString('en-US')} m² assumed. Deepen the back-of-house band or reduce the allowance.` });
+  if (am.bohHeight < 3000) w.push({ level: 'warn', code: 'boh.headroom', rule: 'manicai.boh', message: `Back-of-house rooms get ${(am.bohHeight / 1000).toFixed(1)} m clear under the lowest concourse. Raise the lower tier's vomitory row or the concourse level.` });
+  w.push({ level: 'info', code: 'scope.r04', rule: 'manicai.structure', message: 'Structure, roof and facade are spatial, conceptual representations: member sizes, spans and loads are not engineered and need a structural engineer.' });
+  return a;
 }

@@ -84,15 +84,19 @@ const CORNER: Record<string, { cx: number; cy: number; a0: number }> = {
 /** Length of a segment at offset d behind the front-row line. */
 export function segmentLength(ring: PlanRing, seg: SegmentId, d: Mm): Mm {
   const { hx, hy, r } = ring;
-  if (seg === 'E' || seg === 'W') return 2 * (hy - r);
-  if (seg === 'N' || seg === 'S') return 2 * (hx - r);
-  return (Math.PI / 2) * (r + d);
+  // inside the front-row line past the corner radius (d < −r, e.g. a roof edge over the field) the
+  // offset path is a sharp rectangle: the straights shorten and the corners close to a point
+  const e = Math.min(0, r + d);
+  if (seg === 'E' || seg === 'W') return 2 * (hy - r + e);
+  if (seg === 'N' || seg === 'S') return 2 * (hx - r + e);
+  return (Math.PI / 2) * Math.max(0, r + d);
 }
 
 /** Point and outward normal on the path at (segment, u, d). */
 export function pointAt(ring: PlanRing, seg: SegmentId, u: number, d: Mm): Station {
   const { hx, hy, r, cx, cy } = ring;
-  const sx = hx - r, sy = hy - r;
+  const e = Math.min(0, r + d); // see segmentLength
+  const sx = hx - r + e, sy = hy - r + e;
   switch (seg) {
     case 'E': return { x: cx + hx + d, y: cy - sy + 2 * sy * u, nx: 1, ny: 0 };
     case 'N': return { x: cx + sx - 2 * sx * u, y: cy + hy + d, nx: 0, ny: 1 };
@@ -102,7 +106,8 @@ export function pointAt(ring: PlanRing, seg: SegmentId, u: number, d: Mm): Stati
       const c = CORNER[seg];
       const a = c.a0 + u * Math.PI / 2;
       const nx = Math.cos(a), ny = Math.sin(a);
-      return { x: cx + c.cx * sx + (r + d) * nx, y: cy + c.cy * sy + (r + d) * ny, nx, ny };
+      const rd = Math.max(0, r + d);
+      return { x: cx + c.cx * sx + rd * nx, y: cy + c.cy * sy + rd * ny, nx, ny };
     }
   }
 }
@@ -132,7 +137,7 @@ export function stations(ring: PlanRing, cornerSteps = 24): { seg: SegmentId; u:
 
 /** Area enclosed by the path at offset d (rounded rectangle). */
 export function enclosedArea(ring: PlanRing, d: Mm): number {
-  const w = 2 * (ring.hx + d), h = 2 * (ring.hy + d), r = ring.r + d;
+  const w = 2 * (ring.hx + d), h = 2 * (ring.hy + d), r = Math.max(0, ring.r + d);
   return w * h - (4 - Math.PI) * r * r;
 }
 
