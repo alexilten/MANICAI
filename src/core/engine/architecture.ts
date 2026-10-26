@@ -95,6 +95,8 @@ export interface Roof {
   zTop0: Mm; slope: number;
   /** primary frames stand above the deck (open roofs) rather than below it */
   exposed: boolean;
+  /** depth of the primary frames at the outer column line (a quarter of it at the leading edge) */
+  depth: Mm;
   /** cap over the field (enclosed types): edge level at dIn, rise at the centre */
   cap: { z: Mm; rise: Mm } | null;
   boxes: WorldBox[];
@@ -161,13 +163,13 @@ function locate(ring: PlanRing, d: Mm, s: number): { seg: SegmentId; u: number }
   return { seg: 'E', u: 0 };
 }
 /** Arc length of the start of a segment along the path at offset d. */
-function segStart(ring: PlanRing, d: Mm, seg: SegmentId) {
+export function segStart(ring: PlanRing, d: Mm, seg: SegmentId) {
   let s = 0;
   for (const g of SEGMENTS) { if (g === seg) return s; s += segmentLength(ring, g, d); }
   return s;
 }
 /** Split the arc s0..s1 (may wrap) into pieces that each lie in one segment. */
-function arcPieces(ring: PlanRing, d: Mm, s0: number, s1: number): { seg: SegmentId; u0: number; u1: number }[] {
+export function arcPieces(ring: PlanRing, d: Mm, s0: number, s1: number): { seg: SegmentId; u0: number; u1: number }[] {
   const total = perimeter(ring, d);
   const out: { seg: SegmentId; u0: number; u1: number }[] = [];
   let a = s0;
@@ -328,7 +330,7 @@ export function buildArchitecture(
     boxes.push({ id: 'PANEL.W', kind: 'panel', min: [ring.cx - len - o * halfX, ring.cy - halfY - 1500, zp], max: [ring.cx - o * halfX, ring.cy + halfY + 1500, zp + 1500] });
     boxes.push({ id: 'PANEL.E', kind: 'panel', min: [ring.cx + o * halfX, ring.cy - halfY - 1500, zp], max: [ring.cx + len + o * halfX, ring.cy + halfY + 1500, zp + 1500] });
   }
-  const roof: Roof = { type, spans, dIn, dOut, zTop0, slope, exposed, cap, boxes };
+  const roof: Roof = { type, spans, dIn, dOut, zTop0, slope, exposed, depth: R.depth, cap, boxes };
 
   // ── facade: skin pieces (split at the portals), mullions or fins, slab-edge bands
   const pieces: Piece[] = [], bands: Piece[] = [], canopies: Piece[] = [];
@@ -556,13 +558,22 @@ export function stationsAt(ring: PlanRing, d: Mm, cornerSteps = 16): [number, nu
  * edge (the inner `band` share of the roof depth; 0 for none) so the bowl keeps daylight.
  */
 export function roofSkin(ring: PlanRing, r: Roof, band = 0): { deck: BoxMesh[]; edge: BoxMesh[] } {
-  const top = (d: Mm) => r.zTop0 + (r.dOut - EAVE - COLUMN_SETBACK - d) * r.slope;
+  const top = (d: Mm) => roofTopAt(r, d);
   const sec = (d0: Mm, d1: Mm): [number, number][] => [[d0, top(d0) - ROOF_SKIN], [d1, top(d1) - ROOF_SKIN], [d1, top(d1)], [d0, top(d0)]];
   const dB = r.dIn + band * (r.dOut - r.dIn);
   return {
     deck: r.spans.map((sp) => sweepSolid(ring, sp, sec(dB, r.dOut))),
     edge: band > 0 ? r.spans.map((sp) => sweepSolid(ring, sp, sec(r.dIn, dB))) : [],
   };
+}
+
+/** Top of the roof skin at plan offset d. */
+export const roofTopAt = (r: Roof, d: Mm) => r.zTop0 + (r.dOut - EAVE - COLUMN_SETBACK - d) * r.slope;
+/** Underside of the roof at plan offset d: under the skin on open roofs, under the hanging frames on enclosed ones. */
+export function roofUnderAt(r: Roof, d: Mm) {
+  const dCol = r.dOut - EAVE - COLUMN_SETBACK;
+  const depth = d >= dCol ? r.depth : r.depth * (0.25 + (0.75 * Math.max(0, d - r.dIn)) / Math.max(1, dCol - r.dIn));
+  return roofTopAt(r, d) - ROOF_SKIN - (r.exposed ? 0 : depth);
 }
 
 export const pieceSolid = (ring: PlanRing, q: Piece) => bandSolid(ring, { seg: q.seg, u0: q.u0, u1: q.u1 }, q.d0, q.d1, q.z0, q.z1);

@@ -107,10 +107,10 @@ export function BackOfHouse({ ring, arch, clip }: { ring: PlanRing; arch: ArchMo
 }
 
 /** The plaza apron around the facade. */
-export function Plaza({ ring, arch }: { ring: PlanRing; arch: ArchModel }) {
+export function Plaza({ ring, arch, night = false }: { ring: PlanRing; arch: ArchModel; night?: boolean }) {
   const geo = useGeo(() => merge([{ m: bandSolid(ring, 'ring', arch.facade.d, arch.facade.d + 32000, -60, -20), color: '#e4e1db' }]), [ring, arch]);
   if (!geo) return null;
-  return <mesh geometry={geo} receiveShadow><meshStandardMaterial vertexColors roughness={0.95} /></mesh>;
+  return <mesh geometry={geo} receiveShadow><meshStandardMaterial vertexColors color={night ? '#3a3e48' : '#ffffff'} roughness={0.95} /></mesh>;
 }
 
 /** Structural grid lines at grade, with bubbles. */

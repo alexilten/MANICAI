@@ -78,7 +78,8 @@ describe('H · Rhino .3dm export', () => {
     const b7 = exportRhino(rh, s, { version: 7, seats: false });
     const i7 = inspect3dm(rh, b7, { bboxes: false });
     expect(i7.units).toBe('Millimeters');
-    expect(i7.objects.some((o) => o.type === 'InstanceReference')).toBe(false);
+    // no seat blocks (floodlights stay block instances on 14_LIGHTING)
+    expect(i7.objects.some((o) => o.type === 'InstanceReference' && !o.layer?.startsWith('14_LIGHTING'))).toBe(false);
     expect(b7.byteLength).toBeLessThan(bytes.byteLength);
   });
 

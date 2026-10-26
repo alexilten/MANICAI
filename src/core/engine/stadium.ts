@@ -16,6 +16,7 @@ import { SPORTS, type FieldModel } from '../sports';
 import { adaRequired } from './accessibility';
 import { buildArchitecture, ENCLOSED, ROOF_LABEL, type Architecture } from './architecture';
 import { buildBuilding, type Building } from './building';
+import { buildSystems, MAX_TILT, MIN_LIGHT_ANGLE, type Systems } from './systems';
 import { regionRows, standDistances, type Layout } from './layout';
 import { isCorner, makeRing, pointAt, SECTORS, SECTOR_LABEL, SECTOR_OF, SEGMENTS, STANDS, type PlanRing, type Sector, type SegmentId } from './plan';
 import { HEADROOM, solveProfiles, type TierProfile } from './profile';
@@ -65,6 +66,8 @@ export interface Stadium {
   building: Building;
   /** structure, roof, facade and back-of-house (Round 04) */
   architecture: Architecture;
+  /** lighting, boards, broadcast, MEP reservations and service access (Round 05) */
+  systems: Systems;
   metrics: Metrics;
   warnings: Warning[];
   /** ms spent per stage on the last resolve (0 = cache hit) */
@@ -97,21 +100,22 @@ export function resolveStadium(p: Project): Stadium {
   const profiles = stage('profiles', profKey, timing, () => solveProfiles(p, ring, layout.rows));
   const seatKey = JSON.stringify([profKey, p.seating, p.tiers.map((t) => [t.kind, t.seatWidth, t.vomitories, t.accessible])]);
   const seats = stage('seats', seatKey, timing, () => generateSeats(p, ring, profiles, layout.rows, { focus: field.boundary, fieldLW: [field.length, field.width] }));
-  const anaKey = JSON.stringify([seatKey, p.bowl.targetCapacity, p.tiers.map((t) => t.name), p.premium, p.building, p.architecture]);
-  const { metrics, warnings, building, architecture } = stage('analysis', anaKey, timing, () => {
+  const anaKey = JSON.stringify([seatKey, p.bowl.targetCapacity, p.tiers.map((t) => t.name), p.premium, p.building, p.architecture, p.systems]);
+  const { metrics, warnings, building, architecture, systems } = stage('analysis', anaKey, timing, () => {
     const a = analyse(p, field, ring, layout, profiles, seats);
     const building = addBuilding(p, ring, profiles, a.metrics, a.warnings);
-    return { ...a, building, architecture: addArchitecture(p, ring, layout, profiles, building, seats, field, a.metrics, a.warnings) };
+    const architecture = addArchitecture(p, ring, layout, profiles, building, seats, field, a.metrics, a.warnings);
+    return { ...a, building, architecture, systems: addSystems(p, ring, layout, profiles, building, architecture, seats, field, a.metrics, a.warnings) };
   });
   const ext = extents(ring, layout, profiles);
   const am = architecture.metrics;
-  const outer = Math.max(...profiles.map((t) => t.rows[t.rows.length - 1].z), ...building.cores.map((c) => c.zTop), am.roofTop, am.facadeTop);
-  const o = Math.max(building.metrics.outerD, architecture.roof.spans.length ? architecture.roof.dOut : 0, am.facadeD + 5000);
+  const outer = Math.max(...profiles.map((t) => t.rows[t.rows.length - 1].z), ...building.cores.map((c) => c.zTop), am.roofTop, am.facadeTop, systems.metrics.lighting.mastHeight);
+  const o = Math.max(building.metrics.outerD, architecture.roof.spans.length ? architecture.roof.dOut : 0, am.facadeD + 5000, ...systems.zones.filter((z) => z.system === 'lighting').map((z) => z.d1));
   const bounds = {
     min: [Math.min(ext.minX, ring.cx - ring.hx - o), Math.min(ext.minY, ring.cy - ring.hy - o), 0] as [number, number, number],
     max: [Math.max(ext.maxX, ring.cx + ring.hx + o), Math.max(ext.maxY, ring.cy + ring.hy + o), outer + 2500] as [number, number, number],
   };
-  return { project: p, field, ring, layout, profiles, seats, building, architecture, metrics, warnings, timing, bounds };
+  return { project: p, field, ring, layout, profiles, seats, building, architecture, systems, metrics, warnings, timing, bounds };
 }
 
 /** plan offset of the back of the bowl in each region (0 where a region carries no seats) */
@@ -252,4 +256,21 @@ function addArchitecture(p: Project, ring: PlanRing, layout: Layout, profiles: T
   if (am.bohHeight < 3000) w.push({ level: 'warn', code: 'boh.headroom', rule: 'manicai.boh', message: `Back-of-house rooms get ${(am.bohHeight / 1000).toFixed(1)} m clear under the lowest concourse. Raise the lower tier's vomitory row or the concourse level.` });
   w.push({ level: 'info', code: 'scope.r04', rule: 'manicai.structure', message: 'Structure, roof and facade are spatial, conceptual representations: member sizes, spans and loads are not engineered and need a structural engineer.' });
   return a;
+}
+
+/** Round 05: lighting, boards, broadcast, MEP and service access, and their checks. */
+function addSystems(p: Project, ring: PlanRing, layout: Layout, profiles: TierProfile[], b: Building, a: Architecture, seats: SeatResult, field: FieldModel, m: Metrics, w: Warning[]): Systems {
+  const s = buildSystems(p, ring, layout, profiles, b, a, { field, seats: seats.seats, capacity: m.total, skyView: p.architecture.roof.skyView });
+  const sm = s.metrics, L = sm.lighting, B = p.systems.boards;
+  if (p.systems.lighting.mount === 'roof' && L.mount === 'masts') w.push({ level: 'info', code: 'lighting.mount', rule: 'manicai.lighting', message: 'The roof does not ring the field, so the floodlights stand on four corner masts instead of a roof catwalk.' });
+  if (L.minAngle < MIN_LIGHT_ANGLE) w.push({ level: 'warn', code: 'lighting.angle', rule: 'fifa.lighting', message: `The lowest floodlights are ${L.minAngle.toFixed(1)}° above the horizontal from the centre spot (${MIN_LIGHT_ANGLE}° wanted to keep glare out of players' eyes). Raise the roof or the masts.` });
+  if (L.overTilt > 0) w.push({ level: 'warn', code: 'lighting.tilt', rule: 'fifa.lighting', message: `${L.overTilt} floodlight${L.overTilt > 1 ? 's are' : ' is'} aimed more than ${MAX_TILT}° from the vertical (steepest ${L.maxTilt.toFixed(0)}°), which adds glare. Mount them higher or closer to the field.` });
+  if (B.type === 'centre' && !sm.boards.built) w.push({ level: 'warn', code: 'board.centre', rule: 'manicai.boards', message: 'A centre-hung board needs a fixed roof over the field (enclosed, ETFE or truss), so it is not built. Use end boards or change the roof.' });
+  if (B.type === 'centre' && sm.boards.built && B.clear < p.architecture.roof.skyView) w.push({ level: 'warn', code: 'board.low', rule: 'manicai.boards', message: `The centre-hung board's underside is ${(B.clear / 1000).toFixed(1)} m above the field, inside the ${(p.architecture.roof.skyView / 1000).toFixed(0)} m high-ball zone. Raise it.` });
+  if (sm.boards.clash > 0 && B.type === 'centre') w.push({ level: 'warn', code: 'board.roof', rule: 'manicai.boards', message: `The centre-hung board reaches ${(sm.boards.clash / 1000).toFixed(1)} m into the roof structure. Lower it or make it shorter.` });
+  if (sm.boards.clash > 0 && B.type === 'ends') w.push({ level: sm.boards.clash > B.height / 2 ? 'warn' : 'info', code: 'board.roof', rule: 'manicai.boards', message: `The roof leaves room for end boards ${((B.height - sm.boards.clash) / 1000).toFixed(1)} m tall (${(B.height / 1000).toFixed(1)} m asked), so they are cut to fit. Raise the roof clearance for taller boards.` });
+  if (sm.service.yardFit < 0.98) w.push({ level: 'warn', code: 'systems.yard', rule: 'manicai.mep', message: `The ${({ N: 'north', S: 'south', E: 'east', W: 'west' } as const)[sm.service.yard]} frontage holds only ${Math.round(sm.service.yardFit * 100)}% of the service yard and energy centre. Pick a longer frontage or reduce the plant allowance.` });
+  if (p.building.concourseClear - p.systems.mep.ductZone < 3000) w.push({ level: 'warn', code: 'mep.duct', rule: 'manicai.mep', message: `The duct zone leaves ${((p.building.concourseClear - p.systems.mep.ductZone) / 1000).toFixed(1)} m clear on the concourses. Raise the concourse clear height or shallow the duct zone.` });
+  w.push({ level: 'info', code: 'scope.r05', rule: 'manicai.mep', message: 'Lighting, boards and MEP are space reservations from planning ratios and a generic fixture: illuminance uniformity, loads, plant sizing and smoke control need lighting and MEP engineers.' });
+  return s;
 }

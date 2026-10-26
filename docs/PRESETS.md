@@ -29,6 +29,10 @@ Two-tier football bowl, 105 × 68 m pitch.
 
 - All dimensions are MANICAI planning defaults.
 
+**Checks raised:**
+
+- 2 floodlights are aimed more than 70° from the vertical (steepest 70°), which adds glare. Mount them higher or closer to the field.
+
 ### Generic NFL bowl
 
 Three-tier football bowl with a club level.
@@ -46,6 +50,11 @@ Square corners: four separate stands.
 **Assumed by MANICAI:**
 
 - Corner radius 0: the offset rows open into fans, leaving corners empty — the classic British four-stand layout.
+
+**Checks raised:**
+
+- The lowest floodlights are 22.9° above the horizontal from the centre spot (25° wanted to keep glare out of players' eyes). Raise the roof or the masts.
+- 26 floodlights are aimed more than 70° from the vertical (steepest 74°), which adds glare. Mount them higher or closer to the field.
 
 ### Horseshoe ground
 
@@ -122,6 +131,11 @@ Precedent: **Inter Miami Freedom Park Stadium** (Miami, Florida, USA). Status: c
 - Two tiers; row counts fitted to 25,000
 - Pitch 105 × 68 m
 
+**Checks raised:**
+
+- The lowest floodlights are 23.3° above the horizontal from the centre spot (25° wanted to keep glare out of players' eyes). Raise the roof or the masts.
+- 26 floodlights are aimed more than 70° from the vertical (steepest 74°), which adds glare. Mount them higher or closer to the field.
+
 ### Compact enclosed NFL bowl — Allegiant-inspired
 
 65,000 · enclosed multipurpose NFL.
@@ -144,6 +158,7 @@ Precedent: **Allegiant Stadium** (Paradise (Las Vegas), Nevada, USA). Status: co
 **Checks raised:**
 
 - Back-of-house: 7,896 m² placed of the 8,089 m² assumed. Deepen the back-of-house band or reduce the allowance.
+- The north frontage holds only 97% of the service yard and energy centre. Pick a longer frontage or reduce the plant allowance.
 
 ### Large NFL atmosphere bowl — Chiefs-inspired
 

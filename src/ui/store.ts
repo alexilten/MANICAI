@@ -8,7 +8,7 @@ export type Mode = 'explore' | 'technical' | 'analysis';
 export type CameraView = 'perspective' | 'plan' | 'elevation' | 'section' | 'iso' | 'fieldLevel' | 'exterior';
 export type AnalysisMetric = 'cvalue' | 'distance' | 'tier' | 'sector' | 'class';
 
-export type LayerKey = 'field' | 'seats' | 'terraces' | 'premium' | 'concourses' | 'cores' | 'structure' | 'roof' | 'facade' | 'boh' | 'dimensions' | 'reference';
+export type LayerKey = 'field' | 'seats' | 'terraces' | 'premium' | 'concourses' | 'cores' | 'structure' | 'roof' | 'facade' | 'lighting' | 'hvac' | 'electrical' | 'plumbing' | 'avit' | 'broadcast' | 'boh' | 'site' | 'dimensions' | 'reference';
 export const LAYERS: { key: LayerKey; label: string; rhino: string }[] = [
   { key: 'field', label: 'Field', rhino: '01_FIELD' },
   { key: 'terraces', label: 'Terraces', rhino: '02_BOWL_GEOMETRY' },
@@ -19,15 +19,23 @@ export const LAYERS: { key: LayerKey; label: string; rhino: string }[] = [
   { key: 'structure', label: 'Structure', rhino: '08_STRUCTURE' },
   { key: 'roof', label: 'Roof', rhino: '09_ROOF' },
   { key: 'facade', label: 'Facade', rhino: '10_FACADE' },
+  { key: 'hvac', label: 'HVAC', rhino: '11_HVAC' },
+  { key: 'electrical', label: 'Electrical', rhino: '12_ELECTRICAL' },
+  { key: 'plumbing', label: 'Plumbing', rhino: '13_PLUMBING' },
+  { key: 'lighting', label: 'Field lighting', rhino: '14_LIGHTING' },
+  { key: 'avit', label: 'Boards & AV / IT', rhino: '15_AV_IT' },
+  { key: 'broadcast', label: 'Broadcast', rhino: '15_AV_IT::BROADCAST' },
   { key: 'boh', label: 'Back of house', rhino: '16_BACK_OF_HOUSE' },
+  { key: 'site', label: 'Service access', rhino: '17_SITE' },
   { key: 'dimensions', label: 'Dimensions', rhino: '90_DIMENSIONS' },
   { key: 'reference', label: 'Reference', rhino: '00_REFERENCE' },
 ];
 /** systems the platform is planned to generate — listed (disabled) so the layer model is visible from day one */
 export const FUTURE_LAYERS: { label: string; round: string }[] = [
-  { label: 'Lighting', round: 'R05' }, { label: 'HVAC', round: 'R05' }, { label: 'Electrical', round: 'R05' }, { label: 'Plumbing', round: 'R05' }, { label: 'AV / IT', round: 'R05' },
-  { label: 'Site', round: 'later' },
+  { label: 'Site & precinct', round: 'later' },
 ];
+/** the Round 05 systems, for the isolate view */
+export const SYSTEM_LAYERS: LayerKey[] = ['lighting', 'hvac', 'electrical', 'plumbing', 'avit', 'broadcast', 'site'];
 
 export interface Cut { enabled: boolean; axis: 'x' | 'y'; offset: number }
 
@@ -45,6 +53,10 @@ interface State {
   layers: Record<LayerKey, boolean>;
   /** roof and facade drawn see-through */
   xray: boolean;
+  /** night preview: dark sky, floodlights and screens lit */
+  night: boolean;
+  /** layers saved while the systems are isolated (null when not isolated) */
+  isolated: Record<LayerKey, boolean> | null;
   /** selected seat index into stadium.seats.seats */
   seat: number | null;
   /** looking from the selected seat */
@@ -63,6 +75,9 @@ interface State {
   setView: (v: CameraView) => void;
   toggleLayer: (k: LayerKey) => void;
   setXray: (on: boolean) => void;
+  setNight: (on: boolean) => void;
+  /** show only the field, the bowl and the systems (see-through envelope), or restore the layers */
+  isolateSystems: (on: boolean) => void;
   selectSeat: (i: number | null) => void;
   setSeatView: (on: boolean) => void;
   setCut: (c: Partial<Cut>) => void;
@@ -81,8 +96,10 @@ export const useStore = create<State>((set, get) => ({
   past: [], future: [], lastEditKey: null, lastEditAt: 0,
   mode: 'explore', metric: 'cvalue',
   view: 'perspective', viewNonce: 0,
-  layers: { field: true, seats: true, terraces: true, premium: true, concourses: true, cores: true, structure: true, roof: true, facade: true, boh: true, dimensions: false, reference: false },
+  layers: { field: true, seats: true, terraces: true, premium: true, concourses: true, cores: true, structure: true, roof: true, facade: true, lighting: true, hvac: true, electrical: true, plumbing: true, avit: true, broadcast: true, boh: true, site: true, dimensions: false, reference: false },
   xray: false,
+  night: false,
+  isolated: null,
   seat: null, seatView: false,
   cut: { enabled: false, axis: 'x', offset: 0 },
   region: 'E',
@@ -120,6 +137,15 @@ export const useStore = create<State>((set, get) => ({
   setView: (view) => set({ view, viewNonce: get().viewNonce + 1, seatView: false, cut: view === 'section' ? { ...get().cut, enabled: true } : get().cut }),
   toggleLayer: (k) => set({ layers: { ...get().layers, [k]: !get().layers[k] } }),
   setXray: (xray) => set({ xray }),
+  setNight: (night) => set({ night }),
+  isolateSystems: (on) => {
+    const { layers, isolated } = get();
+    if (on && !isolated) {
+      const next = { ...layers };
+      for (const k of Object.keys(next) as LayerKey[]) next[k] = k === 'field' || k === 'terraces' || k === 'roof' || k === 'facade' || SYSTEM_LAYERS.includes(k);
+      set({ isolated: layers, layers: next, xray: true });
+    } else if (!on && isolated) set({ layers: isolated, isolated: null, xray: false });
+  },
   selectSeat: (seat) => set({ seat, seatView: seat == null ? false : get().seatView }),
   setSeatView: (seatView) => set({ seatView, viewNonce: seatView ? get().viewNonce : get().viewNonce + 1 }),
   setCut: (c) => set({ cut: { ...get().cut, ...c } }),

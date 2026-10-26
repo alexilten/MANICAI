@@ -13,6 +13,7 @@ import { PROGRAM_LEGEND, PROGRAM_TONES } from '../viewport/Building';
 import { PROGRAM_KINDS, PROGRAM_LABEL, SLAB } from '../core/engine/building';
 import { tierOutline } from '../core/engine/profile';
 import { BOH_KINDS, BOH_LABEL, COLUMN_SETBACK, EAVE, ROOF_LABEL, ROOF_SKIN, type BohKind } from '../core/engine/architecture';
+import { MAX_TILT, MIN_LIGHT_ANGLE, SYSTEM_LABEL, SYSTEM_TONE, SYSTEMS } from '../core/engine/systems';
 import { BOH_TONES, FACADE_FINISH, ROOF_FINISH, STRUCTURE_FINISH } from '../viewport/Architecture';
 
 const n = (v: number) => Math.round(v).toLocaleString('en-US');
@@ -87,6 +88,7 @@ export function RightPanel() {
 
         <BuildingSection />
         <EnvelopeSection />
+        <SystemsSection />
 
         <Section title="Layers">
           <ul className="layers">
@@ -312,6 +314,48 @@ function EnvelopeSection() {
       {byKind.map(({ k, area }) => <KV key={k} k={BOH_LABEL[k as BohKind]} v={`${n(area)} m²`} />)}
       <KV k="Placed" v={`${n(am.bohArea)} of ${n(am.bohNeeded)} m²`} tone={am.bohArea >= am.bohNeeded * 0.98 ? 'ok' : 'warn'} />
       <p className="muted small method">Roof coverage is the share of seats inside the roof's plan outline (rain driven at an angle is not modelled). Back-of-house areas are MANICAI planning assumptions. Structure is a coordination model, not an engineered design (standards: manicai.structure, manicai.roof, manicai.boh).</p>
+    </Section>
+  );
+}
+
+function SystemsSection() {
+  const st = useStore((s) => s.stadium);
+  const p = useStore((s) => s.project);
+  const u = p.units;
+  const sm = st.systems.metrics, L = sm.lighting, B = sm.boards, M = sm.mep;
+  const mw = (kw: number) => `${(kw / 1000).toFixed(1)} MW`;
+  return (
+    <Section title="Technical systems" summary={`${n(L.fixtures)} floodlights · ${mw(M.demandKW)}`} defaultOpen={false}>
+      <div className="metric-grid">
+        <Metric label="Floodlights" value={n(L.fixtures)} sub={`${n(L.average)} lx est. · ${L.mount === 'roof' ? 'roof catwalk' : `masts ${formatLength(L.mastHeight, u)}`}`} />
+        <Metric label="Lowest light angle" value={`${L.minAngle.toFixed(1)}°`} tone={L.minAngle >= MIN_LIGHT_ANGLE ? 'ok' : 'warn'} sub={`from the centre spot · ${MIN_LIGHT_ANGLE}° wanted`} />
+        <Metric label="Video boards" value={B.count ? `${n(B.area)} m²` : '—'} sub={B.count ? `${B.count} board${B.count > 1 ? 's' : ''} · farthest seat ${n(B.maxView / 1000)} m` : 'none built'} />
+        <Metric label="Electrical demand" value={mw(M.demandKW)} sub={`${M.transformers} × 2.5 MVA · ${M.generators} generator${M.generators > 1 ? 's' : ''}`} />
+      </div>
+      <div className="sub-label">Lighting</div>
+      <KV k="Lit area" v={`${n(L.litArea)} m²`} />
+      <KV k="Connected load" v={`${n(L.loadKW)} kW`} />
+      <KV k="Steepest aim" v={`${L.maxTilt.toFixed(0)}° from vertical`} tone={L.overTilt ? 'warn' : 'ok'} />
+      {L.overTilt > 0 && <KV k={`Aimed past ${MAX_TILT}°`} v={n(L.overTilt)} tone="warn" />}
+      <div className="sub-label">AV / IT and broadcast</div>
+      {B.ribbon > 0 && <KV k="LED ribbon" v={`${n(B.ribbon / 1000)} m`} />}
+      <KV k="Speaker clusters" v={sm.avit.speakers ? n(sm.avit.speakers) : 'none (no roof catwalk)'} />
+      <KV k="Wi-Fi access points" v={`≈ ${n(sm.avit.wifiAPs)}`} />
+      <KV k="Camera positions" v={n(sm.broadcast.cameras)} />
+      <KV k="Main camera" v={`${sm.broadcast.mainDepression.toFixed(1)}° down to the centre · ${n(sm.broadcast.mainDistance / 1000)} m to the near line`} />
+      <KV k="Press tribune" v={`${sm.broadcast.commentary} positions · ${n(sm.broadcast.tribuneSeats)} seats inside`} />
+      <div className="sub-label">MEP space reservations</div>
+      <div className="legend">{SYSTEMS.map((k) => <span key={k}><i style={{ background: SYSTEM_TONE[k] }} />{SYSTEM_LABEL[k]}</span>)}</div>
+      <KV k="Conditioned area" v={`${n(M.conditioned)} m²`} />
+      <KV k="Central plant" v={`${n(M.plant)} m²`} />
+      <KV k="Switchgear · transformer yard" v={`${n(M.switchgear)} · ${n(M.substation)} m²`} />
+      <KV k="Generator yard · water & fire" v={`${n(M.generatorYard)} · ${n(M.water)} m²`} />
+      <KV k="Air handling · elec & telecom rooms" v={`${n(M.ahu)} · ${n(M.elecRooms)} m²`} />
+      <KV k="Risers · duct zones" v={`${n(M.risers)} m² · ${n(M.ductLength / 1000)} m`} />
+      <div className="sub-label">Service access</div>
+      <KV k="Service yard" v={`${n(sm.service.yardArea)} m² on the ${({ N: 'north', S: 'south', E: 'east', W: 'west' } as const)[sm.service.yard]} side · ${sm.service.dockBays} bays`} tone={sm.service.yardFit >= 0.98 ? 'ok' : 'warn'} />
+      <KV k="Field access tunnel" v={sm.service.fieldAccess ? `from the ${({ N: 'north', S: 'south', E: 'east', W: 'west' } as const)[p.systems.service.fieldAccess as 'N']}` : 'none'} />
+      <p className="muted small method">Lumen-method fixture count with a generic fixture, MANICAI planning ratios for plant and loads. These are space reservations to coordinate, not engineered systems (standards: manicai.lighting, fifa.lighting, manicai.boards, manicai.broadcast, manicai.mep).</p>
     </Section>
   );
 }

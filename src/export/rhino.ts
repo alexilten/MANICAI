@@ -17,11 +17,16 @@
  *   • Round 04 architecture: structural grid lines, rakers and columns (08_STRUCTURE), roof deck, cap,
  *     primary frames, trusses and panels (09_ROOF), facade skin, mullions or fins, bands and portals
  *     (10_FACADE), back-of-house rooms and the service corridor (16_BACK_OF_HOUSE)
+ *   • Round 05 systems: plant, air handling, risers and duct zones (11_HVAC), switchgear, transformer
+ *     and generator yards, rooms, risers and cable trays (12_ELECTRICAL), water storage and risers
+ *     (13_PLUMBING), floodlights as aimed block instances with aiming lines, catwalk or masts
+ *     (14_LIGHTING), boards, ribbons, speakers, telecom and broadcast (15_AV_IT), the service yard and
+ *     field access (17_SITE)
  *   • field markings as true lines and arcs; goals as solids
  *   • the full project JSON in the document strings, so MANICAI can reopen the file parametrically
  */
 import { annotations } from '../core/engine/annotations';
-import { BOH_KINDS, BOH_LABEL, boxSolid, capSolid, pieceSolid, roofSkin, stationsAt, type Member } from '../core/engine/architecture';
+import { BOH_KINDS, BOH_LABEL, boxSolid, capSolid, pieceSolid, roofSkin, stationsAt, type Member, type Piece } from '../core/engine/architecture';
 import { bandSolid, PROGRAM_KINDS, PROGRAM_LABEL, SLAB, type BoxMesh } from '../core/engine/building';
 import { isCorner, pointAt, SECTORS, SECTOR_LABEL, SEGMENTS, type SegmentId } from '../core/engine/plan';
 import { tierOutline } from '../core/engine/profile';
@@ -34,7 +39,7 @@ import { serializeProject } from '../core/schema';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export type RhinoModule = any;
 
-export const APP_VERSION = '0.4.0';
+export const APP_VERSION = '0.5.0';
 
 /** The MANICAI layer standard. Systems that are not generated yet keep their place in the hierarchy. */
 export const LAYER_TREE: { name: string; color: [number, number, number]; children: string[] }[] = [
@@ -49,13 +54,13 @@ export const LAYER_TREE: { name: string; color: [number, number, number]; childr
   { name: '08_STRUCTURE', color: [110, 112, 118], children: ['GRID', 'RAKERS', 'COLUMNS'] },
   { name: '09_ROOF', color: [200, 200, 205], children: ['DECK', 'CAP', 'PRIMARY_FRAMES', 'TRUSSES', 'PANELS'] },
   { name: '10_FACADE', color: [180, 175, 165], children: ['SKIN', 'MULLIONS', 'BANDS', 'PORTALS'] },
-  { name: '11_HVAC', color: [60, 150, 200], children: [] },
-  { name: '12_ELECTRICAL', color: [230, 170, 30], children: [] },
-  { name: '13_PLUMBING', color: [40, 120, 200], children: [] },
-  { name: '14_LIGHTING', color: [240, 200, 60], children: [] },
-  { name: '15_AV_IT', color: [0, 150, 170], children: [] },
+  { name: '11_HVAC', color: [60, 150, 200], children: ['CENTRAL_PLANT', 'AIR_HANDLING', 'RISERS', 'DUCT_ZONES'] },
+  { name: '12_ELECTRICAL', color: [230, 170, 30], children: ['SWITCHGEAR', 'TRANSFORMERS', 'GENERATORS', 'ROOMS', 'RISERS', 'CABLE_TRAYS'] },
+  { name: '13_PLUMBING', color: [40, 120, 200], children: ['WATER_STORAGE', 'RISERS'] },
+  { name: '14_LIGHTING', color: [240, 200, 60], children: ['FLOODLIGHTS', 'AIMING', 'CATWALK', 'MASTS'] },
+  { name: '15_AV_IT', color: [0, 150, 170], children: ['VIDEO_BOARDS', 'RIBBON_BOARDS', 'SPEAKERS', 'TELECOM', 'BROADCAST', 'BROADCAST::CAMERAS', 'BROADCAST::TRIBUNE', 'BROADCAST::COMPOUND'] },
   { name: '16_BACK_OF_HOUSE', color: [140, 140, 120], children: ['SERVICE_CORRIDOR', ...BOH_KINDS.map((k) => slugOf(BOH_LABEL[k]))] },
-  { name: '17_SITE', color: [120, 150, 110], children: [] },
+  { name: '17_SITE', color: [120, 150, 110], children: ['SERVICE_YARD', 'FIELD_ACCESS'] },
   { name: '90_DIMENSIONS', color: [10, 132, 255], children: [] },
   { name: '91_ANALYSIS', color: [230, 40, 40], children: ['SIGHTLINES', 'EXCLUDED_SEATS'] },
 ];
@@ -269,6 +274,48 @@ export function exportRhino(rh: RhinoModule, s: Stadium, opts: RhinoExportOption
     if (c) add(meshOf(bandSolid(ring, 'ring', c.d0, c.d1, -SLAB, 0)), attrs('16_BACK_OF_HOUSE::SERVICE_CORRIDOR', 'BOH.SERVICE_CORRIDOR', { width_mm: Math.round(c.d1 - c.d0) }));
   }
 
+  // ── Round 05 systems
+  const SYS = s.systems;
+  {
+    const zoneLayer: Record<string, string> = {
+      plant: '11_HVAC::CENTRAL_PLANT', ahu: '11_HVAC::AIR_HANDLING', switchgear: '12_ELECTRICAL::SWITCHGEAR', substation: '12_ELECTRICAL::TRANSFORMERS',
+      generators: '12_ELECTRICAL::GENERATORS', elecRoom: '12_ELECTRICAL::ROOMS', water: '13_PLUMBING::WATER_STORAGE', mast: '14_LIGHTING::MASTS', head: '14_LIGHTING::MASTS',
+      board: '15_AV_IT::VIDEO_BOARDS', boardFrame: '15_AV_IT::VIDEO_BOARDS', ribbon: '15_AV_IT::RIBBON_BOARDS', speaker: '15_AV_IT::SPEAKERS', telecom: '15_AV_IT::TELECOM',
+      camera: '15_AV_IT::BROADCAST::CAMERAS', tribune: '15_AV_IT::BROADCAST::TRIBUNE', compound: '15_AV_IT::BROADCAST::COMPOUND', yard: '17_SITE::SERVICE_YARD', fieldAccess: '17_SITE::FIELD_ACCESS',
+    };
+    const riserLayer = { hvac: '11_HVAC::RISERS', electrical: '12_ELECTRICAL::RISERS', plumbing: '13_PLUMBING::RISERS' } as Record<string, string>;
+    for (const z of SYS.zones) {
+      const layer = z.kind === 'riser' ? riserLayer[z.system] : zoneLayer[z.kind];
+      if (!layer) continue;
+      add(pieceExtrusion(rh, ring, z), attrs(layer, z.id, { use: z.label, system: z.system, area_m2: z.area.toFixed(1), height_mm: Math.round(z.z1 - z.z0), placement: 'conceptual space reservation' }));
+    }
+    const bandLayer: Record<string, string> = { duct: '11_HVAC::DUCT_ZONES', tray: '12_ELECTRICAL::CABLE_TRAYS', catwalk: '14_LIGHTING::CATWALK' };
+    for (const b of SYS.bands) add(meshOf(bandSolid(ring, b.span, b.d0, b.d1, b.z0, b.z1)), attrs(bandLayer[b.kind], b.id, { use: b.label, depth_mm: Math.round(b.z1 - b.z0) }));
+    for (const b of SYS.boxes) add(solidOf(boxSolid(b.min, b.max)), attrs('15_AV_IT::VIDEO_BOARDS', b.id, { use: b.label, underside_mm: Math.round(b.min[2]) }));
+    for (const c of SYS.cameras) add(new rh.LineCurve(c.eye, c.target), attrs('15_AV_IT::BROADCAST::CAMERAS', `${c.id}.VIEW`, { use: c.label, depression_deg: c.depression.toFixed(1) }));
+    // floodlights: one generic block, an instance per fixture turned toward its aim point
+    if (SYS.fixtures.length) {
+      const lp = p.systems.lighting;
+      const geo = [rh.Extrusion.createBoxExtrusion(new rh.Box(new rh.BoundingBox([-350, -350, -225], [350, 350, 225])), true)];
+      const ba = new rh.ObjectAttributes(); ba.layerIndex = L('14_LIGHTING::FLOODLIGHTS'); ba.name = 'MANICAI_FLOODLIGHT_GENERIC.1';
+      const idx = doc.instanceDefinitions().add('MANICAI_FLOODLIGHT_GENERIC', `Generic LED floodlight proxy, 700 × 700 × 450 mm, aimed along local -Z (conceptual placeholder — not a manufacturer product; ${lp.lumens} lm, ${lp.watts} W assumed)`, '', '', [0, 0, 0], geo, [ba]);
+      free(...geo, ba);
+      const defId = doc.instanceDefinitions().get(idx).id;
+      for (const fx of SYS.fixtures) {
+        const dx = fx.aim[0] - fx.at[0], dy = fx.aim[1] - fx.at[1], dz = fx.aim[2] - fx.at[2];
+        const len = Math.hypot(dx, dy, dz) || 1;
+        // turn local -Z onto the aim direction
+        const rot = rh.Transform.rotationVectors([0, 0, -1], [dx / len, dy / len, dz / len], [0, 0, 0]);
+        const xf = rh.Transform.multiply(rh.Transform.translationXYZ(fx.at[0], fx.at[1], fx.at[2]), rot);
+        const ref = new rh.InstanceReference(defId, xf);
+        const a = attrs('14_LIGHTING::FLOODLIGHTS', fx.id, { mount: fx.mount, tilt_deg: fx.tilt.toFixed(1), aim: fx.aim.map((v) => Math.round(v)).join(',') });
+        doc.objects().add(ref, a);
+        free(ref, a, xf, rot);
+        add(new rh.LineCurve(fx.at, fx.aim), attrs('14_LIGHTING::AIMING', `${fx.id}.AIM`));
+      }
+    }
+  }
+
   // ── seats: one block per seat width, one named instance per position in use
   if (opts.seats !== false && s.seats.seats.count) {
     const t = s.seats.seats, tierIds = s.profiles.map((x) => x.id);
@@ -339,6 +386,9 @@ export function exportRhino(rh: RhinoModule, s: Stadium, opts: RhinoExportOption
   doc.strings().set('manicai.building.gfa_m2', String(Math.round(s.architecture.metrics.grossArea)));
   doc.strings().set('manicai.roof.type', p.architecture.roof.type);
   doc.strings().set('manicai.roof.coverage', s.architecture.metrics.coverage.toFixed(3));
+  doc.strings().set('manicai.lighting.fixtures', String(s.systems.metrics.lighting.fixtures));
+  doc.strings().set('manicai.lighting.average_lx_estimate', String(Math.round(s.systems.metrics.lighting.average)));
+  doc.strings().set('manicai.electrical.demand_kw_estimate', String(Math.round(s.systems.metrics.mep.demandKW)));
   doc.strings().set('manicai.capacity.gross', String(s.metrics.gross));
   doc.strings().set('manicai.coordinateSystem', 'mm; Z up; origin = centre of the playing field at field level; +X field length (east end), +Y field width (north sideline); site north given by manicai.project site.northDeg');
   doc.strings().set('manicai.note', 'Editable Rhino model generated by MANICAI — a conceptual design, not a construction document. Seats are block instances named tier-section-row-seat. Terrace pieces of one tier are grouped; run manicai_join_tiers.py (Export menu) to join each tier into one closed polysurface and cut its vomitory openings. Reopen this file in MANICAI to edit parametrically.');
@@ -387,6 +437,27 @@ function terracePiece(rh: RhinoModule, ring: Stadium['ring'], seg: SegmentId, ou
 }
 
 /** A frame member as an exact capped extrusion: its (d, z) section extruded across the frame by its width. */
+/** A plan piece (constant z0..z1) as an exact capped extrusion of its plan outline. */
+function pieceExtrusion(rh: RhinoModule, ring: Stadium['ring'], q: Piece) {
+  const n = isCorner(q.seg) ? Math.max(2, Math.ceil((q.u1 - q.u0) * 24)) : 1;
+  const pts: [number, number][] = [];
+  for (let k = 0; k <= n; k++) { const a = pointAt(ring, q.seg, q.u0 + ((q.u1 - q.u0) * k) / n, q.d0); pts.push([a.x, a.y]); }
+  for (let k = n; k >= 0; k--) { const a = pointAt(ring, q.seg, q.u0 + ((q.u1 - q.u0) * k) / n, q.d1); pts.push([a.x, a.y]); }
+  // counter-clockwise, so the extrusion runs up
+  const area = pts.reduce((a, [x, y], i) => { const [x2, y2] = pts[(i + 1) % pts.length]; return a + x * y2 - x2 * y; }, 0);
+  if (area < 0) pts.reverse();
+  const pl = new rh.Polyline(0);
+  for (const [x, y] of pts) pl.add(x, y, 0);
+  pl.add(pts[0][0], pts[0][1], 0);
+  const crv = pl.toPolylineCurve();
+  const ext = rh.Extrusion.create(crv, q.z1 - q.z0, true);
+  free(pl, crv);
+  const xf = rh.Transform.translationXYZ(0, 0, q.z0);
+  ext.transform(xf);
+  free(xf);
+  return ext;
+}
+
 function memberExtrusion(rh: RhinoModule, ring: Stadium['ring'], m: Member) {
   const st = pointAt(ring, m.seg, m.u, 0);
   const dx = -st.ny, dy = st.nx; // path tangent

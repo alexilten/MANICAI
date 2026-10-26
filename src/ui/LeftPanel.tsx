@@ -1,6 +1,6 @@
 import { fitRowsToTarget, ROWS_MAX, ROWS_MIN } from '../core/engine/optimize';
 import { CORNER_NEIGHBOURS, SEGMENTS, type SegmentId } from '../core/engine/plan';
-import { suiteLevel, switchSport, tier, type ArchitectureParams, type CornerId, type PremiumLevel, type Project, type RoofType, type StandId, type StandParams, type TierParams } from '../core/schema';
+import { suiteLevel, switchSport, tier, type ArchitectureParams, type SystemsParams, type BoardType, type LightingMount, type CornerId, type PremiumLevel, type Project, type RoofType, type StandId, type StandParams, type TierParams } from '../core/schema';
 import { SPORTS, type SportId } from '../core/sports';
 import { formatLength } from '../core/units';
 import { ROOF_LABEL } from '../core/engine/architecture';
@@ -103,6 +103,9 @@ export function LeftPanel() {
         <StructureControls />
         <FacadeControls />
         <BohControls />
+        <LightingControls />
+        <BoardsControls />
+        <MepControls />
       </div>
     </aside>
   );
@@ -414,6 +417,68 @@ function BohControls() {
       <LengthControl label="Room band depth" units={u} value={B.depth} min={6000} max={40000} step={500} onChange={(v) => set('boh', (x) => { x.depth = v; }, 'depth')} />
       <LengthControl label="Clear height wanted" units={u} value={B.clear} min={3000} max={8000} step={100} hint={`${formatLength(am.bohHeight, u)} available under the lowest concourse`} onChange={(v) => set('boh', (x) => { x.clear = v; }, 'clear')} />
       <NumberControl label="Area allowance" value={Math.round(B.scale * 100)} min={25} max={300} step={5} suffix="%" hint={`${fmtInt(am.bohArea)} of ${fmtInt(am.bohNeeded)} m² placed (MANICAI assumptions)`} onChange={(v) => set('boh', (x) => { x.scale = v / 100; }, 'scale')} />
+    </Section>
+  );
+}
+
+function useSys() {
+  const p = useStore((s) => s.project);
+  const st = useStore((s) => s.stadium);
+  const edit = useStore((s) => s.edit);
+  const set = <K extends keyof SystemsParams>(k: K, fn: (x: SystemsParams[K]) => void, key: string) => edit((x) => fn(x.systems[k]), `sys.${k}.${key}`);
+  return { p, u: p.units, S: p.systems, sm: st.systems.metrics, set };
+}
+
+/** Field lighting: mount, target and the generic fixture. */
+function LightingControls() {
+  const { S, sm, set } = useSys();
+  const L = S.lighting, lm = sm.lighting;
+  return (
+    <Section title="Field lighting" summary={`${fmtInt(lm.fixtures)} fixtures · ${lm.mount === 'roof' ? 'roof' : 'masts'}`} defaultOpen={false}>
+      <Segmented size="sm" value={L.mount} onChange={(v: LightingMount) => set('lighting', (x) => { x.mount = v; }, 'mount')} options={[{ value: 'auto', label: 'Auto' }, { value: 'roof', label: 'Roof catwalk' }, { value: 'masts', label: 'Corner masts' }]} />
+      <NumberControl label="Target illuminance" value={L.target} min={200} max={5000} step={100} suffix=" lx" hint={`Average horizontal, playing area + run-off · ${fmtInt(lm.average)} lx estimated`} onChange={(v) => set('lighting', (x) => { x.target = v; }, 'target')} />
+      <NumberControl label="Fixture output" value={L.lumens} min={20000} max={400000} step={5000} format={fmtInt} suffix=" lm" hint="Generic fixture (placeholder, not a product)" onChange={(v) => set('lighting', (x) => { x.lumens = v; }, 'lm')} />
+      <NumberControl label="Fixture power" value={L.watts} min={200} max={4000} step={50} suffix=" W" hint={`${fmtInt(lm.loadKW)} kW connected`} onChange={(v) => set('lighting', (x) => { x.watts = v; }, 'w')} />
+      <NumberControl label="Maintenance factor" value={L.maintenance} min={0.5} max={1} step={0.05} onChange={(v) => set('lighting', (x) => { x.maintenance = v; }, 'mf')} />
+      <NumberControl label="Utilisation factor" value={L.utilisation} min={0.3} max={0.9} step={0.05} onChange={(v) => set('lighting', (x) => { x.utilisation = v; }, 'uf')} />
+      <p className="muted small">Lumen-method count and power, not a lighting design: uniformity and vertical illuminance need real photometry.</p>
+    </Section>
+  );
+}
+
+/** Video boards, ribbons and broadcast. */
+function BoardsControls() {
+  const { u, S, sm, set } = useSys();
+  const B = S.boards;
+  return (
+    <Section title="Boards & broadcast" summary={B.type === 'none' ? 'No video boards' : `${sm.boards.count} board${sm.boards.count === 1 ? '' : 's'} · ${fmtInt(sm.boards.area)} m²`} defaultOpen={false}>
+      <Segmented size="sm" value={B.type} onChange={(v: BoardType) => set('boards', (x) => { x.type = v; }, 'type')} options={[{ value: 'ends', label: 'End boards' }, { value: 'centre', label: 'Centre-hung' }, { value: 'none', label: 'None' }]} />
+      {B.type !== 'none' && <>
+        <LengthControl label="Board width" units={u} value={B.width} min={6000} max={100000} step={500} onChange={(v) => set('boards', (x) => { x.width = v; }, 'w')} />
+        <LengthControl label="Board height" units={u} value={B.height} min={2000} max={30000} step={250} onChange={(v) => set('boards', (x) => { x.height = v; }, 'h')} />
+        {B.type === 'centre' && <LengthControl label="Underside above the field" units={u} value={B.clear} min={10000} max={60000} step={500} onChange={(v) => set('boards', (x) => { x.clear = v; }, 'clear')} />}
+      </>}
+      <Toggle label="LED ribbons on the upper-tier fascias" checked={B.ribbon} onChange={(v) => set('boards', (x) => { x.ribbon = v; }, 'ribbon')} />
+      <div className="sub-label">Broadcast</div>
+      <NumberControl label="Commentary positions" value={S.broadcast.commentary} min={0} max={200} step={2} hint={`${fmtInt(sm.broadcast.tribuneSeats)} seats inside the press tribune (still counted in capacity)`} onChange={(v) => set('broadcast', (x) => { x.commentary = v; }, 'comm')} />
+      <NumberControl label="Outside-broadcast compound" value={S.broadcast.compound} min={0} max={10000} step={100} format={fmtInt} suffix=" m²" onChange={(v) => set('broadcast', (x) => { x.compound = v; }, 'ob')} />
+    </Section>
+  );
+}
+
+/** MEP space reservations and service access. */
+function MepControls() {
+  const { u, S, sm, set } = useSys();
+  return (
+    <Section title="MEP & service access" summary={`${(sm.mep.demandKW / 1000).toFixed(1)} MW est. · ${sm.mep.transformers} transformers`} defaultOpen={false}>
+      <NumberControl label="Plant area allowance" value={Math.round(S.mep.scale * 100)} min={25} max={300} step={5} suffix="%" hint="Scales the MANICAI planning ratios for plant, switchgear, yards and tanks" onChange={(v) => set('mep', (x) => { x.scale = v / 100; }, 'scale')} />
+      <LengthControl label="Duct zone under concourse ceilings" units={u} value={S.mep.ductZone} min={300} max={2000} step={50} onChange={(v) => set('mep', (x) => { x.ductZone = v; }, 'duct')} />
+      <div className="sub-label">Service yard & energy centre on</div>
+      <Segmented size="sm" value={S.service.yard} onChange={(v) => set('service', (x) => { x.yard = v; }, 'yard')} options={[{ value: 'auto', label: `Auto (${sm.service.yard})` }, ...STAND_IDS.map((g) => ({ value: g, label: g }))]} />
+      <NumberControl label="Truck bays" value={S.service.dockBays} min={1} max={20} step={1} onChange={(v) => set('service', (x) => { x.dockBays = v; }, 'bays')} />
+      <div className="sub-label">Vehicle access onto the field</div>
+      <Segmented size="sm" value={S.service.fieldAccess} onChange={(v) => set('service', (x) => { x.fieldAccess = v; }, 'fa')} options={[{ value: 'none', label: 'None' }, ...STAND_IDS.map((g) => ({ value: g, label: g }))]} />
+      <p className="muted small">Space reservations from planning ratios, not engineered systems.</p>
     </Section>
   );
 }
