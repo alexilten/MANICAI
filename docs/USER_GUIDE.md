@@ -2,7 +2,7 @@
 
 MANICAI generates a stadium from a few rules: a sport, a field, and how the seating bowl should
 behave. Every change rebuilds the whole stadium in a fraction of a second, with every seat placed and
-every row's sightline solved. This guide covers version 0.8 (Round 08).
+every row's sightline solved. This guide covers version 1.0 (Rounds 00–08).
 
 Everything is in millimetres, Z up, with the origin at the centre of the field at field level. +X
 runs along the field.

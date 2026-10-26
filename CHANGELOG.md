@@ -7,6 +7,10 @@ as `saved.by`. Earlier rounds are numbered here after the fact; they were not ta
 The project file has its own version (`manicai.project` v1 to v6). A newer MANICAI opens every older
 file; an older MANICAI refuses a newer file instead of half-reading it.
 
+## 1.0.0 · First complete release (2026-10-26)
+
+Rounds 00–08 of the Master Brief roadmap are complete, and this release marks MANICAI 1.0. It contains everything listed under 0.1.0 to 0.8.0 below. Proposed next work is in [EVALUATION.md](docs/EVALUATION.md): an IFC test pack for Revit and ArchiCAD, arenas, concourse and gate egress, and a headless generator.
+
 ## 0.8.0 · Round 08, product refinement (2026-10-26)
 
 - **Lighter updates.** The export writers (IFC, glTF, DXF, schedules, reports) now load when the Export menu first opens, as Rhino's WASM already did, and three.js and React ship as separate files that stay cached across deploys. After a MANICAI update, a returning visitor downloads about 290 kB of app code (100 kB compressed) instead of all 1.9 MB again. The first visit is about the same size as before, because three.js is most of it.
