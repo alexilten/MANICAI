@@ -74,7 +74,7 @@ export function legendFor(metric: AnalysisMetric, p: Project): { color: string; 
     case 'egress': return [
       { color: '#3aa36c', label: '0 m' }, { color: '#efb43a', label: `${Math.round(p.studies.egress.maxTravel / 2000)} m` }, { color: '#d6453d', label: `≥ ${Math.round(p.studies.egress.maxTravel / 1000)} m to exit` },
     ];
-    case 'sun': return [{ color: '#4a5873', label: 'Shade' }, { color: '#a08d5c', label: 'Under membrane' }, { color: '#f6c445', label: 'Sun at kick-off' }];
+    case 'sun': return [{ color: '#4a5873', label: 'Seat in shade' }, { color: '#f6c445', label: 'Seat in sun' }, { color: '#34436a', label: 'Pitch: least sun' }, { color: '#f6c445', label: 'most sun (hours in Design studies)' }];
     case 'sector': return [{ color: '#4f6d9a', label: 'Sidelines' }, { color: '#9a6a4f', label: 'Ends' }, { color: '#6f8a5c', label: 'Corners' }];
     case 'class': return [
       { color: CLASS_TONES[0], label: 'General' }, { color: CLASS_TONES[1], label: 'Club' }, { color: CLASS_TONES[2], label: 'Wheelchair' },

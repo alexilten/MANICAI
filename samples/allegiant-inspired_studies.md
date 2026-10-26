@@ -16,7 +16,7 @@ Method: 0.5 × distance (1 at ≤ 100 m to the far corner, 0 at 190 m) + 0.3 × 
 
 ## Egress from the seating
 
-Slowest exit 7.1 min against a 8 min target; longest route 29.0 m (limit 30 m), mean 11.7 m. Within both limits.
+Slowest exit 7.1 min against the 8 min target; longest route 29.0 m (limit 30 m), mean 11.7 m. Within both limits.
 
 | Tier | Exits | Clear width | Seats | Time | Longest route |
 |---|---|---:|---:|---:|---:|

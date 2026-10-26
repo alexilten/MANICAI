@@ -143,7 +143,7 @@ export interface SunResult {
   /** pitch grid: cell centres, sunlight hours over the day, and sun at kick-off (0–1) */
   grid: { nx: number; ny: number; x0: number; y0: number; cell: number; hours: Float32Array; atHour: Float32Array };
   /** daylight hours (sun above 1°) and the pitch averages */
-  daylight: number; meanHours: number; minHours: number;
+  daylight: number; meanHours: number; minHours: number; maxHours: number;
   /** share of the pitch with at least half the day's sun */
   halfDay: number;
   /** share of the pitch in sun at kick-off */
@@ -168,12 +168,12 @@ export function pitchSun(s: Stadium, opts: { cell?: number } = {}): SunResult {
     for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) hours[j * nx + i] += 0.5 * sunAt(f.minX + (i + 0.5) * cx, f.minY + (j + 0.5) * cy, 0, v);
   }
   for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) atHour[j * nx + i] = kick.altitude > 1 ? sunAt(f.minX + (i + 0.5) * cx, f.minY + (j + 0.5) * cy, 0, vk) : 0;
-  let sum = 0, min = Infinity, half = 0, lit = 0;
-  for (let k = 0; k < hours.length; k++) { sum += hours[k]; min = Math.min(min, hours[k]); if (daylight && hours[k] >= daylight / 2) half++; lit += atHour[k]; }
+  let sum = 0, min = Infinity, max = 0, half = 0, lit = 0;
+  for (let k = 0; k < hours.length; k++) { sum += hours[k]; min = Math.min(min, hours[k]); max = Math.max(max, hours[k]); if (daylight && hours[k] >= daylight / 2) half++; lit += atHour[k]; }
   return {
     latitude: lat, doy, hour: S.hour, sun: kick,
     grid: { nx, ny, x0: f.minX, y0: f.minY, cell: Math.min(cx, cy), hours, atHour },
-    daylight, meanHours: sum / hours.length, minHours: min, halfDay: half / hours.length, pitchSunAtHour: lit / hours.length,
+    daylight, meanHours: sum / hours.length, minHours: min, maxHours: max, halfDay: half / hours.length, pitchSunAtHour: lit / hours.length,
   };
 }
 

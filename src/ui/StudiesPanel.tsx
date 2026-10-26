@@ -130,7 +130,7 @@ function SunStudy() {
       {!r ? <Busy /> : (
         <>
           <div className="metric-grid">
-            <Metric label="Pitch sunlight" value={`${n(r.meanHours, 1)} h`} sub={`of ${n(r.daylight, 1)} h daylight · least ${n(r.minHours, 1)} h`} />
+            <Metric label="Pitch sunlight" value={`${n(r.meanHours, 1)} h`} sub={`of ${n(r.daylight, 1)} h daylight · ${n(r.minHours, 1)}–${n(r.maxHours, 1)} h`} />
             <Metric label="Half-day sun" value={pct(r.halfDay)} sub="of the pitch" tone={r.halfDay >= 0.8 ? 'ok' : 'warn'} />
             <Metric label="Pitch in sun" value={pct(r.pitchSunAtHour)} sub={`at ${S.hour}:00 · sun ${n(r.sun.altitude)}° up, ${n(r.sun.azimuth)}°`} />
             <Metric label="Seats in sun" value={seats?.for === st ? pct(seats.v) : '—'} sub={seats?.for === st ? `at ${S.hour}:00` : <button className="link" onClick={() => setTimeout(() => setSeats({ for: st, v: seatSun(st).inSun }), 10)}>check seats</button>} />

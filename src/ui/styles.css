@@ -349,7 +349,7 @@ button.link.small { display: block; margin: 6px 0 2px; }
 .scatter .pt.current { fill: #1d1d1f; } .scatter .pt.sel { stroke: #1d1d1f; stroke-width: 1.6; }
 .scatter .svg-label { font-size: 10px; font-weight: 700; fill: var(--ink); }
 .alts { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 8px; }
-.alts .chip.on { background: var(--accent-soft); box-shadow: 0 0 0 1px var(--accent); }
+.alts .chip.on { background: var(--accent-soft); box-shadow: 0 0 0 1px var(--accent); color: var(--accent); }
 .pick { padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,.75); box-shadow: 0 0 0 0.5px var(--line-2); margin: 6px 0; }
 .pick-title { font-weight: 600; margin-bottom: 4px; }
 .pick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 10px; font-variant-numeric: tabular-nums; font-size: 12px; }
