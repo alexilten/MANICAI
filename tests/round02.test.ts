@@ -172,7 +172,7 @@ describe('Q · v1 files', () => {
   it('open with Round 01 seat counts: no stands, vomitories or accessible positions', () => {
     for (const [file, seats] of [['four-stand', 30472], ['generic-soccer', 41868]] as const) {
       const p = parseProject(readFileSync(`tests/fixtures/v1-${file}.manicai.json`, 'utf8'));
-      expect(p.version).toBe(4);
+      expect(p.version).toBe(5);
       const m = fresh(p).metrics;
       expect(m.gross, file).toBe(seats);
       expect(m.net, file).toBe(seats);

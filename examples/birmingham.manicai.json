@@ -1,6 +1,6 @@
 {
   "schema": "manicai.project",
-  "version": 4,
+  "version": 5,
   "name": "Club stadium with strong ends (Birmingham-inspired)",
   "units": "metric",
   "site": {
@@ -141,6 +141,36 @@
       "depth": 16000,
       "clear": 4500,
       "scale": 1
+    }
+  },
+  "systems": {
+    "lighting": {
+      "mount": "auto",
+      "target": 3000,
+      "lumens": 180000,
+      "watts": 1500,
+      "maintenance": 0.8,
+      "utilisation": 0.55
+    },
+    "boards": {
+      "type": "ends",
+      "width": 32000,
+      "height": 9000,
+      "clear": 30000,
+      "ribbon": true
+    },
+    "broadcast": {
+      "commentary": 40,
+      "compound": 2500
+    },
+    "mep": {
+      "scale": 1,
+      "ductZone": 900
+    },
+    "service": {
+      "yard": "auto",
+      "fieldAccess": "E",
+      "dockBays": 6
     }
   },
   "presetId": "birmingham"

@@ -26,6 +26,10 @@ function ViewBar() {
   const setCut = useStore((s) => s.setCut);
   const xray = useStore((s) => s.xray);
   const setXray = useStore((s) => s.setXray);
+  const night = useStore((s) => s.night);
+  const setNight = useStore((s) => s.setNight);
+  const isolated = useStore((s) => s.isolated);
+  const isolate = useStore((s) => s.isolateSystems);
   const seatView = useStore((s) => s.seatView);
   const setSeatView = useStore((s) => s.setSeatView);
   const st = useStore((s) => s.stadium);
@@ -46,6 +50,8 @@ function ViewBar() {
       ]} />
       <span className="tb-sep" />
       <button className={`chip ${xray ? 'on' : ''}`} onClick={() => setXray(!xray)} title="See through the roof and facade">X-ray</button>
+      <button className={`chip ${isolated ? 'on' : ''}`} onClick={() => isolate(!isolated)} title="Show only the bowl and the building systems">Systems</button>
+      <button className={`chip ${night ? 'on' : ''}`} onClick={() => setNight(!night)} title="Night preview: floodlights and screens lit">Night</button>
       <button className={`chip ${cut.enabled ? 'on' : ''}`} onClick={() => setCut({ enabled: !cut.enabled })} title="Section cut">Cut</button>
       {cut.enabled && (
         <>

@@ -11,7 +11,7 @@ import { SPORTS, type SportId } from './sports';
 import type { DisplayUnits, Mm } from './units';
 
 export const SCHEMA_ID = 'manicai.project';
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
 
 export type SightlineMode = 'cvalue' | 'riser';
 export type TierKind = 'general' | 'club';
@@ -92,6 +92,56 @@ export type FacadeMaterial = 'glass' | 'aluminium' | 'bronze' | 'precast';
  * back-of-house. Everything is set out from the bowl in its plan frame, so it follows the bowl.
  * Conceptual and spatial: not a structural design.
  */
+export type LightingMount = 'auto' | 'roof' | 'masts';
+export type BoardType = 'ends' | 'centre' | 'none';
+
+/**
+ * Technical infrastructure (Round 05): field lighting, video boards, broadcast, MEP space reservations
+ * and service access. Conceptual: fixture counts come from a lumen-method estimate with a generic
+ * fixture, and plant areas from MANICAI planning ratios. No product or engineered system is implied.
+ */
+export interface SystemsParams {
+  lighting: {
+    /** fixtures on a catwalk under the roof edge, or on corner masts; auto picks the roof when it rings the field */
+    mount: LightingMount;
+    /** average maintained horizontal illuminance on the playing area, lx */
+    target: number;
+    /** generic fixture: initial luminous flux (lm) and input power (W) — placeholders, not a product */
+    lumens: number; watts: number;
+    /** maintenance and utilisation factors of the lumen method */
+    maintenance: number; utilisation: number;
+  };
+  boards: {
+    /** video boards at the back of both end stands, one centre-hung over the field, or none */
+    type: BoardType;
+    width: Mm; height: Mm;
+    /** centre-hung: underside above the field */
+    clear: Mm;
+    /** LED ribbon boards on the fascia of each upper tier */
+    ribbon: boolean;
+  };
+  broadcast: {
+    /** commentary positions in the press tribune */
+    commentary: number;
+    /** outside-broadcast compound, m² */
+    compound: number;
+  };
+  mep: {
+    /** scales the MANICAI plant-area ratios */
+    scale: number;
+    /** depth of the duct distribution zone under each concourse ceiling */
+    ductZone: Mm;
+  };
+  service: {
+    /** stand whose frontage takes the energy centre and service yards (auto: opposite the main stand) */
+    yard: StandId | 'auto';
+    /** vehicle access onto the field through the lower tier */
+    fieldAccess: StandId | 'none';
+    /** truck bays at the loading dock */
+    dockBays: number;
+  };
+}
+
 export interface ArchitectureParams {
   structure: {
     /** radial frame spacing, measured along the outer column line */
@@ -222,6 +272,7 @@ export interface Project {
   premium: PremiumLevel[];
   building: BuildingParams;
   architecture: ArchitectureParams;
+  systems: SystemsParams;
 }
 
 export const NO_VOMS: VomitoryParams = { enabled: false, every: 2, mouthRow: 8, width: 2800 };
@@ -250,6 +301,16 @@ export function defaultArchitecture(): ArchitectureParams {
   };
 }
 
+export function defaultSystems(): SystemsParams {
+  return {
+    lighting: { mount: 'auto', target: 3000, lumens: 180000, watts: 1500, maintenance: 0.8, utilisation: 0.55 },
+    boards: { type: 'ends', width: 32000, height: 9000, clear: 30000, ribbon: true },
+    broadcast: { commentary: 40, compound: 2500 },
+    mep: { scale: 1, ductZone: 900 },
+    service: { yard: 'auto', fieldAccess: 'E', dockBays: 6 },
+  };
+}
+
 export function suiteLevel(id: string, belowTier: string, p: Partial<PremiumLevel> = {}): PremiumLevel {
   return { id, name: 'Suite level', belowTier, kind: 'suites', height: 4500, setback: 4000, stands: ['N', 'S'], unitWidth: 5500, unitDepth: 8000, seatsPerUnit: 16, ...p };
 }
@@ -270,6 +331,7 @@ export function defaultProject(): Project {
     premium: [],
     building: defaultBuilding(),
     architecture: defaultArchitecture(),
+    systems: defaultSystems(),
   };
 }
 
@@ -296,6 +358,8 @@ export function serializeProject(p: Project): string {
  * bowl but never move a seat).
  * v3 → v4: the architecture (structure, roof, facade, back-of-house) takes its defaults; it is built
  * around the bowl and building and never moves a seat.
+ * v4 → v5: the systems (lighting, boards, broadcast, MEP, service) take their defaults; they are
+ * built around the bowl and never move a seat.
  */
 export function parseProject(text: string): Project {
   const raw = JSON.parse(text);
@@ -317,6 +381,13 @@ export function parseProject(text: string): Project {
       roof: { ...d.architecture.roof, ...raw.architecture?.roof },
       facade: { ...d.architecture.facade, ...raw.architecture?.facade },
       boh: { ...d.architecture.boh, ...raw.architecture?.boh },
+    },
+    systems: {
+      lighting: { ...d.systems.lighting, ...raw.systems?.lighting },
+      boards: { ...d.systems.boards, ...raw.systems?.boards },
+      broadcast: { ...d.systems.broadcast, ...raw.systems?.broadcast },
+      mep: { ...d.systems.mep, ...raw.systems?.mep },
+      service: { ...d.systems.service, ...raw.systems?.service },
     },
     tiers: Array.isArray(raw.tiers) && raw.tiers.length
       ? raw.tiers.map((t: Partial<TierParams>, i: number) => {

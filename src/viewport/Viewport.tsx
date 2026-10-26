@@ -11,6 +11,7 @@ import { Seats, Terraces, Vomitories, WheelchairPads } from './Bowl';
 import { BackOfHouse, Facade, Grid, Plaza, Roof, Structure } from './Architecture';
 import { Cores, Floors, Suites } from './Building';
 import { Field } from './Field';
+import { AvIt, Broadcast, Lighting, Mep, Site } from './Systems';
 
 /** World is mm, Z-up (core/coords.ts). three.js is Y-up metres → one wrapping transform. */
 const WORLD_ROTATION = new THREE.Euler(-Math.PI / 2, 0, 0);
@@ -26,6 +27,7 @@ export function Viewport() {
   const selectSeat = useStore((s) => s.selectSeat);
   const xray = useStore((s) => s.xray);
   const view = useStore((s) => s.view);
+  const night = useStore((s) => s.night) && mode === 'explore';
   const tech = mode === 'technical';
   const b = stadium.bounds;
   const span = Math.max(b.max[0] - b.min[0], b.max[1] - b.min[1]) * MM;
@@ -44,15 +46,16 @@ export function Viewport() {
       gl={{ antialias: true, toneMapping: THREE.NeutralToneMapping, toneMappingExposure: 1.0, preserveDrawingBuffer: true, localClippingEnabled: true }}
       onPointerMissed={() => selectSeat(null)}
     >
-      <color attach="background" args={[tech ? '#f6f6f8' : '#f3f3f5']} />
-      <hemisphereLight args={['#ffffff', '#e9e6e1', tech ? 1.3 : 0.6]} />
+      <color attach="background" args={[night ? '#0c1220' : tech ? '#f6f6f8' : '#f3f3f5']} />
+      <hemisphereLight args={night ? ['#6f7fa3', '#14171f', 0.16] : ['#ffffff', '#e9e6e1', tech ? 1.3 : 0.6]} />
+      {night && <FieldFloods stadium={stadium} />}
       <directionalLight
-        position={[-span * 0.45, span * 0.9, span * 0.55]} intensity={tech ? 0.9 : 2.0} castShadow
+        position={[-span * 0.45, span * 0.9, span * 0.55]} intensity={night ? 0.12 : tech ? 0.9 : 2.0} castShadow
         shadow-mapSize={[4096, 4096]} shadow-bias={-0.0003} shadow-normalBias={0.04}
         shadow-camera-left={-span * 0.75} shadow-camera-right={span * 0.75} shadow-camera-top={span * 0.75} shadow-camera-bottom={-span * 0.75}
         shadow-camera-near={1} shadow-camera-far={span * 3}
       />
-      <Environment resolution={256} frames={1}>
+      <Environment resolution={256} frames={1} environmentIntensity={night ? 0.15 : 1}>
         <Lightformer form="rect" intensity={3} position={[0, 12, 2]} rotation-x={Math.PI / 2} scale={[30, 10, 1]} />
         <Lightformer form="rect" intensity={1.4} position={[-18, 5, 8]} rotation-y={Math.PI / 2} scale={[24, 4, 1]} />
         <Lightformer form="rect" intensity={1.4} position={[18, 5, 8]} rotation-y={-Math.PI / 2} scale={[24, 4, 1]} />
@@ -72,17 +75,22 @@ export function Viewport() {
         {layers.structure && <Structure ring={stadium.ring} arch={stadium.architecture} project={project} clip={clip} />}
         {layers.structure && tech && <Grid ring={stadium.ring} arch={stadium.architecture} labels={view !== 'section' && view !== 'elevation'} />}
         {layers.boh && <BackOfHouse ring={stadium.ring} arch={stadium.architecture} clip={clip} />}
+        {(layers.hvac || layers.electrical || layers.plumbing) && <Mep ring={stadium.ring} sys={stadium.systems} clip={clip} show={{ hvac: layers.hvac, electrical: layers.electrical, plumbing: layers.plumbing }} />}
+        {layers.site && <Site ring={stadium.ring} sys={stadium.systems} clip={clip} />}
+        {layers.lighting && <Lighting ring={stadium.ring} sys={stadium.systems} clip={clip} night={night} aiming={tech} />}
+        {layers.avit && <AvIt ring={stadium.ring} sys={stadium.systems} clip={clip} night={night} />}
+        {layers.broadcast && <Broadcast ring={stadium.ring} sys={stadium.systems} field={stadium.field} clip={clip} cone={mode !== 'explore'} />}
         {/* analysis colours the seats: the roof and facade step aside */}
         {layers.roof && mode !== 'analysis' && <Roof ring={stadium.ring} arch={stadium.architecture} project={project} clip={clip} xray={xray} />}
         {layers.facade && mode !== 'analysis' && <Facade ring={stadium.ring} arch={stadium.architecture} project={project} clip={clip} xray={xray} />}
-        {layers.facade && !tech && <Plaza ring={stadium.ring} arch={stadium.architecture} />}
+        {layers.facade && !tech && <Plaza ring={stadium.ring} arch={stadium.architecture} night={night} />}
         <SelectedSeat stadium={stadium} />
         {layers.dimensions && <Dimensions stadium={stadium} />}
         {layers.reference && <Reference stadium={stadium} />}
       </group>
 
       {/* ground: a soft site tone in explore mode, and a shadow catcher */}
-      {!tech && <mesh rotation-x={-Math.PI / 2} position={[0, -0.03, 0]}><circleGeometry args={[span * 6, 96]} /><meshBasicMaterial color="#e9e7e3" /></mesh>}
+      {!tech && <mesh rotation-x={-Math.PI / 2} position={[0, -0.03, 0]}><circleGeometry args={[span * 6, 96]} /><meshBasicMaterial color={night ? '#151a24' : '#e9e7e3'} /></mesh>}
       {/* shadow-catching ground */}
       <mesh rotation-x={-Math.PI / 2} position={[0, -0.01, 0]} receiveShadow>
         <planeGeometry args={[span * 8, span * 8]} />
@@ -94,6 +102,29 @@ export function Viewport() {
         <SMAA />
       </EffectComposer>
     </Canvas>
+  );
+}
+
+/** Night preview: a few broad spot lights from the floodlight positions wash the field and the bowl. */
+function FieldFloods({ stadium }: { stadium: Stadium }) {
+  const fx = stadium.systems.fixtures;
+  const groups = useMemo(() => {
+    // one light per quarter of the fixtures, from their mean position, aimed at the field centre
+    const out: THREE.Vector3[] = [];
+    const n = fx.length, k = Math.max(1, Math.floor(n / 4));
+    for (let g = 0; g < 4 && g * k < n; g++) {
+      const part = fx.slice(g * k, g === 3 ? n : (g + 1) * k);
+      const m = part.reduce((a, f) => [a[0] + f.at[0], a[1] + f.at[1], a[2] + f.at[2]], [0, 0, 0]).map((v) => v / part.length) as [number, number, number];
+      out.push(toThree(m));
+    }
+    return out;
+  }, [fx]);
+  const target = useMemo(() => { const o = new THREE.Object3D(); o.position.set(0, 0, 0); return o; }, []);
+  return (
+    <group>
+      <primitive object={target} />
+      {groups.map((p, i) => <spotLight key={i} position={p} target={target} angle={1.0} penumbra={0.8} intensity={9000} decay={1.6} distance={0} color="#fff3d6" />)}
+    </group>
   );
 }
 

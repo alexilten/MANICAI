@@ -142,6 +142,31 @@ Verification: **checked** means the rule was read in the cited source on the dat
 |---|---|---|---|---|---|
 | `manicai.boh` | Back-of-house rooms line a service corridor (default 6 m) at event level, in a band (default 16 m) starting under the lower tier where its soffit clears the rooms. Areas are MANICAI placeholders: team locker rooms 900 m² (soccer) or 1,800 m² (NFL) for two teams, officials 120 m², medical 150 m² + 0.002 m² per seat, press and broadcast 300 m² + 0.008, kitchens 0.02, storage 0.02, loading dock 1,200 m², waste 200 m² + 0.003, groundskeeping 500 m², event operations 250 m² + 0.002, all scaled by the allowance. Operators, leagues and broadcasters set the real brief. |  | assumption | recall | MANICAI default; user-editable |
 
+## Field lighting
+
+| id | statement | value | kind | verification | source |
+|---|---|---|---|---|---|
+| `manicai.lighting` | The fixture count comes from the lumen method, N = E × A / (Φ × MF × UF), with A the playing area plus run-off, the target average horizontal illuminance E (default 3,000 lx), a generic fixture of Φ lumens (default 180,000 lm, 1,500 W: a placeholder, not a product), maintenance factor 0.8 and utilisation factor 0.55. Fixtures hang from a catwalk 1.5 m inside and 1.5 m under the roof edge when the roof rings the field (more on the sides than the ends), otherwise from four corner masts 8 m beyond the facade. This is a count and power estimate, not a lighting design: uniformity, vertical illuminance to cameras, glare ratings and flicker need a point-by-point calculation with real photometry. |  | assumption | recall | MANICAI method (lumen method); user-editable |
+| `fifa.lighting` | To limit glare for players, the lowest luminaires should be at least 25° above the horizontal seen from the centre of the field, and luminaires should not be aimed more than about 70° from the vertical. Broadcast classes set vertical illuminance toward the cameras as well as horizontal levels. Verify the current edition and the competition (FIFA, UEFA, NFL broadcast) requirements before relying on these. |  | guidance | recall | FIFA Stadium Lighting Guide (recall) |
+
+## Video boards
+
+| id | statement | value | kind | verification | source |
+|---|---|---|---|---|---|
+| `manicai.boards` | End video boards (default 36 × 13 m) stand 1 m behind the back row of each end stand with their underside 3 m above its last tread, and are checked against the roof underside. A centre-hung board hangs from a fixed roof over the field (default underside 30 m) and is checked against the clear height and the high-ball view. LED ribbons (0.9 m) run along the fascia of every upper tier. Sizes are placeholders, not products; screen resolution and readability are not checked. |  | assumption | recall | MANICAI default; user-editable |
+
+## Broadcast
+
+| id | statement | value | kind | verification | source |
+|---|---|---|---|---|---|
+| `manicai.broadcast` | The main camera gantry sits on the main stand at halfway, at the front of the first upper tier (or behind the lower tier when there is none), with cameras on the 16 m (soccer) or 20-yard (NFL) lines and high cameras behind both goals. The press tribune takes the first two rows beside the main camera at 1.8 m per pair of commentary positions; its seats are counted but stay in the capacity. The outside-broadcast compound (default 2,500 m²) sits outside the main stand. Broadcasters set the real camera plan. |  | assumption | recall | MANICAI default; user-editable |
+
+## MEP
+
+| id | statement | value | kind | verification | source |
+|---|---|---|---|---|---|
+| `manicai.mep` | Space reservations, not engineered systems. Conditioned area is the GFA plus half the bowl plan under an enclosed roof. Central plant 3.5% of it; demand 60 W/m² of it plus floodlights and boards (0.3 kW per m² of screen); transformers counted at 2.5 MVA (power factor 0.9), generators at 2 MW for 30% of demand; switchgear 100 m² + 0.0035 m² per spectator + 15 m² per transformer; transformer yard 100 + 60 m² each; generator yard 80 + 50 m² each; water storage and fire pumps 150 m² + 0.004 per spectator; telecom head end 80 m² + 0.0015 per spectator, all scaled by the allowance. Each core gets duct, electrical and plumbing risers and, on every level, an air-handling room and an electrical and telecom room. Duct zones (default 0.9 m) sit under each concourse ceiling. One Wi-Fi access point per 75 spectators. MEP engineers size the real systems. |  | assumption | recall | MANICAI planning ratios; user-editable |
+
 ## Egress
 
 | id | statement | value | kind | verification | source |

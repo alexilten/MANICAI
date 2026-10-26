@@ -7,13 +7,18 @@
     "vomitories": 18,
     "wheelchair": 196,
     "exportedSeats": true,
-    "bytes": 32199189,
-    "exportMs": 4551,
+    "bytes": 32878690,
+    "exportMs": 4464,
     "readBack": {
       "units": "Millimeters",
-      "layers": 87,
-      "objects": 32955,
+      "layers": 113,
+      "objects": 33832,
       "blocks": [
+        {
+          "name": "MANICAI_FLOODLIGHT_GENERIC",
+          "parts": 1,
+          "instances": 364
+        },
         {
           "name": "MANICAI_SEAT_500MM",
           "parts": 3,
@@ -39,13 +44,19 @@
     "vomitories": 42,
     "wheelchair": 290,
     "exportedSeats": false,
-    "bytes": 10017517,
-    "exportMs": 288,
+    "bytes": 10698689,
+    "exportMs": 406,
     "readBack": {
       "units": "Millimeters",
-      "layers": 87,
-      "objects": 1576,
-      "blocks": [],
+      "layers": 113,
+      "objects": 2453,
+      "blocks": [
+        {
+          "name": "MANICAI_FLOODLIGHT_GENERIC",
+          "parts": 1,
+          "instances": 364
+        }
+      ],
       "groups": [
         "TERRACE_T1",
         "TERRACE_T2"
@@ -60,13 +71,19 @@
     "vomitories": 50,
     "wheelchair": 462,
     "exportedSeats": false,
-    "bytes": 17440028,
-    "exportMs": 707,
+    "bytes": 18196773,
+    "exportMs": 826,
     "readBack": {
       "units": "Millimeters",
-      "layers": 97,
-      "objects": 2565,
-      "blocks": [],
+      "layers": 123,
+      "objects": 3433,
+      "blocks": [
+        {
+          "name": "MANICAI_FLOODLIGHT_GENERIC",
+          "parts": 1,
+          "instances": 319
+        }
+      ],
       "groups": [
         "TERRACE_T1",
         "TERRACE_T2",
@@ -82,13 +99,19 @@
     "vomitories": 48,
     "wheelchair": 458,
     "exportedSeats": false,
-    "bytes": 19969349,
-    "exportMs": 659,
+    "bytes": 20799336,
+    "exportMs": 817,
     "readBack": {
       "units": "Millimeters",
-      "layers": 97,
-      "objects": 2587,
-      "blocks": [],
+      "layers": 123,
+      "objects": 3500,
+      "blocks": [
+        {
+          "name": "MANICAI_FLOODLIGHT_GENERIC",
+          "parts": 1,
+          "instances": 319
+        }
+      ],
       "groups": [
         "TERRACE_T1",
         "TERRACE_T2",

@@ -200,7 +200,7 @@ describe('AC · v3 files and the Rhino architecture layers', () => {
   it('v3 files open with the default architecture and their Round 03 capacities', () => {
     for (const [f, total, suites] of [['generic-nfl', 64578, 544], ['allegiant', 64899, 1152]] as const) {
       const p = parseProject(readFileSync(`tests/fixtures/v3-${f}.manicai.json`, 'utf8'));
-      expect(p.version).toBe(4);
+      expect(p.version).toBe(5);
       expect(p.architecture).toEqual(defaultProject().architecture);
       const m = fresh(p).metrics;
       expect([m.total, m.suiteSeats], f).toEqual([total, suites]);
