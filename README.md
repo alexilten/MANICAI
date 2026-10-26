@@ -75,7 +75,7 @@ What is **not** in yet: testing in Revit (the notes are untested), direct DWG, a
 
 ### Round 07 views
 
-| View quality heat map (Milan-inspired) | Egress: route to the exit (Tottenham-inspired) |
+| View quality heat map (Inter Miami-inspired), roof and facade x-rayed | Egress: route to the exit (Tottenham-inspired) |
 |---|---|
 | ![View quality](docs/screenshots/31-view-quality.png) | ![Egress](docs/screenshots/32-egress.png) |
 | **Sun and shade:** pitch sunlight hours and seats in sun at kick-off | **Compare options and optimise:** scenarios and the capacity–proximity front |
