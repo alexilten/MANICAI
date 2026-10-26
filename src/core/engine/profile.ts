@@ -172,16 +172,35 @@ export function tierOutline(prof: TierProfile, n: number): [number, number][] {
   const steps: [number, number][] = [];
   rows.forEach((r, i) => { steps.push([r.d, r.z]); steps.push([i < rows.length - 1 ? rows[i + 1].d : r.d + T, r.z]); });
   const pts: [number, number][] = [];
+  // a straight soffit is the chord of the rake; under a strongly curved (constant-C) rake it would cut
+  // up through the middle treads, so there the soffit follows the nosings at the soffit depth instead
+  const cuts = (a: [number, number], b: [number, number]) => rows.some((r, i) => {
+    const d1 = i < rows.length - 1 ? rows[i + 1].d : r.d + T;
+    return [r.d, d1].some((d) => d > Math.min(a[0], b[0]) && d < Math.max(a[0], b[0]) && a[1] + ((b[1] - a[1]) * (d - a[0])) / (b[0] - a[0]) > r.z - 100);
+  });
+  const following = (stopAtGrade: boolean): [number, number][] => {
+    const out: [number, number][] = [];
+    let prev: [number, number] = [back, top - SOFFIT_DEPTH];
+    for (let i = rows.length - 1; i >= (stopAtGrade ? 0 : 1); i--) {
+      const q: [number, number] = [rows[i].d, rows[i].z - SOFFIT_DEPTH];
+      if (stopAtGrade && q[1] <= 0) { out.push([prev[0] + ((q[0] - prev[0]) * prev[1]) / (prev[1] - q[1]), 0]); return out; }
+      out.push(q); prev = q;
+    }
+    return out;
+  };
   if (prof.onGrade) {
     // lower tier: front wall from the field, terraces, back wall, then a raked soffit down to grade
     const slope = rows.length > 1 ? (top - bottom) / (back - front) : 0;
     const soffitBack = Math.max(0, top - SOFFIT_DEPTH);
     const dGround = slope > 1e-6 ? back - soffitBack / slope : front;
     pts.push([front, 0], ...steps, [back, soffitBack]);
-    if (soffitBack > 0 && dGround > front + 1) pts.push([dGround, 0]);
+    const toGround = soffitBack > 0 && dGround > front + 1;
+    if (soffitBack > 0 && cuts([back, soffitBack], toGround ? [dGround, 0] : [front, 0])) pts.push(...following(true));
+    else if (toGround) pts.push([dGround, 0]);
   } else {
     // upper tiers: fascia, terraces, back, soffit parallel to the rake
     pts.push([front, bottom - FASCIA_DEPTH], ...steps, [back, top - SOFFIT_DEPTH]);
+    if (cuts([back, top - SOFFIT_DEPTH], [front, bottom - FASCIA_DEPTH])) pts.push(...following(false));
   }
   // counter-clockwise in (d, z): the list above runs clockwise (front → up the steps → back → down)
   return dedupe(pts).reverse();

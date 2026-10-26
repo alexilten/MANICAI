@@ -3,3 +3,4 @@ dist
 .DS_Store
 *.local
 samples/four-stand-30k_rhino8.3dm
+scratch/
