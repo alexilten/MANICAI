@@ -17,7 +17,7 @@ model.
 | `--ink`, `--ink-2`, `--ink-3`, `--ink-4` | `#1d1d1f` → `#a1a1a6` | Text: primary, secondary, labels and notes, disabled and units |
 | `--line`, `--line-2` | 7 % and 12 % black | Hairlines: inside a group, between groups |
 | `--glass`, `--glass-strong`, `--glass-border` | 62 % and 82 % white | Panels and toolbars; menus, sheets and toasts |
-| `--sheet` | 96 % warm white | Large overlays that hold tables (Compare, the preset library) |
+| `--sheet`, `--sheet-solid` | 96 % and opaque warm white | Large overlays that hold tables (Compare); menus, which sit over panel text |
 | `--surface` | `#fff` | Text inputs and small buttons |
 | `--card` | 2.5 % black | A quiet block inside a panel (section diagram, suggested moves) |
 | `--hover`, `--pressed` | 4.5 % and 6 % black | Hover and selected tints on menu items and cards |

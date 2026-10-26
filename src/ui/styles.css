@@ -27,6 +27,8 @@
   /* surfaces and interaction tints */
   --surface: #fff;
   --sheet: rgba(250, 250, 249, 0.96);
+  /* menus sit over panel text, so they are opaque */
+  --sheet-solid: #fafaf9;
   --hover: rgba(0, 0, 0, 0.045);
   --pressed: rgba(0, 0, 0, 0.06);
   --card: rgba(0, 0, 0, 0.025);
@@ -428,3 +430,4 @@ kbd { font-family: var(--mono); font-size: 11px; padding: 1px 6px; border-radius
 /* keyboard focus is always visible */
 button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+.menu.glass { background: var(--sheet-solid); }
