@@ -14,6 +14,7 @@ import { egress } from '../studies/egress';
 import { viewQuality } from '../studies/quality';
 import { seatSun } from '../studies/sun';
 import { seatColor } from './palette';
+import { useStudy } from '../ui/StudiesPanel';
 
 /** Terrace solids: one swept mesh per tier, rebuilt only when that tier's profile changes. */
 export function Terraces({ ring, profiles, regions, clip }: { ring: PlanRing; profiles: TierProfile[]; regions: RegionRows; clip: THREE.Plane[] }) {
@@ -98,10 +99,9 @@ export function Seats({ seats, project, clip }: { seats: SeatTable; project: Pro
 
   const stadium = useStore((s) => s.stadium);
   // Round 07 study metrics colour seats from a per-seat result (each study is cached per design)
-  const values = useMemo(() => {
-    if (mode !== 'analysis' || !STUDY_METRICS.includes(metric) || stadium.seats.seats !== seats) return undefined;
-    return metric === 'quality' ? viewQuality(stadium).score : metric === 'egress' ? egress(stadium).travel : seatSun(stadium).sun;
-  }, [mode, metric, stadium, seats]);
+  // Round 08: computed once the design settles, so a slider drag runs at engine speed (sun takes ~1 s at 100k seats)
+  const study = mode === 'analysis' && STUDY_METRICS.includes(metric) && stadium.seats.seats === seats;
+  const values = useStudy((s) => (metric === 'quality' ? viewQuality(s).score : metric === 'egress' ? egress(s).travel : seatSun(s).sun), study ? stadium : null, 200, metric) ?? undefined;
 
   useLayoutEffect(() => {
     const im = ref.current;

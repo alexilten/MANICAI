@@ -1,24 +1,54 @@
+import { useEffect } from 'react';
+import { decodeShare } from '../core/share';
 import { Viewport } from '../viewport/Viewport';
+import { AboutSheet } from './About';
+import { ErrorBoundary } from './ErrorBoundary';
 import { ComparePanel } from './ComparePanel';
 import { Segmented } from './controls';
 import { LeftPanel } from './LeftPanel';
 import { RightPanel } from './RightPanel';
 import { Toolbar } from './Toolbar';
-import { useStore, type CameraView } from './store';
+import { RESTORED, useStore, type CameraView } from './store';
 
 export function App() {
+  useStartup();
   return (
     <div className="app">
-      <Viewport />
+      <ErrorBoundary area="3D view" className="crash-view"><Viewport /></ErrorBoundary>
       <Toolbar />
-      <LeftPanel />
-      <RightPanel />
+      <ErrorBoundary area="design panel" className="crash-left"><LeftPanel /></ErrorBoundary>
+      <ErrorBoundary area="information panel" className="crash-right"><RightPanel /></ErrorBoundary>
       <ViewBar />
       <Hud />
-      <ComparePanel />
+      <ErrorBoundary area="Compare panel" className="crash-view"><ComparePanel /></ErrorBoundary>
+      <AboutSheet />
       <Toast />
     </div>
   );
+}
+
+/** Round 08: say when the last session came back, and open a design carried in a share link */
+function useStartup() {
+  useEffect(() => {
+    const st = useStore.getState();
+    if (RESTORED) {
+      const at = RESTORED.at ? new Date(RESTORED.at) : null;
+      st.showToast(`Restored your last design${at ? `, saved ${at.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })} at ${at.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}` : ''}. Pick a preset to start again.`);
+    }
+    const openShared = async () => {
+      try {
+        const r = await decodeShare(window.location.hash);
+        if (!r) return;
+        useStore.getState().load(r.project);
+        useStore.getState().showToast(`Opened the shared design "${r.project.name}"${r.repaired.length ? ` (${r.repaired.length} damaged values reset)` : ''}`);
+      } catch (e) { useStore.getState().showToast((e as Error).message); }
+      // drop the design from the address bar, so a reload restores the latest edits instead
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    };
+    openShared();
+    window.addEventListener('hashchange', openShared);
+    return () => window.removeEventListener('hashchange', openShared);
+  }, []);
 }
 
 function ViewBar() {

@@ -6,7 +6,7 @@
 
 ![Generic soccer bowl, perspective](docs/screenshots/01-perspective.png)
 
-## Status after Round 07
+## Status after Round 08
 
 | Area | What works now |
 |---|---|
@@ -29,9 +29,11 @@
 | Files | Save and open `.manicai.json`. Export to Rhino 8 or 7 `.3dm` with or without seats (structural grid, rakers and columns as exact extrusions, roof deck, cap, frames and trusses, facade skin, mullions and portals, back-of-house rooms, floodlights as aimed blocks with aiming lines, catwalk or masts, video and ribbon boards, broadcast positions, MEP risers, rooms, duct zones, energy centre yards and the service yard as exact extrusions, floor plates, suites, program zones and cores, vomitory solids, wheelchair and companion positions, club seats and excluded positions on their own layers), a seat schedule `.csv` with class and status, and a RhinoPython script that joins each tier and cuts its vomitories. A MANICAI `.3dm` can be reopened in MANICAI. |
 | Interoperability | One BIM element model behind every export, with each element marked as a generic parametric element, conceptual mass, space reservation or generic placeholder. **IFC 4** with project, site, building and storeys, typed seats and floodlights, vomitory openings voiding the terraces, property and quantity sets and stable GlobalIds (validated with IfcOpenShell). **glTF** (.glb) with instanced seats, a **plan and section DXF**, **quantity and element schedules** (CSV) and a 15-check **model check** with a report. See [INTEROP.md](docs/INTEROP.md) for the IFC mapping and Revit notes. |
 | Design studies | **View quality** per seat (distance, C-value and head turn) with a heat map. **Egress** from the seating: every seat's route to its vomitory or tier exit, exit loads and times at Green Guide rates of passage. **Sun and shade:** pitch sunlight hours and seats in sun at kick-off from the solar position at the site, through a massing of the bowl, facade and roof. **Materials and embodied carbon** (A1–A3) from the element model with editable generic factors. **Premium revenue** scenarios from the seat mix. Each study states its method and assumptions ([STUDIES.md](docs/STUDIES.md)). |
+| Site | Field orientation (N–S, NE–SW, E–W, SE–NW or any bearing), latitude and longitude. They drive the sun study and the IFC site, and never move geometry. |
 | Options | **Compare** saved scenarios side by side on every study. **Explore** capacity against proximity: about 80 regenerated designs, the Pareto front, a recommended design for the target and alternatives A–E, each one click to apply or save. |
+| Working with it | The open design is **saved in the browser** as you work and restored on the next visit. **Share links** carry the whole design in the link (about 2 kB, nothing uploaded). **My presets** sit beside the built-in library, which filters by sport. Damaged project files are repaired value by value, a change the engine cannot build is refused with a message, and a failing panel offers a way back. **About** (click the logo) shows the version and build, which every saved file also records; `?` lists the shortcuts. See the [user guide](docs/USER_GUIDE.md) and the [changelog](CHANGELOG.md). |
 
-What is **not** in yet: testing in Revit (the notes are untested), direct DWG, a point-by-point lighting calculation, engineered MEP, loges and press boxes, engineered structure, site and precinct, egress beyond the seating (concourses, stairs, gates), a daylight or turf simulation, a whole-life carbon assessment and a business case. See [ROADMAP.md](docs/ROADMAP.md).
+What is **not** in yet: testing in Revit (the notes are untested), direct DWG, a point-by-point lighting calculation, engineered MEP, loges and press boxes, engineered structure, precinct planning, arenas (see [EVALUATION.md](docs/EVALUATION.md)), user accounts and shared cloud projects, egress beyond the seating (concourses, stairs, gates), a daylight or turf simulation, a whole-life carbon assessment and a business case. See [ROADMAP.md](docs/ROADMAP.md).
 
 ### Round 02 views
 
@@ -81,12 +83,20 @@ What is **not** in yet: testing in Revit (the notes are untested), direct DWG, a
 | **Sun and shade:** pitch sunlight hours and seats in sun at kick-off | **Compare options and optimise:** scenarios and the capacity–proximity front |
 | ![Sun](docs/screenshots/33-sun-and-shade.png) | ![Compare](docs/screenshots/34-compare-and-optimise.png) |
 
+### Round 08 views
+
+| Preset library with My presets and the sport filter | Share a design as a link |
+|---|---|
+| ![Presets](docs/screenshots/35-preset-library.png) | ![Share](docs/screenshots/36-share-link.png) |
+| **Site:** field orientation and latitude | **About** and shortcuts |
+| ![Site](docs/screenshots/37-site.png) | ![About](docs/screenshots/38-about.png) |
+
 ## Run it
 
 ```bash
 npm ci
 npm run dev          # http://localhost:5173
-npm test             # acceptance tests A–AW (117 tests)
+npm test             # acceptance tests A–BB (125 tests)
 npm run bench        # regeneration benchmarks at 25k, 50k, 75k and 100k seats
 npm run build        # typecheck and production build
 npm run export:samples && npm run verify:3dm   # needs: pip install rhino3dm
@@ -94,7 +104,18 @@ npm run verify:ifc && npm run verify:dxf       # needs: pip install ifcopenshell
 npm run docs         # regenerates STANDARDS, PRESETS and PRECEDENTS from the data
 ```
 
-Every push to `main` runs the tests and deploys to GitHub Pages (`.github/workflows/pages.yml`).
+## Deploy
+
+Every push to `main` runs the typecheck and the tests, builds, and deploys to GitHub Pages (`.github/workflows/pages.yml`). Pull requests run the same checks without deploying. To set it up on a fork, choose **Settings → Pages → Source: GitHub Actions**.
+
+MANICAI is a static site with no server, so any static host works:
+
+```bash
+npx vite build --base ./     # relative paths, so the site works from any folder
+# then publish dist/ (GitHub Pages, Netlify, S3, an intranet web server…)
+```
+
+The build records the version from `package.json` and the commit, both shown under **About**. Projects, presets and the autosave stay in each visitor's browser, and share links carry the design in the link, so a deployment holds no user data. To release a new version, raise `version` in `package.json`, add an entry to [CHANGELOG.md](CHANGELOG.md), and merge to `main`.
 
 ## Coordinates
 
@@ -109,17 +130,21 @@ The world origin `(0, 0, 0)` is the centre of the field at field level. **+X** r
 - [ROADMAP.md](docs/ROADMAP.md): limitations and next rounds.
 - [INTEROP.md](docs/INTEROP.md): the element model, IFC 4 mapping, Revit workflow notes, glTF, DXF and the model check.
 - [STUDIES.md](docs/STUDIES.md): the Round 07 design studies and the explorer, each with its method, assumptions, data quality and validation.
-- [TESTS.md](docs/TESTS.md): acceptance tests A–AW and benchmark results.
+- [TESTS.md](docs/TESTS.md): acceptance tests A–BB and benchmark results.
+- [USER_GUIDE.md](docs/USER_GUIDE.md): how to use MANICAI, from presets to exports.
+- [DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md): the interface tokens, components, states and data colours.
+- [EVALUATION.md](docs/EVALUATION.md): Round 08 evaluation of arenas and deeper BIM integration, with a recommended order.
+- [CHANGELOG.md](CHANGELOG.md): what changed in each version.
 
 ## Layout
 
 ```
 src/core/          engine: sports, schema, plan, profiles, seats, stadium, optimize, presets, data
-src/export/        element model, IFC 4, glTF, DXF, schedules, model check, Rhino .3dm writer and reader, CSV, downloads
+src/export/        element model, IFC 4, glTF, DXF, schedules, model check, Rhino .3dm writer and reader, CSV, downloads (writers load on demand)
 src/viewport/      three.js / react-three-fiber scene
 src/studies/       design studies: view quality, egress, sun, carbon, revenue, explorer (and its worker), summary
-src/ui/            panels, toolbar, compare view, store (zustand)
-tests/             vitest acceptance tests A–AW (v1–v4 fixtures in tests/fixtures)
+src/ui/            panels, toolbar, compare view, About sheet, error recovery, store (zustand), browser persistence
+tests/             vitest acceptance tests A–BB (v1–v4 fixtures in tests/fixtures)
 scripts/           bench, sample export, Python .3dm, IFC and DXF verifiers, docs generator
 examples/          every preset as a .manicai.json
 samples/           Rhino 8, IFC, GLB and DXF samples, schedules, model check and a read-back manifest

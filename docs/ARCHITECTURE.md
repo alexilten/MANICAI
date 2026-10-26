@@ -62,6 +62,8 @@ Each stage is memoised on a JSON key of its inputs (`stage()` in `stadium.ts`), 
 
 The engine regenerates 75,000–100,000 seats in about 50–70 ms in Node (see [TESTS.md](TESTS.md)). The viewport draws all seats as a single `InstancedMesh` with per-instance colour. Seats are rebuilt only when the seat table changes.
 
+Round 08 additions: the export writers are a separate chunk loaded when the Export menu opens; three.js and React are separate chunks that stay cached across deploys. Presets are built once per session and copied. The per-seat studies behind the analysis colours run after the design settles. Every edit runs the engine inside a guard: if it throws, the edit is refused and the previous design stays. Project files pass through `readProject`, which migrates, then checks every value against the defaults and the fixed option lists, resetting and listing any that are damaged. The browser keeps an autosave, My presets and scenarios in `localStorage` (`src/ui/persist.ts`), and `src/core/share.ts` writes a design into a link fragment (deflate-raw, base64url) so it never reaches a server.
+
 ### Risks and mitigations
 
 | Risk | Status | Mitigation |

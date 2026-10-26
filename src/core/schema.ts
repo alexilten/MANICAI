@@ -313,6 +313,8 @@ export interface Project {
   architecture: ArchitectureParams;
   systems: SystemsParams;
   studies: StudiesParams;
+  /** the app and time that last saved this file (Round 08; informational) */
+  saved?: { by: string; at: string };
 }
 
 export const NO_VOMS: VomitoryParams = { enabled: false, every: 2, mouthRow: 8, width: 2800 };
@@ -414,7 +416,62 @@ export function serializeProject(p: Project): string {
  * design and never change it.
  */
 export function parseProject(text: string): Project {
-  const raw = JSON.parse(text);
+  return readProject(text).project;
+}
+
+/**
+ * Round 08: parse, migrate and repair. A value of the wrong type (a hand-edited or damaged file) is
+ * replaced by the default and listed in `repaired`, so a bad number can never reach the engine.
+ */
+export function readProject(text: string): { project: Project; repaired: string[] } {
+  const repaired: string[] = [];
+  const p = migrate(JSON.parse(text));
+  repair(defaultProject() as unknown as Rec, p as unknown as Rec, '', repaired);
+  const d = tier('T', 'T');
+  p.tiers.forEach((t, i) => repair(d as unknown as Rec, t as unknown as Rec, `tiers[${i}].`, repaired));
+  if (!p.tiers.length) { p.tiers = defaultProject().tiers; repaired.push('tiers'); }
+  const D = defaultProject() as unknown as Rec;
+  for (const [path, allowed] of ENUMS) {
+    const keys = path.split('.'), last = keys.pop()!;
+    const own = keys.reduce<Rec>((o, k) => o[k] as Rec, p as unknown as Rec), def = keys.reduce<Rec>((o, k) => o[k] as Rec, D);
+    if (!allowed.includes(own[last] as string | number)) { own[last] = def[last]; repaired.push(path); }
+  }
+  const roofStands = p.architecture.roof.stands.filter((x) => STANDS.includes(x));
+  if (roofStands.length !== p.architecture.roof.stands.length) { p.architecture.roof.stands = roofStands; repaired.push('architecture.roof.stands'); }
+  p.tiers.forEach((t, i) => { if (t.kind !== 'general' && t.kind !== 'club') { t.kind = 'general'; repaired.push(`tiers[${i}].kind`); } });
+  return { project: p, repaired };
+}
+
+const STANDS: string[] = ['N', 'S', 'E', 'W'];
+/** fields with a fixed set of values; anything else falls back to the default */
+const ENUMS: [string, (string | number)[]][] = [
+  ['sport', ['soccer', 'nfl']], ['units', ['metric', 'imperial']], ['sightlines.mode', ['cvalue', 'riser']],
+  ['architecture.structure.material', ['steel', 'steelDark', 'concrete']],
+  ['architecture.roof.type', ['open', 'canopy', 'perimeter', 'enclosed', 'etfe', 'truss', 'retractable']],
+  ['architecture.roof.material', ['ptfe', 'etfe', 'metal']],
+  ['architecture.facade.type', ['glazed', 'solid', 'perforated', 'fins']],
+  ['architecture.facade.material', ['glass', 'aluminium', 'bronze', 'precast']],
+  ['architecture.facade.portals', [0, 4, 8]], ['architecture.boh.mainStand', STANDS],
+  ['systems.lighting.mount', ['auto', 'roof', 'masts']], ['systems.service.yard', [...STANDS, 'auto']], ['systems.service.fieldAccess', STANDS], ['systems.boards.type', ['ends', 'centre', 'none']],
+];
+
+type Rec = Record<string, unknown>;
+const isRec = (v: unknown): v is Rec => typeof v === 'object' && v !== null && !Array.isArray(v);
+/** walk the defaults: numbers must be finite numbers, strings strings, booleans booleans, objects objects */
+function repair(def: Rec, val: Rec, path: string, out: string[]) {
+  for (const k of Object.keys(def)) {
+    const dv = def[k], v = val[k];
+    if (k === 'tiers' || k === 'premium' || (k === 'stands' && path === 'bowl.')) continue;
+    const bad = typeof dv === 'number' ? !(typeof v === 'number' && Number.isFinite(v))
+      : typeof dv === 'string' || typeof dv === 'boolean' ? typeof v !== typeof dv
+        : Array.isArray(dv) ? !Array.isArray(v)
+          : isRec(dv) ? !isRec(v) : false;
+    if (bad) { val[k] = structuredClone(dv); out.push(path + k); } else if (isRec(dv)) repair(dv, v as Rec, `${path}${k}.`, out);
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function migrate(raw: any): Project {
   if (raw?.schema !== SCHEMA_ID) throw new Error('Not a MANICAI project file');
   if (typeof raw.version !== 'number' || raw.version > SCHEMA_VERSION) throw new Error(`Project version ${raw.version} is newer than this MANICAI (v${SCHEMA_VERSION})`);
   const d = defaultProject();

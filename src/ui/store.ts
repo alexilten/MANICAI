@@ -3,6 +3,8 @@ import { resolveStadium, type Stadium } from '../core/engine/stadium';
 import { DEFAULT_PRESET, getPreset } from '../core/presets';
 import type { SegmentId } from '../core/engine/plan';
 import { parseProject, type Project } from '../core/schema';
+import { SHARE_KEY } from '../core/share';
+import { readAutosave, readUserPresets, writeAutosave, writeUserPresets, type UserPreset } from './persist';
 
 export type Mode = 'explore' | 'technical' | 'analysis';
 export type CameraView = 'perspective' | 'plan' | 'elevation' | 'section' | 'iso' | 'fieldLevel' | 'exterior';
@@ -84,7 +86,15 @@ interface State {
   /** the Compare & optimise panel */
   compareOpen: boolean;
   scenarios: Scenario[];
+  /** designs saved as presets in this browser (Round 08) */
+  userPresets: UserPreset[];
+  saveUserPreset: (name: string) => void;
+  removeUserPreset: (id: string) => void;
+  loadUserPreset: (id: string) => void;
   setCompareOpen: (on: boolean) => void;
+  /** the About and keyboard-shortcut sheet (Round 08) */
+  dialog: 'about' | 'keys' | null;
+  setDialog: (d: 'about' | 'keys' | null) => void;
   saveScenario: (name: string, p?: Project) => void;
   removeScenario: (id: string) => void;
   edit: (fn: (p: Project) => void, key?: string) => void;
@@ -108,13 +118,20 @@ interface State {
 }
 
 const urlPreset = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('preset') : null;
-const initial = (urlPreset ? getPreset(urlPreset) : DEFAULT_PRESET).build();
+const sharedLink = typeof window !== 'undefined' && window.location.hash.includes(`${SHARE_KEY}=`);
+/** Round 08: the last session's design comes back unless the link asks for a preset or a shared design */
+export const RESTORED = urlPreset || sharedLink ? null : readAutosave();
+const fallback = () => (urlPreset ? getPreset(urlPreset) : DEFAULT_PRESET).build();
+let initial = RESTORED?.project ?? fallback();
+let initialStadium: Stadium;
+// a restored design that no longer builds must never stop the app from opening
+try { initialStadium = resolveStadium(initial); } catch { initial = fallback(); initialStadium = resolveStadium(initial); }
 
 let toastTimer: ReturnType<typeof setTimeout> | undefined;
 
 export const useStore = create<State>((set, get) => ({
   project: initial,
-  stadium: resolveStadium(initial),
+  stadium: initialStadium,
   past: [], future: [], lastEditKey: null, lastEditAt: 0,
   mode: 'explore', metric: 'cvalue',
   view: 'perspective', viewNonce: 0,
@@ -128,7 +145,26 @@ export const useStore = create<State>((set, get) => ({
   toast: null,
   compareOpen: false,
   scenarios: readScenarios(),
+  userPresets: readUserPresets(),
+  saveUserPreset: (name) => {
+    const id = `U${Date.now().toString(36)}`;
+    const project = { ...structuredClone(get().project), presetId: `user:${id}` };
+    const userPresets = [...get().userPresets, { id, name, project, savedAt: new Date().toISOString() }].slice(-24);
+    writeUserPresets(userPresets);
+    set({ userPresets, project: { ...get().project, presetId: `user:${id}` } });
+  },
+  removeUserPreset: (id) => {
+    const userPresets = get().userPresets.filter((x) => x.id !== id);
+    writeUserPresets(userPresets);
+    set({ userPresets });
+  },
+  loadUserPreset: (id) => {
+    const u = get().userPresets.find((x) => x.id === id);
+    if (u) get().load({ ...structuredClone(u.project), units: get().project.units });
+  },
   setCompareOpen: (compareOpen) => set({ compareOpen }),
+  dialog: null,
+  setDialog: (dialog) => set({ dialog }),
   saveScenario: (name, p) => {
     const project = structuredClone(p ?? get().project);
     const scenarios = [...get().scenarios, { id: `S${Date.now().toString(36)}${Math.floor(Math.random() * 1e4)}`, name, project, savedAt: new Date().toISOString() }].slice(-8);
@@ -143,14 +179,19 @@ export const useStore = create<State>((set, get) => ({
 
   edit: (fn, key) => {
     const { project, past, lastEditKey, lastEditAt } = get();
-    const next = structuredClone(project);
-    fn(next);
+    // Round 08: a change the engine cannot build is refused and the design stays as it was
+    let next: Project, stadium: Stadium;
+    try { next = structuredClone(project); fn(next); stadium = resolveStadium(next); } catch (e) { refused(get, e); return; }
     const now = performance.now();
     // slider drags are one gesture: consecutive edits with the same key within 800 ms merge into one undo step
     const merge = key != null && key === lastEditKey && now - lastEditAt < 800;
-    set({ project: next, stadium: resolveStadium(next), past: merge ? past : [...past.slice(-199), project], future: [], lastEditKey: key ?? null, lastEditAt: now, ...seatReset(get, next) });
+    set({ project: next, stadium, past: merge ? past : [...past.slice(-199), project], future: [], lastEditKey: key ?? null, lastEditAt: now, ...seatReset(get, next) });
   },
-  load: (p) => set({ project: p, stadium: resolveStadium(p), past: [...get().past, get().project], future: [], lastEditKey: null, seat: null, seatView: false, viewNonce: get().viewNonce + 1 }),
+  load: (p) => {
+    let stadium: Stadium;
+    try { stadium = resolveStadium(p); } catch (e) { refused(get, e); return; }
+    set({ project: p, stadium, past: [...get().past, get().project], future: [], lastEditKey: null, seat: null, seatView: false, viewNonce: get().viewNonce + 1 });
+  },
   loadPreset: (id) => {
     const p = getPreset(id).build();
     p.units = get().project.units;
@@ -186,12 +227,27 @@ export const useStore = create<State>((set, get) => ({
   setSeatView: (seatView) => set({ seatView, viewNonce: seatView ? get().viewNonce : get().viewNonce + 1 }),
   setCut: (c) => set({ cut: { ...get().cut, ...c } }),
   setRegion: (region) => set({ region }),
-  showToast: (toast) => {
+  showToast: (msg) => {
+    const toast = msg;
     clearTimeout(toastTimer);
     set({ toast });
-    toastTimer = setTimeout(() => set({ toast: null }), 3200);
+    // long messages stay up long enough to read
+    toastTimer = setTimeout(() => set({ toast: null }), Math.max(3200, msg.length * 55));
   },
 }));
+
+function refused(get: () => State, e: unknown) {
+  console.error(e);
+  get().showToast(`That change could not be built (${(e as Error).message ?? e}). The design was kept as it was.`);
+}
+
+// Round 08: save the open design a moment after each change, for the next visit
+let saveTimer: ReturnType<typeof setTimeout> | undefined;
+useStore.subscribe((s, prev) => {
+  if (s.project === prev.project) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => writeAutosave(useStore.getState().project), 800);
+});
 
 /** seat indices change when geometry changes; keep a selection only while the seat table is the same object */
 function seatReset(get: () => State, next: Project) {
@@ -200,5 +256,5 @@ function seatReset(get: () => State, next: Project) {
   return before === after ? {} : { seat: null, seatView: false };
 }
 
-// dev hook for the screenshot and benchmark scripts
-if (import.meta.env?.DEV && typeof window !== 'undefined') (window as unknown as { __manicai: typeof useStore }).__manicai = useStore;
+// dev hook for the screenshot and benchmark scripts (also on a production build opened with ?debug)
+if (typeof window !== 'undefined' && (import.meta.env?.DEV || new URLSearchParams(window.location.search).has('debug'))) (window as unknown as { __manicai: typeof useStore }).__manicai = useStore;

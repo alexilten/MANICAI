@@ -74,13 +74,14 @@ const CITY: Record<string, { lat: number; lon: number; city: string }> = {
   milano: { lat: 45.5, lon: 9.1, city: 'Milan' }, birmingham: { lat: 52.5, lon: -1.9, city: 'Birmingham' },
 };
 
-const P = (meta: PresetMeta, build: () => Project): Preset => {
+const P = (meta: PresetMeta, make: () => Project): Preset => {
   const c = CITY[meta.id];
-  if (!c) return { ...meta, build };
-  return {
-    ...meta, assumed: [...meta.assumed, `Site at the latitude of ${c.city} (≈ ${c.lat}° ${c.lat >= 0 ? 'N' : 'S'}) for the sun study; the pitch orientation is the MANICAI default, not the real site's`],
-    build: () => { const p = build(); p.site = { ...p.site, latitude: c.lat, longitude: c.lon }; return p; },
-  };
+  const build = c ? () => { const p = make(); p.site = { ...p.site, latitude: c.lat, longitude: c.lon }; return p; } : make;
+  // Round 08: fitting rows to the published capacity takes up to a second, so each preset is built once and copied
+  let built: Project | null = null;
+  const cached = () => structuredClone(built ??= build());
+  if (!c) return { ...meta, build: cached };
+  return { ...meta, assumed: [...meta.assumed, `Site at the latitude of ${c.city} (≈ ${c.lat}° ${c.lat >= 0 ? 'N' : 'S'}) for the sun study; the pitch orientation is the MANICAI default, not the real site's`], build: cached };
 };
 
 export const PRESETS: Preset[] = [

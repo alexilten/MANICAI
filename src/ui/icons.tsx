@@ -20,5 +20,7 @@ export const Icon = {
   more: () => <svg width="16" height="16" viewBox="0 0 16 16" {...P}><circle cx="3.5" cy="8" r=".6" /><circle cx="8" cy="8" r=".6" /><circle cx="12.5" cy="8" r=".6" /></svg>,
   grid: () => <svg width="18" height="18" viewBox="0 0 16 16" {...P}><rect x="2" y="2" width="5" height="5" rx="1.2" /><rect x="9" y="2" width="5" height="5" rx="1.2" /><rect x="2" y="9" width="5" height="5" rx="1.2" /><rect x="9" y="9" width="5" height="5" rx="1.2" /></svg>,
   layers: () => <svg width="18" height="18" viewBox="0 0 16 16" {...P}><path d="M8 2 1.5 5.5 8 9l6.5-3.5z" /><path d="m1.5 8.2 6.5 3.5 6.5-3.5" /><path d="m1.5 10.9 6.5 3.5 6.5-3.5" /></svg>,
+  share: () => <svg width="16" height="16" viewBox="0 0 16 16" {...P}><path d="M6.8 9.2a2.6 2.6 0 0 0 3.7 0l2.2-2.2a2.6 2.6 0 0 0-3.7-3.7l-.9.9" /><path d="M9.2 6.8a2.6 2.6 0 0 0-3.7 0L3.3 9a2.6 2.6 0 0 0 3.7 3.7l.9-.9" /></svg>,
+  trash: () => <svg width="12" height="12" viewBox="0 0 16 16" {...P}><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5" /></svg>,
   target: () => <svg width="18" height="18" viewBox="0 0 16 16" {...P}><path d="M3 2.5 12.5 7 8.3 8.3 7 12.5z" /></svg>,
 };

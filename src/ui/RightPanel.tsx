@@ -371,7 +371,7 @@ function ModelCheckSection() {
   const [report, setReport] = useState<{ for: typeof st; r: ModelReport } | null>(null);
   const [busy, setBusy] = useState(false);
   const current = report?.for === st ? report.r : null;
-  const run = () => { setBusy(true); setTimeout(() => { try { setReport({ for: st, r: checkModel(st) }); } finally { setBusy(false); } }, 20); };
+  const run = () => { setBusy(true); setTimeout(async () => { try { setReport({ for: st, r: await checkModel(st) }); } finally { setBusy(false); } }, 20); };
   return (
     <Section title="Model check" summary={current ? `${current.pass}/${current.checks.length} passed` : 'not run'} defaultOpen={false} badge="R06">
       <p className="muted small">Checks the model before it leaves MANICAI: closed solids, exact against tessellated volumes, unique ids, layers and IFC classes, exported seats against the capacity, and an IFC read-back.</p>

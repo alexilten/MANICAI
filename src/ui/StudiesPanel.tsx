@@ -20,15 +20,15 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 const money = (v: number, c: string) => `${c} ${v >= 1e6 ? `${n(v / 1e6, 1)} M` : n(v)}`;
 
 /** Run a study after the design has settled for `delay` ms; returns the result for this design or null while it runs. */
-export function useStudy<T>(fn: (s: Stadium) => T, st: Stadium, delay = 250): T | null {
-  const [res, setRes] = useState<{ for: Stadium; v: T } | null>(null);
+export function useStudy<T>(fn: (s: Stadium) => T, st: Stadium | null, delay = 250, key = ''): T | null {
+  const [res, setRes] = useState<{ for: Stadium; key: string; v: T } | null>(null);
   useEffect(() => {
-    if (res?.for === st) return;
-    const id = setTimeout(() => setRes({ for: st, v: fn(st) }), delay);
+    if (!st || (res?.for === st && res.key === key)) return;
+    const id = setTimeout(() => setRes({ for: st, key, v: fn(st) }), delay);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [st]);
-  return res?.for === st ? res.v : null;
+  }, [st, key]);
+  return st && res?.for === st && res.key === key ? res.v : null;
 }
 
 type Tab = 'view' | 'egress' | 'sun' | 'carbon' | 'revenue';

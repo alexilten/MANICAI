@@ -1,6 +1,6 @@
 {
   "name": "manicai",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "description": "MANICAI — generative stadium design engine: parametric seating bowl, live capacity and sightlines, native Rhino export",
