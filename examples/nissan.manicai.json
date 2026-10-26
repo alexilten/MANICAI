@@ -1,10 +1,12 @@
 {
   "schema": "manicai.project",
-  "version": 5,
+  "version": 6,
   "name": "Enclosed NFL stadium (New Nissan-inspired)",
   "units": "imperial",
   "site": {
-    "northDeg": 90
+    "northDeg": 90,
+    "latitude": 36.2,
+    "longitude": -86.8
   },
   "sport": "nfl",
   "field": {
@@ -228,6 +230,40 @@
       "yard": "auto",
       "fieldAccess": "E",
       "dockBays": 6
+    }
+  },
+  "studies": {
+    "egress": {
+      "stepRate": 79,
+      "levelRate": 109,
+      "targetMin": 8,
+      "maxTravel": 30000
+    },
+    "sun": {
+      "month": 3,
+      "day": 21,
+      "hour": 15,
+      "latitude": 40
+    },
+    "carbon": {
+      "concrete": 330,
+      "rebarRate": 120,
+      "rebar": 1.99,
+      "steel": 1.55,
+      "steelFraction": 0.05,
+      "terraceThickness": 250,
+      "roofSteel": 100,
+      "roofCovering": 40,
+      "facade": 120,
+      "uncertainty": 0.3
+    },
+    "revenue": {
+      "currency": "USD",
+      "events": 25,
+      "occupancy": 0.85,
+      "ticket": 60,
+      "club": 250,
+      "suite": 150000
     }
   },
   "presetId": "nissan"

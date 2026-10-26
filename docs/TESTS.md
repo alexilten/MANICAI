@@ -1,6 +1,6 @@
-# Acceptance tests (Rounds 01–06)
+# Acceptance tests (Rounds 01–07)
 
-`npm test` runs 102 tests in `tests/`. All 102 pass as of 2026-10-26 (Node 22, vitest 3). A–J are the Round 01 tests, K–Q came with Round 02, R–W with Round 03, X–AC with Round 04, AD–AI with Round 05 and AJ–AO with Round 06.
+`npm test` runs 117 tests in `tests/`. All 117 pass as of 2026-10-26 (Node 22, vitest 3). A–J are the Round 01 tests, K–Q came with Round 02, R–W with Round 03, X–AC with Round 04, AD–AI with Round 05, AJ–AO with Round 06 and AP–AW with Round 07.
 
 | Test | What is checked | File |
 |---|---|---|
@@ -43,6 +43,14 @@
 | AM · model check | All 15 checks pass on all 12 presets, including the IFC read-back census; a crossing polygon is detected. | `round06.test.ts` |
 | AN · glTF and DXF | The GLB header, chunk lengths and JSON are valid, seat instances equal net capacity, and coordinates are in metres. DXF layer names are unique, R12-safe and at most 31 characters, and the file is AC1009 ending in EOF. | `round06.test.ts` |
 | AO · tier sections | Every tier outline of every preset (first row, half and full depth) is a simple polygon. | `round06.test.ts` |
+| AP · view quality | Each term scores 1 and 0 at its stated end points (100 m and 190 m, C at target and 0, facing and 90°). The bowl mean equals an independent seat-by-seat recomputation, the histogram sums to net capacity, and bringing the stands in raises the distance term. | `round07.test.ts` |
+| AQ · egress | Every seat in use goes to exactly one exit; each exit's time is seats ÷ (width × rate) and the bowl reports the slowest; vomitory tiers leave by their vomitories. Twice the rate halves the time, vomitories in every section are faster, and the Tottenham-inspired single-tier end is flagged over 8 minutes. | `round07.test.ts` |
+| AR · sun and shade | Equinox noon altitude is 90° − latitude due south, the June solstice adds 23.44°, morning and afternoon mirror; the centre spot is lit in the open, dark under metal and at 0.85 under ETFE; a lower bowl shades less; turning site north by 180° mirrors the sunlight map; no seat is in sun at night. | `round07.test.ts` |
+| AS · materials and carbon | Every line equals its quantity times the stated factors, terraces equal seating area × thickness, totals, range and per-seat figure add up, and a concrete frame takes exactly the steel frame's modelled envelope. | `round07.test.ts` |
+| AT · revenue | Annual revenue equals the formula from the seat mix and suites; scenarios run low < base < high. | `round07.test.ts` |
+| AU · explorer | The current design is candidate 0; the front is feasible, non-dominated and recomputes independently; no candidate is inside the run-off; the recommended design rebuilt through the full resolver has the same capacity and mean distance; the search is repeatable; a design below the minimum C is flagged. | `round07.test.ts` |
+| AV · scenarios | Two designs summarise to the same rows with every study, and the comparison CSV has one column per scenario. | `round07.test.ts` |
+| AW · v5 files | v5 files open as v6 with the default studies and their Round 05 capacity and floor area (64,578 / 81,097 m² and 71,398 / 49,585 m²). | `round07.test.ts` |
 | I · performance | A fitted bowl of about 75,000 seats regenerates from scratch in under 1.5 s. This is a CI guard; see the benchmark below. | `bench.test.ts` |
 | J · assumptions visible | Every preset lists its assumptions and precedent presets list published facts. Every rule has a kind, verification and source, and every referenced rule exists. The scope warning is always shown. Every preset fits within 2% of its target net capacity and meets the ADA wheelchair count. | `core.test.ts` |
 

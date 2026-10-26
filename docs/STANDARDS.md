@@ -167,9 +167,42 @@ Verification: **checked** means the rule was read in the cited source on the dat
 |---|---|---|---|---|---|
 | `manicai.mep` | Space reservations, not engineered systems. Conditioned area is the GFA plus half the bowl plan under an enclosed roof. Central plant 3.5% of it; demand 60 W/m² of it plus floodlights and boards (0.3 kW per m² of screen); transformers counted at 2.5 MVA (power factor 0.9), generators at 2 MW for 30% of demand; switchgear 100 m² + 0.0035 m² per spectator + 15 m² per transformer; transformer yard 100 + 60 m² each; generator yard 80 + 50 m² each; water storage and fire pumps 150 m² + 0.004 per spectator; telecom head end 80 m² + 0.0015 per spectator, all scaled by the allowance. Each core gets duct, electrical and plumbing risers and, on every level, an air-handling room and an electrical and telecom room. Duct zones (default 0.9 m) sit under each concourse ceiling. One Wi-Fi access point per 75 spectators. MEP engineers size the real systems. |  | assumption | recall | MANICAI planning ratios; user-editable |
 
+## View quality
+
+| id | statement | value | kind | verification | source |
+|---|---|---|---|---|---|
+| `manicai.quality` | Seat view quality = 0.5 × distance + 0.3 × sightline + 0.2 × head turn, each 0–1: distance scores 1 at or under 100 m from the eye to the farthest field corner and 0 at 190 m (the FIFA maximum, recall); sightline is the seat C-value over its tier target; head turn scores 1 facing the centre spot and 0 at 90°. A seat at 0.7 or more counts as good. Weights and thresholds are MANICAI choices for comparing options, not a published index; the roof, screens, obstruction by the tier above and atmosphere are not scored. |  | assumption | recall | MANICAI method |
+
 ## Egress
 
 | id | statement | value | kind | verification | source |
 |---|---|---|---|---|---|
+| `greenguide.egress` | Rates of passage of about 79 persons per metre width per minute on stepped routes (and 109 on level routes) are used to size exits; the time allowed for spectators to leave the viewing area (egress time) is set by the ground's fire risk, typically between 2.5 and 8 minutes, and travel within the seating to a vomitory or exit is limited (MANICAI default 30 m). Values from recall: verify the current edition and the local code (US: NFPA 101 / IBC assembly occupancy). |  | guidance | recall | SGSA Green Guide (6th ed., 2018) — UK (recall) |
+| `manicai.egress` | Each seat in use takes the shortest route to an exit of its tier: along its row, then up or down a stepped aisle (measured on the slope) to a vomitory mouth, or to the back of a tier without vomitories. An exit clears its seats in seats / (clear width × stepped rate of passage) minutes; the bowl reports its slowest exit. This is the seating stage only: concourses, stairs, gates, places of safety, queuing and evacuation of people with reduced mobility are not modelled (review.egress). |  | assumption | recall | MANICAI method; user-editable |
 | `review.egress` | Aisle spacing and seat counts are geometric checks only. Egress capacity, travel distance and exit width need jurisdiction-specific code analysis. |  | engineer-review | recall | MANICAI scope |
+
+## Sun and shade
+
+| id | statement | value | kind | verification | source |
+|---|---|---|---|---|---|
+| `manicai.sun` | Sun position from the declination and hour-angle approximation (about ±1°) in local solar time at the site latitude (default 40° N when the site has none); pitch orientation from site north. Shadows are cast by a massing of the terraces, the building behind the bowl, the facade, the roof deck, the field cap and retractable panels. Roof coverings transmit a share of direct sun: metal 0, PTFE 0.10, ETFE 0.85 (typical values, recall; products vary). Frames, trusses, boards and the catwalk are ignored, and there is no diffuse or reflected light: these are direct-sun hours, not a daylight or turf-growth simulation. |  | assumption | recall | MANICAI method; user-editable |
+
+## Embodied carbon
+
+| id | statement | value | kind | verification | source |
+|---|---|---|---|---|---|
+| `manicai.carbon` | Cradle-to-gate (A1–A3) embodied carbon of the structure, roof and facade from the element model: reinforced concrete at 330 kgCO₂e/m³ plus 120 kg/m³ of reinforcement at 1.99 kgCO₂e/kg; structural steel at 1.55 kgCO₂e/kg; precast terraces as 250 mm of concrete over the seating plan; steel rakers and columns as 5 % of their modelled envelope; roof steel at 100 kg/m² of roof plan; roof covering 40 and facade 120 kgCO₂e/m². Shown with a ±30 % range. Foundations, substructure, cores, MEP, fit-out and modules A4–D are left out. Generic averages for comparing options, not product EPDs and not a life-cycle assessment (review.carbon). |  | assumption | recall | MANICAI method; generic factors recalled from the ICE database v3.0 (University of Bath / Circular Ecology, 2019); user-editable |
+| `review.carbon` | Carbon and material figures are order-of-magnitude comparisons. A whole-life carbon assessment (EN 15978 / RICS) by a qualified assessor with real quantities and EPDs is needed before any target or claim. |  | engineer-review | recall | MANICAI scope |
+
+## Revenue
+
+| id | statement | value | kind | verification | source |
+|---|---|---|---|---|---|
+| `manicai.revenue` | Annual revenue = general seats × average ticket × occupancy × events + club seats × club price × occupancy × events + suites × annual licence. Default prices (60 and 250 per event, 150,000 per suite a year, 25 events, 85 % occupancy) are placeholders with no market basis; the low and high scenarios scale premium prices by 0.75 and 1.25. Not a business case. |  | assumption | recall | MANICAI placeholders; user-editable |
+
+## Optimisation
+
+| id | statement | value | kind | verification | source |
+|---|---|---|---|---|---|
+| `manicai.explore` | The explorer varies the sideline and end distances (never inside the run-off), the corner radius and each tier's rows, regenerates every candidate for real, and keeps the designs that meet the minimum C-value and tier headroom. It reports the Pareto front of capacity against mean distance to the centre spot and recommends the closest-in design that reaches the target. It is a seeded search over a limited set of variables, not a proof of optimality; building, roof and cost are not part of the search. |  | assumption | recall | MANICAI method |
 

@@ -7,8 +7,8 @@
     "vomitories": 18,
     "wheelchair": 196,
     "exportedSeats": true,
-    "bytes": 26586138,
-    "exportMs": 2912,
+    "bytes": 26587442,
+    "exportMs": 2849,
     "readBack": {
       "units": "Millimeters",
       "layers": 113,
@@ -44,8 +44,8 @@
     "vomitories": 42,
     "wheelchair": 290,
     "exportedSeats": false,
-    "bytes": 3711378,
-    "exportMs": 236,
+    "bytes": 3712682,
+    "exportMs": 172,
     "readBack": {
       "units": "Millimeters",
       "layers": 113,
@@ -71,8 +71,8 @@
     "vomitories": 50,
     "wheelchair": 462,
     "exportedSeats": false,
-    "bytes": 4754472,
-    "exportMs": 210,
+    "bytes": 4755776,
+    "exportMs": 275,
     "readBack": {
       "units": "Millimeters",
       "layers": 123,
@@ -99,8 +99,8 @@
     "vomitories": 48,
     "wheelchair": 458,
     "exportedSeats": false,
-    "bytes": 4875717,
-    "exportMs": 261,
+    "bytes": 4877115,
+    "exportMs": 339,
     "readBack": {
       "units": "Millimeters",
       "layers": 123,

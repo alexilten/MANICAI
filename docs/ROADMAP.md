@@ -1,9 +1,9 @@
 # Limitations and roadmap
 
-## Known limitations after Round 06
+## Known limitations after Round 07
 
 - **Net capacity covers vomitories, wheelchair platforms and (optionally) poor sightlines.** Camera and media positions, kill-offs behind structure, and segregation gaps are not modelled yet.
-- **Aisles and vomitories are geometric.** Radial aisles, lateral cross-aisles and vomitory openings are placed and counted, but there is no stair geometry inside aisles and no egress calculation: exit widths, travel distances and egress time still need a code analysis (`review.egress`).
+- **Aisles and vomitories are geometric, and egress stops at the vomitory.** Round 07 routes every seat to its vomitory or tier exit and times each exit at Green Guide rates (recall), but there is no stair geometry inside aisles and no concourse, stair or gate capacity: a full egress analysis still needs a code consultant (`review.egress`).
 - **Accessible positions** follow the US ADA 221.2.1.1 count (recall). Dispersion rules, sightlines over standing spectators and other jurisdictions' numbers are not checked.
 - **One ring shape.** Stands can now sit at different distances, carry different row counts or be left open, but the plan is still a rounded rectangle (straight stands with circular corners). Oval or bowed stands and corner tiers that fold back are not modelled. Each tier keeps one rake all the way round.
 - **The building is conceptual space planning.** Concourses, program zones and cores are set out from the bowl with allowances you set. There are no stair runs, escalators or ramps inside the cores, no toilet fixture counts, and no exit-capacity or travel-distance check (`review.egress`, `manicai.program`, `manicai.cores`).
@@ -19,6 +19,8 @@
 - **Sightlines** use C-values to the nearest field line at field level, on the section and along each seat's plan sightline. There's no check for obstruction by the tier above.
 - **Rhino terraces arrive uncapped in pieces** because rhino3dm cannot join or cap. Run `manicai_join_tiers.py` in Rhino to make closed polysurfaces.
 - **Big `.3dm` files:** about 0.75 KB per seat.
+- **Design studies are comparisons, not analyses.** View quality uses MANICAI weights; the sun study counts direct sun through a massing (no diffuse light or turf model; precedent pitch orientations are not the real sites'); carbon is A1–A3 of the structure, roof and facade with generic factors; revenue uses placeholder prices. See [STUDIES.md](STUDIES.md).
+- **The explorer searches a few variables** (distances, corner radius, rows) with a seeded search; tiers, rakes, premium levels and the roof are held, and it is not a proof of optimality.
 - **Interoperability is validated by readers, not by target tools.** The IFC passes IfcOpenShell schema and geometry checks, the GLB the Khronos validator and the DXF the ezdxf audit, but none has been opened in Revit, ArchiCAD, Navisworks or AutoCAD yet. The Revit notes in [INTEROP.md](INTEROP.md) are untested. No materials, fire ratings or classification codes, and DWG only via DXF.
 - **Codes:** Green Guide values are UK. US (IBC/NFPA 101, ADA) and other jurisdictions are not encoded yet. Several rules are tagged **recall** and must be checked against current editions.
 - **Precedent presets** are low-confidence studies fitted to published capacity, not the buildings.
@@ -33,6 +35,6 @@
 | ~~R04 · Stadium architecture~~ | Done: structural grid, rakers and columns, seven roof typologies with coverage and the high-ball view, facade families with portals and materials, back-of-house at event level, exterior view and x-ray, Rhino layers 08, 09, 10 and 16. Carried over: transfer structure and bracing zones, sun and shade, bowed facades. |
 | ~~R05 · Technical infrastructure~~ | Done: field lighting by the lumen method on a roof catwalk or corner masts with aiming and glare-angle checks, video and ribbon boards coordinated with the roof, speakers and Wi-Fi, broadcast cameras, press tribune and compound, MEP risers, rooms, duct zones and an energy centre, service yard and field access, night preview and system isolation, Rhino layers 11–15 and 17. Carried over: point-by-point lighting, concourse and architectural lighting, DAS and security zones, smoke control. |
 | ~~R06 · Professional interoperability~~ | Done: one BIM element model with model status; IFC 4 with spatial structure, typed seats and floodlights, openings, property and quantity sets, validated with IfcOpenShell; exact arc extrusions in the .3dm; glTF with instanced seats; plan and section DXF; quantity and element schedules; a 15-check model check; Revit workflow notes. Carried over: testing in Revit and ArchiCAD, materials and classification, direct DWG. |
-| **R07 · Optimization** | Multivariable optimisation, scenarios, sightline heat maps, circulation, environmental studies, quantities and carbon. |
+| ~~R07 · Optimization~~ | Done: view-quality heat map, seating egress with exit loads and routes, sun and shade on the pitch and seats, material quantities and A1–A3 carbon, premium revenue scenarios, scenario comparison, and a capacity–proximity explorer with a Pareto front and alternatives. Carried over: concourse and gate egress, wind and acoustics, daylight and turf modelling, cost, more search variables (tiers, rakes, premium). |
 | **R08 · Product refinement** | Performance, polish, preset library, sharing and documentation. Site and orientation tools. |
 | **Later** | Arenas (MANICA's arena work), baseball, revenue modelling, acoustics. |
