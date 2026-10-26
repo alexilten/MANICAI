@@ -1,6 +1,6 @@
 # Limitations and roadmap
 
-## Known limitations after Round 07
+## Known limitations after Round 08
 
 - **Net capacity covers vomitories, wheelchair platforms and (optionally) poor sightlines.** Camera and media positions, kill-offs behind structure, and segregation gaps are not modelled yet.
 - **Aisles and vomitories are geometric, and egress stops at the vomitory.** Round 07 routes every seat to its vomitory or tier exit and times each exit at Green Guide rates (recall), but there is no stair geometry inside aisles and no concourse, stair or gate capacity: a full egress analysis still needs a code consultant (`review.egress`).
@@ -21,6 +21,8 @@
 - **Big `.3dm` files:** about 0.75 KB per seat.
 - **Design studies are comparisons, not analyses.** View quality uses MANICAI weights; the sun study counts direct sun through a massing (no diffuse light or turf model; precedent pitch orientations are not the real sites'); carbon is A1–A3 of the structure, roof and facade with generic factors; revenue uses placeholder prices. See [STUDIES.md](STUDIES.md).
 - **The explorer searches a few variables** (distances, corner radius, rows) with a seeded search; tiers, rakes, premium levels and the roof are held, and it is not a proof of optimality.
+- **Work is kept in one browser.** The autosave, My presets and saved scenarios live in this browser's storage; another browser or a cleared cache starts empty. Share links and project files are the way to move a design. There are no accounts, shared cloud projects or simultaneous editing.
+- **Share links carry the design in the link.** They are about 2 kB, nothing is uploaded, and anyone with the link can open the design. A link records the design at the moment it was made; later edits need a new link.
 - **Interoperability is validated by readers, not by target tools.** The IFC passes IfcOpenShell schema and geometry checks, the GLB the Khronos validator and the DXF the ezdxf audit, but none has been opened in Revit, ArchiCAD, Navisworks or AutoCAD yet. The Revit notes in [INTEROP.md](INTEROP.md) are untested. No materials, fire ratings or classification codes, and DWG only via DXF.
 - **Codes:** Green Guide values are UK. US (IBC/NFPA 101, ADA) and other jurisdictions are not encoded yet. Several rules are tagged **recall** and must be checked against current editions.
 - **Precedent presets** are low-confidence studies fitted to published capacity, not the buildings.
@@ -36,5 +38,6 @@
 | ~~R05 · Technical infrastructure~~ | Done: field lighting by the lumen method on a roof catwalk or corner masts with aiming and glare-angle checks, video and ribbon boards coordinated with the roof, speakers and Wi-Fi, broadcast cameras, press tribune and compound, MEP risers, rooms, duct zones and an energy centre, service yard and field access, night preview and system isolation, Rhino layers 11–15 and 17. Carried over: point-by-point lighting, concourse and architectural lighting, DAS and security zones, smoke control. |
 | ~~R06 · Professional interoperability~~ | Done: one BIM element model with model status; IFC 4 with spatial structure, typed seats and floodlights, openings, property and quantity sets, validated with IfcOpenShell; exact arc extrusions in the .3dm; glTF with instanced seats; plan and section DXF; quantity and element schedules; a 15-check model check; Revit workflow notes. Carried over: testing in Revit and ArchiCAD, materials and classification, direct DWG. |
 | ~~R07 · Optimization~~ | Done: view-quality heat map, seating egress with exit loads and routes, sun and shade on the pitch and seats, material quantities and A1–A3 carbon, premium revenue scenarios, scenario comparison, and a capacity–proximity explorer with a Pareto front and alternatives. Carried over: concourse and gate egress, wind and acoustics, daylight and turf modelling, cost, more search variables (tiers, rakes, premium). |
-| **R08 · Product refinement** | Performance, polish, preset library, sharing and documentation. Site and orientation tools. |
-| **Later** | Arenas (MANICA's arena work), baseball, revenue modelling, acoustics. |
+| ~~R08 · Product refinement~~ | Done: exports loaded on demand and libraries cached across deploys, presets built once, study colours computed after the design settles; autosave and restore, share links, My presets with a sport filter, a Site section; damaged-file repair, refused edits and error recovery; version stamp, About and shortcuts; design tokens and contrast; user guide, design system, changelog; tests AX–BB with a random-design stability test; [evaluation of arenas and deeper BIM](EVALUATION.md). Carried over: accounts and shared cloud projects, a point-by-point lighting calculation, testing the IFC in Revit and ArchiCAD. |
+| **Next (proposed)** | An IFC test pack for Revit and ArchiCAD, then arenas in two rounds (event floors and configurations; concerts, rigging and presets), concourse and gate egress, and a headless generator. See [EVALUATION.md](EVALUATION.md). |
+| **Later** | Baseball, acoustics, wind, cost, precinct planning. |

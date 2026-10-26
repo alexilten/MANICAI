@@ -54,6 +54,8 @@ export function LeftPanel() {
           <LengthControl label="Run-off, ends" units={u} value={p.field.runoffEnd} min={2000} max={20000} step={250} onChange={(v) => set((x) => { x.field.runoffEnd = v; }, 'field.runoffEnd')} />
         </Section>
 
+        <SiteSection />
+
         <Section title="Bowl" summary={`${fmtInt(st.metrics.total)} seats`}>
           <NumberControl label="Target capacity" value={p.bowl.targetCapacity} min={5000} max={110000} step={500} format={fmtInt}
             onChange={(v) => set((x) => { x.bowl.targetCapacity = v; }, 'bowl.target')}
@@ -479,6 +481,35 @@ function MepControls() {
       <div className="sub-label">Vehicle access onto the field</div>
       <Segmented size="sm" value={S.service.fieldAccess} onChange={(v) => set('service', (x) => { x.fieldAccess = v; }, 'fa')} options={[{ value: 'none', label: 'None' }, ...STAND_IDS.map((g) => ({ value: g, label: g }))]} />
       <p className="muted small">Space reservations from planning ratios, not engineered systems.</p>
+    </Section>
+  );
+}
+
+const COMPASS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+const compass = (deg: number) => COMPASS[Math.round((((deg % 360) + 360) % 360) / 45) % 8];
+
+/** Round 08: where the stadium sits. Orientation and latitude drive the sun study; nothing here moves geometry. */
+function SiteSection() {
+  const site = useStore((s) => s.project.site);
+  const studyLat = useStore((s) => s.project.studies.sun.latitude);
+  const edit = useStore((s) => s.edit);
+  const set = (fn: (x: Project['site']) => void, key: string) => edit((p) => fn(p.site), `site.${key}`);
+  // +X is the long axis of the field; its bearing modulo 180 is how the field lies
+  const axis = ((site.northDeg % 180) + 180) % 180;
+  const offNS = Math.min(axis, 180 - axis);
+  const quarter = [0, 45, 90, 135].reduce((a, b) => (Math.abs(b - axis) < Math.abs(a - axis) ? b : a), 0);
+  return (
+    <Section title="Site" summary={`Field axis ${compass(site.northDeg)}–${compass(site.northDeg + 180)} · ${site.latitude == null ? 'no latitude' : `${Math.abs(site.latitude).toFixed(1)}° ${site.latitude >= 0 ? 'N' : 'S'}`}`} defaultOpen={false}>
+      <div className="sub-label">Field orientation</div>
+      <Segmented size="sm" value={String(quarter)} onChange={(v) => set((x) => { x.northDeg = +v; }, 'northDeg')} options={[
+        { value: '0', label: 'N–S' }, { value: '45', label: 'NE–SW' }, { value: '90', label: 'E–W' }, { value: '135', label: 'SE–NW' },
+      ]} />
+      <NumberControl label="Bearing of the field axis (+X)" value={site.northDeg} min={0} max={359} step={1} suffix="°" onChange={(v) => set((x) => { x.northDeg = v; }, 'northDeg')}
+        hint={offNS <= 20 ? 'The long axis runs roughly north–south, the usual choice to keep low sun out of players\' eyes (recall; check the sport\'s stadium guide).' : `The long axis is ${Math.round(offNS)}° off north–south: check the low sun at the ends in the Sun study.`} />
+      <NumberControl label="Latitude" value={site.latitude ?? studyLat} min={-60} max={65} step={0.1} suffix="°" onChange={(v) => set((x) => { x.latitude = v; }, 'latitude')}
+        hint={site.latitude == null ? `Not set: the sun study uses ${studyLat}°` : undefined} />
+      <NumberControl label="Longitude" value={site.longitude ?? 0} min={-180} max={180} step={0.1} suffix="°" onChange={(v) => set((x) => { x.longitude = v; }, 'longitude')} hint="Recorded with the project and in the IFC site; the sun study uses solar time." />
+      <p className="muted small">The model stays at the origin with +X along the field; the site sets which way that points on the ground. The Rhino and IFC exports carry the bearing, and IFC the latitude and longitude.</p>
     </Section>
   );
 }

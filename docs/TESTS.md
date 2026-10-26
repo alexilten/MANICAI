@@ -1,6 +1,6 @@
-# Acceptance tests (Rounds 01–07)
+# Acceptance tests (Rounds 01–08)
 
-`npm test` runs 117 tests in `tests/`. All 117 pass as of 2026-10-26 (Node 22, vitest 3). A–J are the Round 01 tests, K–Q came with Round 02, R–W with Round 03, X–AC with Round 04, AD–AI with Round 05, AJ–AO with Round 06 and AP–AW with Round 07.
+`npm test` runs 125 tests in `tests/`. All 125 pass as of 2026-10-26 (Node 22, vitest 3). A–J are the Round 01 tests, K–Q came with Round 02, R–W with Round 03, X–AC with Round 04, AD–AI with Round 05, AJ–AO with Round 06, AP–AW with Round 07 and AX–BB with Round 08.
 
 | Test | What is checked | File |
 |---|---|---|
@@ -51,6 +51,11 @@
 | AU · explorer | The current design is candidate 0; the front is feasible, non-dominated and recomputes independently; no candidate is inside the run-off; the recommended design rebuilt through the full resolver has the same capacity and mean distance; the search is repeatable; a design below the minimum C is flagged. | `round07.test.ts` |
 | AV · scenarios | Two designs summarise to the same rows with every study, and the comparison CSV has one column per scenario. | `round07.test.ts` |
 | AW · v5 files | v5 files open as v6 with the default studies and their Round 05 capacity and floor area (64,578 / 81,097 m² and 71,398 / 49,585 m²). | `round07.test.ts` |
+| AX · stability | 60 random variations of the presets (seeded, so failures reproduce) change distances, corner radius, seat width, aisles, sightline mode, tier and row counts down to none, field size, roof and facade types, site north, latitude and kick-off time. Every one builds, with finite metrics, finite seat coordinates and finite view, egress, sun, carbon and revenue results. A 300-design run of the same generator found no failures during the round. | `round08.test.ts` |
+| AY · damaged files | Every preset reopens with nothing repaired. A file with text for a number, a null row count, an infinite seat width, an unknown sport, roof type, portal count, tier kind and roof stand, and a studies block that is not an object opens with each of those reset to the default and listed, and still builds. Newer versions and non-projects are refused. | `round08.test.ts` |
+| AZ · share links | Three presets go into a link fragment (under 2.5 kB) and come back identical with nothing repaired. A fragment without a design is ignored and a damaged one is reported. | `round08.test.ts` |
+| BA · preset library | A preset gives an equal but independent copy each time, so changing one never changes the next. | `round08.test.ts` |
+| BB · version stamp | The app version equals package.json; a saved file names it with the save time, and reads back equal to the project with nothing repaired. | `round08.test.ts` |
 | I · performance | A fitted bowl of about 75,000 seats regenerates from scratch in under 1.5 s. This is a CI guard; see the benchmark below. | `bench.test.ts` |
 | J · assumptions visible | Every preset lists its assumptions and precedent presets list published facts. Every rule has a kind, verification and source, and every referenced rule exists. The scope warning is always shown. Every preset fits within 2% of its target net capacity and meets the ADA wheelchair count. | `core.test.ts` |
 
@@ -69,4 +74,15 @@ Node 22.22, engine only (no rendering), median of 7 runs, run in the cloud build
 | 75,000 | 75,864 | 3 | 49 | 44 | 46 |
 | 100,000 | 100,284 | 3 | 61 | 60 | 60 |
 
-In the browser, the GPU upload of instanced seats adds to these times. Rhino export of a 42,000-seat bowl took about 3 s and wrote a 31 MB file; the 30,444-seat sample is 23.8 MB.
+In the browser, the GPU upload of instanced seats adds to these times.
+
+### In the browser (Round 08)
+
+Production build, Chromium with software WebGL (SwiftShader) in the cloud container, median of 5 edits, time from the edit to the next task (engine plus React and scene updates, not the GPU frame). A desktop GPU draws the frame much faster than SwiftShader; these numbers measure the main thread.
+
+| preset | seats | first-row distance | seat width | rows | roof overhang |
+|---|---:|---:|---:|---:|---:|
+| Generic soccer | 41,582 | 139 ms | 145 ms | 105 ms | 63 ms |
+| Milano-inspired | 70,760 | 239 ms | 106 ms | 152 ms | 59 ms |
+
+The design studies at 100,000 seats take 26 ms (view quality), 300 ms (egress), 270 ms (pitch sun) and about 0.9 s (sun on every seat). Since Round 08 they run once the design has settled for 200 ms, so they never slow a slider drag. Rhino export of a 42,000-seat bowl took about 3 s and wrote a 31 MB file; the 30,444-seat sample is 23.8 MB.
