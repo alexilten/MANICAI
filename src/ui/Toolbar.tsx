@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { PRESETS } from '../core/presets';
-import { export3dm, exportJoinScript, exportProject, exportSeatsCsv, loadRhino, openProjectFile } from '../export/browser';
+import { export3dm, exportDxfFile, exportElements, exportGlbFile, exportIfcFile, exportJoinScript, exportProject, exportQuantities, exportReport, exportSeatsCsv, loadRhino, openProjectFile } from '../export/browser';
 import { Segmented } from './controls';
 import { Icon } from './icons';
 import { useStore, type CameraView, type Mode } from './store';
@@ -53,6 +53,16 @@ export function Toolbar() {
     } catch (e) { toast(`Export failed: ${(e as Error).message}`); } finally { setBusy(false); }
   };
 
+  /** a synchronous export, run after the menu closes so the busy state paints */
+  const run = async (label: string, fn: () => number | void) => {
+    setBusy(true); setMenu(null);
+    try {
+      await new Promise((r) => setTimeout(r, 30));
+      const bytes = fn();
+      toast(`${label} written${typeof bytes === 'number' ? ` · ${(bytes / 1e6).toFixed(1)} MB` : ''}`);
+    } catch (e) { toast(`Export failed: ${(e as Error).message}`); } finally { setBusy(false); }
+  };
+
   const preset = PRESETS.find((x) => x.id === project.presetId);
 
   return (
@@ -89,11 +99,18 @@ export function Toolbar() {
               <button className="menu-item" onClick={() => do3dm(8, false)}>Rhino 8, bowl only (no seats)<span>.3dm</span></button>
               <button className="menu-item" onClick={() => { exportJoinScript(); setMenu(null); }}>Join-tiers script<span>.py</span></button>
               <div className="menu-sep" />
-              <div className="menu-title">Data</div>
-              <button className="menu-item" onClick={() => { exportSeatsCsv(stadium); setMenu(null); }}>Seat schedule<span>.csv</span></button>
-              <button className="menu-item" onClick={() => { exportProject(project); setMenu(null); }}>Project<span>.json</span></button>
+              <div className="menu-title">BIM &amp; CAD</div>
+              <button className="menu-item" onClick={() => run('IFC 4 model', () => exportIfcFile(stadium, true))}>IFC 4 model (Revit, Archicad…)<span>.ifc</span></button>
+              <button className="menu-item" onClick={() => run('IFC 4 model, no seats', () => exportIfcFile(stadium, false))}>IFC 4, no seats<span>.ifc</span></button>
+              <button className="menu-item" onClick={() => run('glTF model', () => exportGlbFile(stadium))}>glTF model (web, Blender, engines)<span>.glb</span></button>
+              <button className="menu-item" onClick={() => run('DXF plan and section', () => exportDxfFile(stadium, true))}>Plan and section drawing<span>.dxf</span></button>
               <div className="menu-sep" />
-              <div className="menu-item disabled">IFC · GLB · DWG<span>R06</span></div>
+              <div className="menu-title">Schedules &amp; data</div>
+              <button className="menu-item" onClick={() => run('Quantity schedule', () => exportQuantities(stadium))}>Quantity schedule<span>.csv</span></button>
+              <button className="menu-item" onClick={() => run('Element schedule', () => exportElements(stadium))}>Element schedule<span>.csv</span></button>
+              <button className="menu-item" onClick={() => { exportSeatsCsv(stadium); setMenu(null); }}>Seat schedule<span>.csv</span></button>
+              <button className="menu-item" onClick={() => run('Model check report', () => exportReport(stadium))}>Model check report<span>.md</span></button>
+              <button className="menu-item" onClick={() => { exportProject(project); setMenu(null); }}>Project<span>.json</span></button>
             </div>
           )}
         </div>

@@ -6,6 +6,8 @@ import { getPreset, precedentOf } from '../core/presets';
 import { formatArea, formatLength } from '../core/units';
 import { useEffect, useState } from 'react';
 import { KV, Metric, Section, Segmented } from './controls';
+import { checkModel } from '../export/browser';
+import type { ModelReport } from '../export/verify';
 import { Icon } from './icons';
 import { FUTURE_LAYERS, LAYERS, useStore, type AnalysisMetric } from './store';
 import { legendFor } from '../viewport/palette';
@@ -89,6 +91,7 @@ export function RightPanel() {
         <BuildingSection />
         <EnvelopeSection />
         <SystemsSection />
+        <ModelCheckSection />
 
         <Section title="Layers">
           <ul className="layers">
@@ -356,6 +359,32 @@ function SystemsSection() {
       <KV k="Service yard" v={`${n(sm.service.yardArea)} m² on the ${({ N: 'north', S: 'south', E: 'east', W: 'west' } as const)[sm.service.yard]} side · ${sm.service.dockBays} bays`} tone={sm.service.yardFit >= 0.98 ? 'ok' : 'warn'} />
       <KV k="Field access tunnel" v={sm.service.fieldAccess ? `from the ${({ N: 'north', S: 'south', E: 'east', W: 'west' } as const)[p.systems.service.fieldAccess as 'N']}` : 'none'} />
       <p className="muted small method">Lumen-method fixture count with a generic fixture, MANICAI planning ratios for plant and loads. These are space reservations to coordinate, not engineered systems (standards: manicai.lighting, fifa.lighting, manicai.boards, manicai.broadcast, manicai.mep).</p>
+    </Section>
+  );
+}
+
+/** Round 06: the model check, run on demand (it builds the element model and an IFC read-back). */
+function ModelCheckSection() {
+  const st = useStore((s) => s.stadium);
+  const [report, setReport] = useState<{ for: typeof st; r: ModelReport } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const current = report?.for === st ? report.r : null;
+  const run = () => { setBusy(true); setTimeout(() => { try { setReport({ for: st, r: checkModel(st) }); } finally { setBusy(false); } }, 20); };
+  return (
+    <Section title="Model check" summary={current ? `${current.pass}/${current.checks.length} passed` : 'not run'} defaultOpen={false} badge="R06">
+      <p className="muted small">Checks the model before it leaves MANICAI: closed solids, exact against tessellated volumes, unique ids, layers and IFC classes, exported seats against the capacity, and an IFC read-back.</p>
+      <button className="btn-sm wide" disabled={busy} onClick={run}>{busy ? 'Checking…' : current ? 'Run again' : 'Run model check'}</button>
+      {report && !current && <p className="muted small">The design changed since the last check.</p>}
+      {current && (
+        <ul className="warnings checks">
+          {current.checks.map((c) => (
+            <li key={c.id} className={c.status === 'pass' ? 'ok' : c.status === 'warn' ? 'warn' : 'error'} title={c.detail}>
+              <span className="w-icon">{c.status === 'pass' ? '✓' : <Icon.warn />}</span><span><b>{c.label}</b><br />{c.detail}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      <p className="muted small method">Consistency checks of a conceptual model, not code, structural or engineering checks. Export menu: IFC 4, glTF, DXF and the schedules all come from the same element model.</p>
     </Section>
   );
 }

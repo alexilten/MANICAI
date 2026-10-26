@@ -4,7 +4,13 @@ import joinScript from './rhino/manicai_join_tiers.py?raw';
 import type { Stadium } from '../core/engine/stadium';
 import { parseProject, serializeProject, type Project } from '../core/schema';
 import { seatsCsv } from './csv';
+import { exportDxf } from './dxf';
+import { exportGlb } from './gltf';
+import { exportIfc } from './ifc';
+import { buildModel } from './model';
+import { elementsCsv, quantitiesCsv } from './quantities';
 import { exportRhino, projectFrom3dm, type RhinoModule } from './rhino';
+import { reportMarkdown, verifyModel } from './verify';
 
 let rhinoPromise: Promise<RhinoModule> | null = null;
 export function loadRhino(): Promise<RhinoModule> {
@@ -30,6 +36,21 @@ export async function export3dm(s: Stadium, opts: { version: 7 | 8; seats: boole
 }
 export const exportProject = (p: Project) => download(`${slug(p.name)}.manicai.json`, serializeProject(p), 'application/json');
 export const exportSeatsCsv = (s: Stadium) => download(`${slug(s.project.name)}_seats.csv`, seatsCsv(s), 'text/csv');
+// Round 06: professional exports, all from one element model per stadium
+const models = new WeakMap<Stadium, ReturnType<typeof buildModel>>();
+const modelOf = (s: Stadium) => { let m = models.get(s); if (!m) { m = buildModel(s); models.set(s, m); } return m; };
+export function exportIfcFile(s: Stadium, seats: boolean) {
+  const text = exportIfc(s, { seats, model: modelOf(s) });
+  download(`${slug(s.project.name)}${seats ? '' : '_no-seats'}.ifc`, text, 'application/x-step');
+  return text.length;
+}
+export function exportGlbFile(s: Stadium) { const b = exportGlb(s, { model: modelOf(s) }); download(`${slug(s.project.name)}.glb`, b as BlobPart, 'model/gltf-binary'); return b.length; }
+export function exportDxfFile(s: Stadium, seats: boolean) { const t = exportDxf(s, { seats, model: modelOf(s) }); download(`${slug(s.project.name)}_plan-section.dxf`, t, 'image/vnd.dxf'); return t.length; }
+export const exportQuantities = (s: Stadium) => download(`${slug(s.project.name)}_quantities.csv`, quantitiesCsv(s, modelOf(s)), 'text/csv');
+export const exportElements = (s: Stadium) => download(`${slug(s.project.name)}_elements.csv`, elementsCsv(s, modelOf(s)), 'text/csv');
+/** The model check, with an IFC read-back (the file is written in memory and not downloaded). */
+export const checkModel = (s: Stadium) => { const m = modelOf(s); return verifyModel(s, m, exportIfc(s, { model: m, seats: false })); };
+export const exportReport = (s: Stadium) => download(`${slug(s.project.name)}_model-check.md`, reportMarkdown(s, checkModel(s)), 'text/markdown');
 export const exportJoinScript = () => download('manicai_join_tiers.py', joinScript, 'text/x-python');
 
 /** Open a saved project: .manicai.json, or a MANICAI .3dm (reads the embedded project). */
