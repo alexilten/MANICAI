@@ -2,7 +2,8 @@
  * Writes the sample deliverables: every preset as a project file, Rhino 8 files for two presets
  * (one with seats, one bowl-only) and a seat schedule. Each .3dm is re-read through openNURBS
  * and summarised in samples/manifest.json. Round 06 adds the professional exports for one preset (IFC, glTF,
- * DXF, quantity and element schedules, the model check) and a seated IFC of the four-stand bowl.
+ * DXF, quantity and element schedules, the model check) and a seated IFC of the four-stand bowl. Round 07
+ * adds two design-study reports and the capacity–proximity exploration of the generic soccer bowl.
  */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -18,6 +19,8 @@ import { exportIfc } from '../src/export/ifc';
 import { buildModel } from '../src/export/model';
 import { elementsCsv, quantitiesCsv } from '../src/export/quantities';
 import { reportMarkdown, verifyModel } from '../src/export/verify';
+import { explore, exploreCsv } from '../src/studies/explore';
+import { studiesMarkdown } from '../src/studies/report';
 
 mkdirSync('examples', { recursive: true });
 mkdirSync('samples', { recursive: true });
@@ -71,4 +74,18 @@ for (const j of pro) {
   writeFileSync(`samples/${j.base}_quantities.csv`, quantitiesCsv(s, model));
   writeFileSync(`samples/${j.base}_elements.csv`, elementsCsv(s, model));
   writeFileSync(`samples/${j.base}_model-check.md`, reportMarkdown(s, report));
+}
+
+// ── Round 07: design studies and the capacity–proximity exploration
+for (const [id, base] of [['allegiant', 'allegiant-inspired'], ['single-end', 'single-end-tottenham-inspired']] as const) {
+  clearStadiumCache();
+  const s = resolveStadium(getPreset(id).build());
+  writeFileSync(`samples/${base}_studies.md`, studiesMarkdown(s));
+  console.log(`${base}_studies.md`);
+}
+{
+  const t0 = performance.now();
+  const r = explore(getPreset('generic-soccer').build());
+  writeFileSync('samples/generic-soccer_options.csv', exploreCsv(r));
+  console.log(`generic-soccer_options.csv: ${r.evaluations} options, ${r.front.length} on the front, ${Math.round(performance.now() - t0)} ms`);
 }

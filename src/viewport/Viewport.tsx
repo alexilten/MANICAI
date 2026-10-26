@@ -11,6 +11,7 @@ import { Seats, Terraces, Vomitories, WheelchairPads } from './Bowl';
 import { BackOfHouse, Facade, Grid, Plaza, Roof, Structure } from './Architecture';
 import { Cores, Floors, Suites } from './Building';
 import { Field } from './Field';
+import { PitchSunMap } from './Studies';
 import { AvIt, Broadcast, Lighting, Mep, Site } from './Systems';
 
 /** World is mm, Z-up (core/coords.ts). three.js is Y-up metres → one wrapping transform. */
@@ -23,6 +24,7 @@ export function Viewport() {
   const project = useStore((s) => s.project);
   const layers = useStore((s) => s.layers);
   const mode = useStore((s) => s.mode);
+  const metric = useStore((s) => s.metric);
   const cut = useStore((s) => s.cut);
   const selectSeat = useStore((s) => s.selectSeat);
   const xray = useStore((s) => s.xray);
@@ -64,6 +66,7 @@ export function Viewport() {
 
       <group rotation={WORLD_ROTATION} scale={MM}>
         {layers.field && <Field field={stadium.field} />}
+        {layers.field && mode === 'analysis' && metric === 'sun' && <PitchSunMap stadium={stadium} />}
         {layers.terraces && <Terraces ring={stadium.ring} profiles={stadium.profiles} regions={stadium.layout.rows} clip={clip} />}
         {layers.terraces && <Vomitories ring={stadium.ring} voms={stadium.seats.vomitories} clip={clip} />}
         {layers.seats && <Seats seats={stadium.seats.seats} project={project} clip={clip} />}

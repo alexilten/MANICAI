@@ -11,6 +11,7 @@ import { buildModel } from './model';
 import { elementsCsv, quantitiesCsv } from './quantities';
 import { exportRhino, projectFrom3dm, type RhinoModule } from './rhino';
 import { reportMarkdown, verifyModel } from './verify';
+import { studiesMarkdown } from '../studies/report';
 
 let rhinoPromise: Promise<RhinoModule> | null = null;
 export function loadRhino(): Promise<RhinoModule> {
@@ -51,6 +52,7 @@ export const exportElements = (s: Stadium) => download(`${slug(s.project.name)}_
 /** The model check, with an IFC read-back (the file is written in memory and not downloaded). */
 export const checkModel = (s: Stadium) => { const m = modelOf(s); return verifyModel(s, m, exportIfc(s, { model: m, seats: false })); };
 export const exportReport = (s: Stadium) => download(`${slug(s.project.name)}_model-check.md`, reportMarkdown(s, checkModel(s)), 'text/markdown');
+export const exportStudies = (s: Stadium) => download(`${slug(s.project.name)}_studies.md`, studiesMarkdown(s), 'text/markdown');
 export const exportJoinScript = () => download('manicai_join_tiers.py', joinScript, 'text/x-python');
 
 /** Open a saved project: .manicai.json, or a MANICAI .3dm (reads the embedded project). */

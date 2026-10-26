@@ -9,6 +9,7 @@ import { KV, Metric, Section, Segmented } from './controls';
 import { checkModel } from '../export/browser';
 import type { ModelReport } from '../export/verify';
 import { Icon } from './icons';
+import { StudiesSection } from './StudiesPanel';
 import { FUTURE_LAYERS, LAYERS, useStore, type AnalysisMetric } from './store';
 import { legendFor } from '../viewport/palette';
 import { PROGRAM_LEGEND, PROGRAM_TONES } from '../viewport/Building';
@@ -83,7 +84,7 @@ export function RightPanel() {
 
         {mode === 'analysis' && (
           <Section title="Analysis colouring">
-            <Segmented value={metric} onChange={(v: AnalysisMetric) => setMetric(v)} wrap options={[{ value: 'cvalue', label: 'C-value' }, { value: 'distance', label: 'Distance' }, { value: 'tier', label: 'Tier' }, { value: 'sector', label: 'Sector' }, { value: 'class', label: 'Class', title: 'Seat class and excluded positions' }]} />
+            <Segmented value={metric} onChange={(v: AnalysisMetric) => setMetric(v)} wrap options={[{ value: 'cvalue', label: 'C-value' }, { value: 'distance', label: 'Distance' }, { value: 'quality', label: 'Quality', title: 'View quality score (Round 07)' }, { value: 'egress', label: 'Egress', title: 'Route to the exit (Round 07)' }, { value: 'sun', label: 'Sun', title: 'Sun at kick-off, and pitch sunlight hours (Round 07)' }, { value: 'tier', label: 'Tier' }, { value: 'sector', label: 'Sector' }, { value: 'class', label: 'Class', title: 'Seat class and excluded positions' }]} />
             <div className="legend">{legendFor(metric, p).map((l) => <span key={l.label}><i style={{ background: l.color }} />{l.label}</span>)}</div>
           </Section>
         )}
@@ -91,6 +92,7 @@ export function RightPanel() {
         <BuildingSection />
         <EnvelopeSection />
         <SystemsSection />
+        <StudiesSection />
         <ModelCheckSection />
 
         <Section title="Layers">

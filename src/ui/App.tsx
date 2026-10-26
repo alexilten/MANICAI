@@ -1,4 +1,5 @@
 import { Viewport } from '../viewport/Viewport';
+import { ComparePanel } from './ComparePanel';
 import { Segmented } from './controls';
 import { LeftPanel } from './LeftPanel';
 import { RightPanel } from './RightPanel';
@@ -14,6 +15,7 @@ export function App() {
       <RightPanel />
       <ViewBar />
       <Hud />
+      <ComparePanel />
       <Toast />
     </div>
   );
