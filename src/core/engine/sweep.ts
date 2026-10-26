@@ -87,7 +87,12 @@ export function earcut(pts: [number, number][]): [number, number, number][] {
     for (let i = 0; i < V.length; i++) {
       const ia = V[(i - 1 + V.length) % V.length], ib = V[i], ic = V[(i + 1) % V.length];
       const a = pts[ia], b = pts[ib], c = pts[ic];
-      const convex = (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]) > 1e-9;
+      const cr = (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
+      // a straight-through vertex (the stepped tier outlines have runs of them): clip it as a zero-area
+      // triangle, which keeps the cap's edges matched to the side walls (the solid stays closed)
+      const straight = Math.abs(cr) <= 1e-9 * Math.hypot(b[0] - a[0], b[1] - a[1]) * Math.hypot(c[0] - b[0], c[1] - b[1]) && (b[0] - a[0]) * (c[0] - b[0]) + (b[1] - a[1]) * (c[1] - b[1]) > 0;
+      if (straight) { tris.push([ia, ib, ic]); V.splice(i, 1); clipped = true; break; }
+      const convex = cr > 1e-9;
       if (!convex) continue;
       if (V.some((j) => j !== ia && j !== ib && j !== ic && inside(pts[j], a, b, c))) continue;
       tris.push([ia, ib, ic]);

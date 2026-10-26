@@ -161,7 +161,8 @@ describe('W · v2 files and the Rhino building layers', () => {
     const f = inspect3dm(rh, exportRhino(rh, s, { version: 8, seats: false }));
     const on = (l: string) => f.objects.filter((o) => o.layer === l);
     expect(on('05_PREMIUM::SUITES').length).toBe(s.building.suites.length);
-    expect(on('05_PREMIUM::SUITES').every((o) => o.type === 'Brep')).toBe(true);
+    // Round 06: exact extrusions of the plan outline (a faceted Brep only where openNURBS cannot cap one)
+    expect(on('05_PREMIUM::SUITES').every((o) => o.type === 'Extrusion' || o.type === 'Brep')).toBe(true);
     expect(on('07_VERTICAL_CIRCULATION::CORES').length).toBe(s.building.cores.length);
     expect(on('06_CONCOURSES::FLOOR_PLATES').map((o) => o.name).sort()).toEqual(s.building.levels.filter((l) => l.kind === 'concourse').map((l) => l.id).sort());
     expect(f.objects.filter((o) => o.layer?.startsWith('06_CONCOURSES::PROGRAM::')).length).toBe(s.building.program.length);

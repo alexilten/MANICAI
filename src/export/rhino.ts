@@ -12,8 +12,8 @@
  *     club seats on 05_PREMIUM, wheelchair positions and companion seats on 04_ACCESSIBILITY, and the positions
  *     removed for vomitories / platforms as named points on 91_ANALYSIS::EXCLUDED_SEATS
  *   • vomitory openings as closed solids on 07_VERTICAL_CIRCULATION::VOMITORIES (the join script subtracts them)
- *   • Round 03 building: concourse and premium floor plates (closed meshes), suites, program zones and cores
- *     (closed solids) on 05_PREMIUM, 06_CONCOURSES and 07_VERTICAL_CIRCULATION, each named and carrying its area
+ *   • Round 03 building: concourse and premium floor plates, suites, program zones and cores as exact
+ *     extrusions of their plan outlines (lines and true arcs; ring plates with their inner edge as a hole) on 05_PREMIUM, 06_CONCOURSES and 07_VERTICAL_CIRCULATION, each named and carrying its area
  *   • Round 04 architecture: structural grid lines, rakers and columns (08_STRUCTURE), roof deck, cap,
  *     primary frames, trusses and panels (09_ROOF), facade skin, mullions or fins, bands and portals
  *     (10_FACADE), back-of-house rooms and the service corridor (16_BACK_OF_HOUSE)
@@ -26,8 +26,9 @@
  *   • the full project JSON in the document strings, so MANICAI can reopen the file parametrically
  */
 import { annotations } from '../core/engine/annotations';
-import { BOH_KINDS, BOH_LABEL, boxSolid, capSolid, pieceSolid, roofSkin, stationsAt, type Member, type Piece } from '../core/engine/architecture';
-import { bandSolid, PROGRAM_KINDS, PROGRAM_LABEL, SLAB, type BoxMesh } from '../core/engine/building';
+import { BOH_KINDS, BOH_LABEL, capSolid, roofSkin, stationsAt, type Member, type Piece } from '../core/engine/architecture';
+import { bandSolid, PROGRAM_KINDS, PROGRAM_LABEL, SLAB, type BoxMesh, type Span } from '../core/engine/building';
+import { arcSweep, loopArea, pieceLoop, ringLoop, type Loop } from './model';
 import { isCorner, pointAt, SECTORS, SECTOR_LABEL, SEGMENTS, type SegmentId } from '../core/engine/plan';
 import { tierOutline } from '../core/engine/profile';
 import { SEAT_STATUS, seatId } from '../core/engine/seats';
@@ -39,7 +40,7 @@ import { serializeProject } from '../core/schema';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export type RhinoModule = any;
 
-export const APP_VERSION = '0.5.0';
+export const APP_VERSION = '0.6.0';
 
 /** The MANICAI layer standard. Systems that are not generated yet keep their place in the hierarchy. */
 export const LAYER_TREE: { name: string; color: [number, number, number]; children: string[] }[] = [
@@ -223,22 +224,21 @@ export function exportRhino(rh: RhinoModule, s: Stadium, opts: RhinoExportOption
     m.compact();
     return m;
   };
-  const solidOf = (b: BoxMesh) => { const m = meshOf(b); const brep = rh.Brep.createFromMesh(m, true); free(m); return brep; };
   const B = s.building;
   for (const l of B.levels) {
     const layer = l.kind === 'concourse' ? '06_CONCOURSES::FLOOR_PLATES' : '05_PREMIUM::LEVELS';
-    add(meshOf(bandSolid(ring, 'ring', l.d0, l.d1, l.z - SLAB, l.z)), attrs(layer, l.id, { name: l.name, level_mm: Math.round(l.z), area_m2: Math.round(l.area), serves: l.serves }));
+    add(bandExtrusion(rh, ring, 'ring', l.d0, l.d1, l.z - SLAB, l.z), attrs(layer, l.id, { name: l.name, level_mm: Math.round(l.z), area_m2: Math.round(l.area), serves: l.serves }));
   }
   for (const st of B.suites) {
     const h = (p.premium.find((x) => `PREM.${x.id}` === st.level)?.height ?? 4500) - SLAB - 600;
-    add(solidOf(bandSolid(ring, { seg: st.seg, u0: st.u0, u1: st.u1 }, st.d0, st.d1, st.z, st.z + h)), attrs('05_PREMIUM::SUITES', st.id, { seats: st.seats, level_mm: Math.round(st.z) }));
+    add(bandExtrusion(rh, ring, { seg: st.seg, u0: st.u0, u1: st.u1 }, st.d0, st.d1, st.z, st.z + h), attrs('05_PREMIUM::SUITES', st.id, { seats: st.seats, level_mm: Math.round(st.z) }));
   }
   for (const z of B.program) {
     const layer = `06_CONCOURSES::PROGRAM::${PROGRAM_LABEL[z.kind].toUpperCase().replace(/[^A-Z0-9]+/g, '_')}`;
-    add(solidOf(bandSolid(ring, { seg: z.seg, u0: z.u0, u1: z.u1 }, z.d0 + 200, z.d1 - 200, z.z, z.z + 3200)), attrs(layer, z.id, { use: PROGRAM_LABEL[z.kind], area_m2: z.area.toFixed(1), level_mm: Math.round(z.z) }));
+    add(bandExtrusion(rh, ring, { seg: z.seg, u0: z.u0, u1: z.u1 }, z.d0 + 200, z.d1 - 200, z.z, z.z + 3200), attrs(layer, z.id, { use: PROGRAM_LABEL[z.kind], area_m2: z.area.toFixed(1), level_mm: Math.round(z.z) }));
   }
   for (const c of B.cores) {
-    add(solidOf(bandSolid(ring, { seg: c.seg, u0: c.u0, u1: c.u1 }, c.d0, c.d1, 0, c.zTop)), attrs('07_VERTICAL_CIRCULATION::CORES', c.id, { stairs: c.stairs, lifts: c.lifts, top_mm: Math.round(c.zTop) }));
+    add(bandExtrusion(rh, ring, { seg: c.seg, u0: c.u0, u1: c.u1 }, c.d0, c.d1, 0, c.zTop), attrs('07_VERTICAL_CIRCULATION::CORES', c.id, { stairs: c.stairs, lifts: c.lifts, top_mm: Math.round(c.zTop) }));
   }
 
   // ── Round 04 architecture
@@ -265,13 +265,13 @@ export function exportRhino(rh: RhinoModule, s: Stadium, opts: RhinoExportOption
     const sk = roofSkin(ring, r);
     sk.deck.forEach((m, i) => add(meshOf(m), attrs('09_ROOF::DECK', `ROOF.DECK${sk.deck.length > 1 ? `.${i + 1}` : ''}`, { type: r.type, material: p.architecture.roof.material })));
     if (r.cap) add(meshOf(capSolid(ring, r.dIn, r.cap.z, r.cap.rise)), attrs('09_ROOF::CAP', 'ROOF.CAP', { type: r.type, rise_mm: Math.round(r.cap.rise) }));
-    for (const b of r.boxes) add(solidOf(boxSolid(b.min, b.max)), attrs(b.kind === 'truss' ? '09_ROOF::TRUSSES' : '09_ROOF::PANELS', b.id, { depth_mm: Math.round(b.max[2] - b.min[2]) }));
-    for (const q of AR.facade.pieces) add(solidOf(pieceSolid(ring, q)), attrs('10_FACADE::SKIN', q.id, { type: p.architecture.facade.type, material: p.architecture.facade.material, height_mm: Math.round(q.z1 - q.z0) }));
-    for (const q of AR.facade.bands) add(solidOf(pieceSolid(ring, q)), attrs('10_FACADE::BANDS', q.id));
-    for (const q of AR.facade.canopies) add(solidOf(pieceSolid(ring, q)), attrs('10_FACADE::PORTALS', q.id, { clear_height_mm: Math.round(q.z0) }));
-    for (const z of AR.boh.zones) add(solidOf(bandSolid(ring, { seg: z.seg, u0: z.u0, u1: z.u1 }, z.d0 + 250, z.d1 - 250, z.z0, z.z1 - 400)), attrs(`16_BACK_OF_HOUSE::${slugOf(BOH_LABEL[z.kind])}`, z.id, { use: BOH_LABEL[z.kind], area_m2: z.area.toFixed(1) }));
+    for (const b of r.boxes) add(rh.Extrusion.createBoxExtrusion(new rh.Box(new rh.BoundingBox(b.min, b.max)), true), attrs(b.kind === 'truss' ? '09_ROOF::TRUSSES' : '09_ROOF::PANELS', b.id, { depth_mm: Math.round(b.max[2] - b.min[2]) }));
+    for (const q of AR.facade.pieces) add(pieceExtrusion(rh, ring, q), attrs('10_FACADE::SKIN', q.id, { type: p.architecture.facade.type, material: p.architecture.facade.material, height_mm: Math.round(q.z1 - q.z0) }));
+    for (const q of AR.facade.bands) add(pieceExtrusion(rh, ring, q), attrs('10_FACADE::BANDS', q.id));
+    for (const q of AR.facade.canopies) add(pieceExtrusion(rh, ring, q), attrs('10_FACADE::PORTALS', q.id, { clear_height_mm: Math.round(q.z0) }));
+    for (const z of AR.boh.zones) add(bandExtrusion(rh, ring, { seg: z.seg, u0: z.u0, u1: z.u1 }, z.d0 + 250, z.d1 - 250, z.z0, z.z1 - 400), attrs(`16_BACK_OF_HOUSE::${slugOf(BOH_LABEL[z.kind])}`, z.id, { use: BOH_LABEL[z.kind], area_m2: z.area.toFixed(1) }));
     const c = AR.boh.corridor;
-    if (c) add(meshOf(bandSolid(ring, 'ring', c.d0, c.d1, -SLAB, 0)), attrs('16_BACK_OF_HOUSE::SERVICE_CORRIDOR', 'BOH.SERVICE_CORRIDOR', { width_mm: Math.round(c.d1 - c.d0) }));
+    if (c) add(bandExtrusion(rh, ring, 'ring', c.d0, c.d1, -SLAB, 0), attrs('16_BACK_OF_HOUSE::SERVICE_CORRIDOR', 'BOH.SERVICE_CORRIDOR', { width_mm: Math.round(c.d1 - c.d0) }));
   }
 
   // ── Round 05 systems
@@ -290,8 +290,8 @@ export function exportRhino(rh: RhinoModule, s: Stadium, opts: RhinoExportOption
       add(pieceExtrusion(rh, ring, z), attrs(layer, z.id, { use: z.label, system: z.system, area_m2: z.area.toFixed(1), height_mm: Math.round(z.z1 - z.z0), placement: 'conceptual space reservation' }));
     }
     const bandLayer: Record<string, string> = { duct: '11_HVAC::DUCT_ZONES', tray: '12_ELECTRICAL::CABLE_TRAYS', catwalk: '14_LIGHTING::CATWALK' };
-    for (const b of SYS.bands) add(meshOf(bandSolid(ring, b.span, b.d0, b.d1, b.z0, b.z1)), attrs(bandLayer[b.kind], b.id, { use: b.label, depth_mm: Math.round(b.z1 - b.z0) }));
-    for (const b of SYS.boxes) add(solidOf(boxSolid(b.min, b.max)), attrs('15_AV_IT::VIDEO_BOARDS', b.id, { use: b.label, underside_mm: Math.round(b.min[2]) }));
+    for (const b of SYS.bands) add(bandExtrusion(rh, ring, b.span, b.d0, b.d1, b.z0, b.z1), attrs(bandLayer[b.kind], b.id, { use: b.label, depth_mm: Math.round(b.z1 - b.z0) }));
+    for (const b of SYS.boxes) add(rh.Extrusion.createBoxExtrusion(new rh.Box(new rh.BoundingBox(b.min, b.max)), true), attrs('15_AV_IT::VIDEO_BOARDS', b.id, { use: b.label, underside_mm: Math.round(b.min[2]) }));
     for (const c of SYS.cameras) add(new rh.LineCurve(c.eye, c.target), attrs('15_AV_IT::BROADCAST::CAMERAS', `${c.id}.VIEW`, { use: c.label, depression_deg: c.depression.toFixed(1) }));
     // floodlights: one generic block, an instance per fixture turned toward its aim point
     if (SYS.fixtures.length) {
@@ -436,26 +436,65 @@ function terracePiece(rh: RhinoModule, ring: Stadium['ring'], seg: SegmentId, ou
   return rev ?? null;
 }
 
-/** A frame member as an exact capped extrusion: its (d, z) section extruded across the frame by its width. */
-/** A plan piece (constant z0..z1) as an exact capped extrusion of its plan outline. */
+/** A plan piece (constant z0..z1) as an exact capped extrusion of its outline: lines and true arcs. */
 function pieceExtrusion(rh: RhinoModule, ring: Stadium['ring'], q: Piece) {
-  const n = isCorner(q.seg) ? Math.max(2, Math.ceil((q.u1 - q.u0) * 24)) : 1;
-  const pts: [number, number][] = [];
-  for (let k = 0; k <= n; k++) { const a = pointAt(ring, q.seg, q.u0 + ((q.u1 - q.u0) * k) / n, q.d0); pts.push([a.x, a.y]); }
-  for (let k = n; k >= 0; k--) { const a = pointAt(ring, q.seg, q.u0 + ((q.u1 - q.u0) * k) / n, q.d1); pts.push([a.x, a.y]); }
-  // counter-clockwise, so the extrusion runs up
-  const area = pts.reduce((a, [x, y], i) => { const [x2, y2] = pts[(i + 1) % pts.length]; return a + x * y2 - x2 * y; }, 0);
-  if (area < 0) pts.reverse();
-  const pl = new rh.Polyline(0);
-  for (const [x, y] of pts) pl.add(x, y, 0);
-  pl.add(pts[0][0], pts[0][1], 0);
-  const crv = pl.toPolylineCurve();
-  const ext = rh.Extrusion.create(crv, q.z1 - q.z0, true);
-  free(pl, crv);
-  const xf = rh.Transform.translationXYZ(0, 0, q.z0);
+  return bandExtrusion(rh, ring, { seg: q.seg, u0: q.u0, u1: q.u1 }, q.d0, q.d1, q.z0, q.z1);
+}
+
+/** A band between plan offsets d0..d1 along a span, z0..z1, as an exact extrusion; a full ring gets its inner profile as a hole. */
+export function bandExtrusion(rh: RhinoModule, ring: Stadium['ring'], span: Span, d0: number, d1: number, z0: number, z1: number) {
+  const outer = span === 'ring' ? ringLoop(ring, d1) : pieceLoop(ring, span.seg, span.u0, span.u1, d0, d1);
+  // openNURBS caps a profile of lines and arcs in one winding but not always the other, so take the one
+  // that caps, then set the solid on z0 whichever way it was extruded
+  let ext: any = null;
+  for (const ccw of [true, false]) {
+    free(ext);
+    const crv = loopCurve(rh, outer, ccw);
+    ext = rh.Extrusion.create(crv, z1 - z0, true);
+    free(crv);
+    if (span === 'ring') { const h = loopCurve(rh, ringLoop(ring, d0), !ccw); ext.addInnerProfile(h); free(h); }
+    if (ext.isCappedAtBottom && ext.isCappedAtTop) break;
+  }
+  if (!(ext.isCappedAtBottom && ext.isCappedAtTop)) {
+    // rare (a few corner pieces): neither winding caps — fall back to the closed faceted solid
+    free(ext);
+    const b = bandSolid(ring, span, d0, d1, z0, z1), m = new rh.Mesh();
+    for (let k = 0; k < b.positions.length; k += 3) m.vertices().add(b.positions[k], b.positions[k + 1], b.positions[k + 2]);
+    for (let k = 0; k < b.index.length; k += 3) m.faces().addTriFace(b.index[k], b.index[k + 1], b.index[k + 2]);
+    m.normals().computeNormals(); m.compact();
+    const brep = rh.Brep.createFromMesh(m, true);
+    free(m);
+    return brep;
+  }
+  const bb = ext.getBoundingBox();
+  const xf = rh.Transform.translationXYZ(0, 0, z0 - bb.min[2]);
   ext.transform(xf);
-  free(xf);
+  free(xf, bb);
   return ext;
+}
+
+/** A closed plan loop as a PolyCurve of lines and exact arcs, counter-clockwise (or clockwise for a hole). */
+export function loopCurve(rh: RhinoModule, l: Loop, ccw: boolean) {
+  const n = l.pts.length;
+  const flip = (loopArea(l) > 0) !== ccw;
+  const pts = flip ? l.pts.map((_, k) => l.pts[(n - k) % n]) : l.pts;
+  const mids = flip ? l.pts.map((_, k) => l.mids[n - k - 1]) : l.mids;
+  const pc = new rh.PolyCurve();
+  pts.forEach((p, i) => {
+    const q = pts[(i + 1) % n], m = mids[i];
+    const a = m ? arcSweep(p, m, q) : null;
+    if (a) {
+      const c = arcCurve(rh, a.c[0], a.c[1], 0, a.r, a.sweep > 0 ? a.a0 : a.a0 + a.sweep, Math.abs(a.sweep));
+      if (a.sweep < 0) c.reverse();
+      pc.appendCurve(c);
+      free(c);
+    } else {
+      const c = new rh.LineCurve([p[0], p[1], 0], [q[0], q[1], 0]);
+      pc.appendCurve(c);
+      free(c);
+    }
+  });
+  return pc;
 }
 
 function memberExtrusion(rh: RhinoModule, ring: Stadium['ring'], m: Member) {

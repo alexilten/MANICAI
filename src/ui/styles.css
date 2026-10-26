@@ -310,3 +310,8 @@ code { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
 .finish { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; padding: 4px 8px 4px 5px; border-radius: 999px; border: 1px solid var(--line, #e3e3e8); background: #fff; cursor: pointer; color: inherit; }
 .finish i { width: 14px; height: 14px; border-radius: 50%; box-shadow: inset 0 0 0 .5px rgba(0,0,0,.2); }
 .finish.on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+/* Round 06: model check list */
+.warnings.checks { margin-top: 10px; }
+.warnings li.ok { background: rgba(36,138,61,.07); color: #1d6b31; }
+.warnings.checks li { cursor: default; }
+.export-wrap .menu { background: rgba(250, 250, 249, 0.97); width: 300px; max-height: calc(100vh - 110px); overflow-y: auto; }
