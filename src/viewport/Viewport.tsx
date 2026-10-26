@@ -90,12 +90,17 @@ export function Viewport() {
       </group>
 
       {/* ground: a soft site tone in explore mode, and a shadow catcher */}
-      {!tech && <mesh rotation-x={-Math.PI / 2} position={[0, -0.03, 0]}><circleGeometry args={[span * 6, 96]} /><meshBasicMaterial color={night ? '#151a24' : '#e9e7e3'} /></mesh>}
-      {/* shadow-catching ground */}
-      <mesh rotation-x={-Math.PI / 2} position={[0, -0.01, 0]} receiveShadow>
-        <planeGeometry args={[span * 8, span * 8]} />
-        <shadowMaterial transparent opacity={tech ? 0.1 : 0.18} color="#23232b" />
-      </mesh>
+      {/* the site tone sits well below the plaza (whose top is at −20 mm) so the two never z-fight,
+          even with the walk-through camera's 5 cm near plane */}
+      {!tech && <mesh rotation-x={-Math.PI / 2} position={[0, -0.25, 0]}><circleGeometry args={[span * 6, 96]} /><meshBasicMaterial color={night ? '#151a24' : '#e9e7e3'} /></mesh>}
+      {/* shadow-catching ground; in explore mode the plaza takes the shadows itself, so the catcher
+          would only lie a centimetre over it and flicker */}
+      {(tech || !layers.facade) && (
+        <mesh rotation-x={-Math.PI / 2} position={[0, -0.01, 0]} receiveShadow>
+          <planeGeometry args={[span * 8, span * 8]} />
+          <shadowMaterial transparent opacity={tech ? 0.1 : 0.18} color="#23232b" depthWrite={false} />
+        </mesh>
+      )}
       <CameraRig stadium={stadium} />
       <EffectComposer multisampling={0} enableNormalPass={false}>
         <N8AO aoRadius={4} intensity={tech ? 1.4 : 2.6} distanceFalloff={1.2} halfRes color="#1a1a22" />
