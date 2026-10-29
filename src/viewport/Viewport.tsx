@@ -238,7 +238,7 @@ function CameraRig({ stadium }: { stadium: Stadium }) {
   const seat = useStore((s) => s.seat);
   const seatView = useStore((s) => s.seatView);
   const first = useRef(true);
-  useEffect(() => { if (import.meta.env?.DEV) (window as unknown as { __manicaiControls?: CameraControls }).__manicaiControls = ref.current; }, []);
+  useEffect(() => { if (import.meta.env?.DEV) (window as unknown as { __manicaControls?: CameraControls }).__manicaControls = ref.current; }, []);
   useEffect(() => {
     if (seatView) return;
     const v = viewFor(view, stadium);

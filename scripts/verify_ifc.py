@@ -1,4 +1,4 @@
-"""Independent check of MANICAI .ifc files with IfcOpenShell.
+"""Independent check of Manica .ifc files with IfcOpenShell.
 
     pip install ifcopenshell
     python3 scripts/verify_ifc.py samples/*.ifc            # schema + structure
@@ -6,7 +6,7 @@
 
 For each file: schema validation (attribute types, counts, enumerations, inverse cardinalities and
 where-rules that IfcOpenShell evaluates), the spatial structure, entity counts by class, that every
-product is placed in the spatial structure exactly once, unique GlobalIds, and the MANICAI property set
+product is placed in the spatial structure exactly once, unique GlobalIds, and the Manica property set
 on every element. With --geometry every element is triangulated by IfcOpenShell's own geometry kernel
 (OpenCascade), openings subtracted, and failures and empty shapes are reported.
 Exits non-zero on any error.
@@ -71,9 +71,9 @@ for path in args:
     missing = 0
     for e in f.by_type("IfcElement") + f.by_type("IfcSpace"):
         psets = [r.RelatingPropertyDefinition.Name for r in e.IsDefinedBy if r.is_a("IfcRelDefinesByProperties")]
-        if "MANICAI_Common" not in psets and not e.is_a("IfcFurniture"):
+        if "MANICA_Common" not in psets and not e.is_a("IfcFurniture"):
             missing += 1
-    print(f"  MANICAI_Common: missing on {missing} element(s)")
+    print(f"  MANICA_Common: missing on {missing} element(s)")
     if missing:
         ok = False
 

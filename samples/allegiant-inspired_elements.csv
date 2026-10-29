@@ -1,4 +1,4 @@
-# MANICAI element schedule — Compact enclosed NFL bowl (Allegiant-inspired)
+# Manica element schedule — Compact enclosed NFL bowl (Allegiant-inspired)
 id,name,category,ifc_class,predefined_type,object_type,layer,storey,model_status,base_level_mm,volume_m3,plan_area_m2,net_floor_area_m2,parent,voids
 FIELD.SURFACE,Playing surface,Field,IfcCovering,FLOORING,Playing surface,01_FIELD::SURFACE,Field level,Generic parametric element (conceptual size),-50,420.293,,,,
 GOALPOST_E,Goalpost,Field,IfcBuildingElementProxy,USERDEFINED,Goal frame (generic),01_FIELD::GOALS,Field level,Generic placeholder (not a manufacturer product),0,0.373,,,,

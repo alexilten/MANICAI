@@ -44,7 +44,7 @@ layer is the main design decision and it touches the project file format (a v7).
 
 Round 06 built one element model behind every export. The IFC 4 file has the spatial structure,
 typed elements, property and quantity sets and stable GlobalIds, and passes IfcOpenShell checks.
-The `.3dm` uses exact extrusions, layers and seat blocks, and reopens in MANICAI. The Revit workflow
+The `.3dm` uses exact extrusions, layers and seat blocks, and reopens in Manica. The Revit workflow
 in [INTEROP.md](INTEROP.md) is written but has not been tested in Revit.
 
 ### Options
@@ -62,7 +62,7 @@ in [INTEROP.md](INTEROP.md) is written but has not been tested in Revit.
 ### Recommendation
 
 1. **Test the IFC in Revit and ArchiCAD first.** It is the cheapest step and decides everything
-   after it. MANICAI can supply a test pack (three sample IFCs and a checklist) for whoever has the
+   after it. Manica can supply a test pack (three sample IFCs and a checklist) for whoever has the
    software.
 2. **Add IFC classification and materials**, and fix what the tests find.
 3. **Package the headless generator** for batch and scripted use.

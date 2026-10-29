@@ -1,4 +1,4 @@
-"""Independent check of MANICAI .dxf drawings with ezdxf.
+"""Independent check of Manica .dxf drawings with ezdxf.
 
     pip install ezdxf            (and matplotlib for --png)
     python3 scripts/verify_dxf.py samples/*.dxf

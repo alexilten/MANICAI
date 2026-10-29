@@ -1,23 +1,25 @@
 {
-  "schema": "manicai.project",
+  "schema": "manica.project",
   "version": 6,
-  "name": "Generic soccer bowl",
-  "units": "metric",
+  "name": "Compact enclosed NFL bowl (Allegiant-inspired)",
+  "units": "imperial",
   "site": {
-    "northDeg": 90
+    "northDeg": 90,
+    "latitude": 36.1,
+    "longitude": -115.2
   },
-  "sport": "soccer",
+  "sport": "nfl",
   "field": {
-    "length": 105000,
-    "width": 68000,
-    "runoffSide": 6000,
-    "runoffEnd": 7500
+    "length": 109728,
+    "width": 48768,
+    "runoffSide": 10972.8,
+    "runoffEnd": 4572
   },
   "bowl": {
-    "sideDistance": 8000,
-    "endDistance": 10000,
-    "cornerRadius": 12000,
-    "targetCapacity": 42000,
+    "sideDistance": 15000,
+    "endDistance": 11000,
+    "cornerRadius": 14000,
+    "targetCapacity": 65000,
     "stands": {}
   },
   "seating": {
@@ -33,18 +35,64 @@
     "targetC": 90,
     "minC": 60,
     "riserStep": 10,
-    "maxRakeDeg": 34,
+    "maxRakeDeg": 35,
     "excludeBelowMin": false
   },
   "tiers": [
     {
       "id": "T1",
-      "name": "Lower tier",
-      "rows": 26,
+      "name": "Lower bowl",
+      "rows": 30,
       "rowDepth": 800,
       "riser": 380,
-      "elevation": 1500,
+      "elevation": 1800,
       "overhang": 0,
+      "barrier": 800,
+      "kind": "general",
+      "crossAisles": [],
+      "vomitories": {
+        "enabled": true,
+        "every": 2,
+        "mouthRow": 13,
+        "width": 2800
+      },
+      "accessible": {
+        "perSection": 4,
+        "row": 0
+      }
+    },
+    {
+      "id": "T2",
+      "name": "Club level",
+      "rows": 8,
+      "rowDepth": 900,
+      "riser": 380,
+      "elevation": 5000,
+      "overhang": -3500,
+      "barrier": 800,
+      "kind": "club",
+      "crossAisles": [],
+      "vomitories": {
+        "enabled": false,
+        "every": 2,
+        "mouthRow": 8,
+        "width": 2800
+      },
+      "accessible": {
+        "perSection": 3,
+        "row": 1
+      },
+      "targetC": 60,
+      "seatWidth": 550
+    },
+    {
+      "id": "T3",
+      "name": "Upper bowl",
+      "rows": 24,
+      "rowDepth": 800,
+      "riser": 380,
+      "elevation": 5200,
+      "overhang": -2000,
       "barrier": 800,
       "kind": "general",
       "crossAisles": [],
@@ -55,35 +103,44 @@
         "width": 2800
       },
       "accessible": {
-        "perSection": 4,
-        "row": 0
-      }
-    },
-    {
-      "id": "T2",
-      "name": "Upper tier",
-      "rows": 21,
-      "rowDepth": 800,
-      "riser": 380,
-      "elevation": 4500,
-      "overhang": -5000,
-      "barrier": 800,
-      "kind": "general",
-      "crossAisles": [],
-      "vomitories": {
-        "enabled": true,
-        "every": 2,
-        "mouthRow": 8,
-        "width": 2800
-      },
-      "accessible": {
         "perSection": 3,
         "row": 1
       },
       "targetC": 60
     }
   ],
-  "premium": [],
+  "premium": [
+    {
+      "id": "P1",
+      "name": "Lower suite level",
+      "belowTier": "T2",
+      "kind": "suites",
+      "height": 4500,
+      "setback": 6000,
+      "stands": [
+        "N",
+        "S"
+      ],
+      "unitWidth": 5500,
+      "unitDepth": 8000,
+      "seatsPerUnit": 16
+    },
+    {
+      "id": "P2",
+      "name": "Upper suite level",
+      "belowTier": "T3",
+      "kind": "suites",
+      "height": 4500,
+      "setback": 9000,
+      "stands": [
+        "N",
+        "S"
+      ],
+      "unitWidth": 5500,
+      "unitDepth": 8000,
+      "seatsPerUnit": 16
+    }
+  ],
   "building": {
     "concourseWidth": 10000,
     "programDepth": 10000,
@@ -112,7 +169,7 @@
       "material": "steel"
     },
     "roof": {
-      "type": "perimeter",
+      "type": "etfe",
       "stands": [
         "N",
         "S"
@@ -124,7 +181,7 @@
       "frameEvery": 2,
       "open": 1,
       "skyView": 20000,
-      "material": "ptfe"
+      "material": "etfe"
     },
     "facade": {
       "type": "glazed",
@@ -207,5 +264,5 @@
       "suite": 150000
     }
   },
-  "presetId": "generic-soccer"
+  "presetId": "allegiant"
 }

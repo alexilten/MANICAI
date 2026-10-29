@@ -1,5 +1,5 @@
 /**
- * Units. Millimetres are the canonical internal unit everywhere in MANICAI
+ * Units. Millimetres are the canonical internal unit everywhere in Manica
  * (project files, engine, scene graph, Rhino export). Conversion happens only
  * at the UI boundary, so no value is ever stored in feet or metres.
  */

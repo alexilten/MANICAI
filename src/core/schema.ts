@@ -1,5 +1,5 @@
 /**
- * The MANICAI project: the one authoritative, versioned description of design intent.
+ * The Manica project: the one authoritative, versioned description of design intent.
  * Everything visible (meshes, metrics, exports) is derived from it by the engine; nothing
  * derived is ever stored here.
  *
@@ -10,7 +10,9 @@
 import { SPORTS, type SportId } from './sports';
 import type { DisplayUnits, Mm } from './units';
 
-export const SCHEMA_ID = 'manicai.project';
+export const SCHEMA_ID = 'manica.project';
+/** the id written before the product was renamed from MANICAI; still read */
+export const LEGACY_SCHEMA_IDS = ['manicai.project'];
 export const SCHEMA_VERSION = 6;
 
 export type SightlineMode = 'cvalue' | 'riser';
@@ -76,7 +78,7 @@ export interface BuildingParams {
   programDepth: Mm;
   /** clear height wanted between a concourse floor and the structure above */
   concourseClear: Mm;
-  /** gross program area per spectator served, m² (MANICAI planning assumptions, not standards) */
+  /** gross program area per spectator served, m² (Manica planning assumptions, not standards) */
   allowances: { concessions: number; restrooms: number; retail: number; firstAid: number; clubLounge: number };
   cores: { spacing: Mm; width: Mm; depth: Mm; stairs: number; stairWidth: Mm; lifts: number };
 }
@@ -98,7 +100,7 @@ export type BoardType = 'ends' | 'centre' | 'none';
 /**
  * Technical infrastructure (Round 05): field lighting, video boards, broadcast, MEP space reservations
  * and service access. Conceptual: fixture counts come from a lumen-method estimate with a generic
- * fixture, and plant areas from MANICAI planning ratios. No product or engineered system is implied.
+ * fixture, and plant areas from Manica planning ratios. No product or engineered system is implied.
  */
 /**
  * Round 07 design studies: the inputs of the evaluation methods (egress, sun, materials and carbon,
@@ -166,7 +168,7 @@ export interface SystemsParams {
     compound: number;
   };
   mep: {
-    /** scales the MANICAI plant-area ratios */
+    /** scales the Manica plant-area ratios */
     scale: number;
     /** depth of the duct distribution zone under each concourse ceiling */
     ductZone: Mm;
@@ -207,7 +209,7 @@ export interface ArchitectureParams {
     frameEvery: number;
     /** retractable roofs: how far the panels are open, 0–1 */
     open: number;
-    /** high-ball view: the back-row sightline under the leading edge should clear this height over the centre spot (MANICAI assumption) */
+    /** high-ball view: the back-row sightline under the leading edge should clear this height over the centre spot (Manica assumption) */
     skyView: Mm;
     material: RoofMaterial;
   };
@@ -230,7 +232,7 @@ export interface ArchitectureParams {
     corridor: Mm; depth: Mm;
     /** clear height wanted for back-of-house rooms */
     clear: Mm;
-    /** multiplier on MANICAI's back-of-house area assumptions */
+    /** multiplier on Manica's back-of-house area assumptions */
     scale: number;
   };
 }
@@ -472,12 +474,12 @@ function repair(def: Rec, val: Rec, path: string, out: string[]) {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function migrate(raw: any): Project {
-  if (raw?.schema !== SCHEMA_ID) throw new Error('Not a MANICAI project file');
-  if (typeof raw.version !== 'number' || raw.version > SCHEMA_VERSION) throw new Error(`Project version ${raw.version} is newer than this MANICAI (v${SCHEMA_VERSION})`);
+  if (raw?.schema !== SCHEMA_ID && !LEGACY_SCHEMA_IDS.includes(raw?.schema)) throw new Error('Not a Manica project file');
+  if (typeof raw.version !== 'number' || raw.version > SCHEMA_VERSION) throw new Error(`Project version ${raw.version} is newer than this Manica (v${SCHEMA_VERSION})`);
   const d = defaultProject();
   const v1 = raw.version < 2;
   return {
-    ...d, ...raw,
+    ...d, ...raw, schema: SCHEMA_ID,
     site: { ...d.site, ...raw.site },
     field: { ...d.field, ...raw.field },
     seating: { ...d.seating, ...raw.seating },

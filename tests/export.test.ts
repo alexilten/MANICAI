@@ -26,7 +26,7 @@ describe('H · Rhino .3dm export', () => {
     expect(info.units).toBe('Millimeters');
   });
 
-  it('has the MANICAI layer tree with tier and sector sublayers', () => {
+  it('has the Manica layer tree with tier and sector sublayers', () => {
     for (const l of ['00_REFERENCE', '01_FIELD', '02_BOWL_GEOMETRY', '03_SEATING', '90_DIMENSIONS', '91_ANALYSIS']) expect(info.layers.some((x) => x.startsWith(l)), l).toBe(true);
     expect(info.layers).toContain('02_BOWL_GEOMETRY::T1_LOWER_TIER');
     expect(info.layers.some((x) => x.startsWith('03_SEATING::T2'))).toBe(true);
@@ -36,9 +36,9 @@ describe('H · Rhino .3dm export', () => {
     const t = s.seats.seats;
     let seats = 0, chairs = 0;
     for (let i = 0; i < t.count; i++) if (t.status[i] === 0) t.cls[i] === 2 ? chairs++ : seats++;
-    const seatBlocks = info.blocks.filter((b) => b.name.startsWith('MANICAI_SEAT_'));
+    const seatBlocks = info.blocks.filter((b) => b.name.startsWith('MANICA_SEAT_'));
     expect(seatBlocks.reduce((n, b) => n + b.instances, 0)).toBe(seats);
-    expect(info.blocks.find((b) => b.name.startsWith('MANICAI_WHEELCHAIR'))?.instances ?? 0).toBe(chairs);
+    expect(info.blocks.find((b) => b.name.startsWith('MANICA_WHEELCHAIR'))?.instances ?? 0).toBe(chairs);
     expect(seats + chairs).toBe(s.metrics.net);
   });
 
@@ -52,7 +52,7 @@ describe('H · Rhino .3dm export', () => {
       expect(o.insertion![0]).toBeCloseTo(t.x[i], 3);
       expect(o.insertion![1]).toBeCloseTo(t.y[i], 3);
       expect(o.insertion![2]).toBeCloseTo(t.z[i], 3);
-      expect(Number(o.user['manicai.cvalue_mm'])).toBeCloseTo(t.cValue[i], 0);
+      expect(Number(o.user['manica.cvalue_mm'])).toBeCloseTo(t.cValue[i], 0);
     }
   });
 
@@ -68,7 +68,7 @@ describe('H · Rhino .3dm export', () => {
     expect(info.groups.some((g) => g.startsWith('TERRACE_T1'))).toBe(true);
   });
 
-  it('carries the project inside the file so it reopens in MANICAI', () => {
+  it('carries the project inside the file so it reopens in Manica', () => {
     const text = projectFrom3dm(rh, bytes);
     expect(text).toBeTruthy();
     expect(parseProject(text!)).toEqual(parseProject(serializeProject(s.project)));
@@ -94,6 +94,6 @@ describe('H · Rhino .3dm export', () => {
     expect(on('04_ACCESSIBILITY::COMPANION_SEATS').length).toBe(g.metrics.accessible.companion);
     const club = f.objects.filter((o) => o.layer?.startsWith('05_PREMIUM::') && o.type === 'InstanceReference').length;
     expect(club).toBe(g.metrics.byClass.premium);
-    expect(f.blocks.some((b) => b.name === 'MANICAI_SEAT_550MM')).toBe(true);
+    expect(f.blocks.some((b) => b.name === 'MANICA_SEAT_550MM')).toBe(true);
   });
 });

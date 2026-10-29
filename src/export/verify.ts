@@ -1,12 +1,12 @@
 /**
  * Model check (Round 06): automatic verification of the element model and, when given, of an export's
- * read-back, before the model leaves MANICAI.
+ * read-back, before the model leaves Manica.
  *
  *   geometry   every element's mesh is finite, closed and consistently wound (each edge used once in
  *              each direction), encloses a positive volume, and agrees with the exact (analytic)
  *              volume of its extrusions and revolves within 1 %; terrace and member sections are simple
  *              polygons (no edge crosses another)
- *   identity   element ids are unique, every element sits on a layer of the MANICAI layer standard and
+ *   identity   element ids are unique, every element sits on a layer of the Manica layer standard and
  *              has an IFC class, model status and storey
  *   capacity   the seats exported equal the net capacity reported, and the floodlights the count used
  *              for the illuminance estimate
@@ -100,7 +100,7 @@ export function verifyModel(s: Stadium, model: BimModel = buildModel(s), ifcText
   for (const id of [...els.map((e) => e.id), ...model.aggregates.map((a) => a.id)]) { if (seen.has(id)) dup.push(id); seen.add(id); }
   add({ id: 'id.unique', group: 'Identity', label: 'Element ids are unique', status: dup.length ? 'fail' : 'pass', detail: dup.length ? `Duplicated: ${list(dup)}` : `${seen.size} ids` });
   const offLayer = els.filter((e) => !layerPaths.has(e.layer) && !/^0[23]_[A-Z_]+::T\d+_/.test(e.layer)).map((e) => e.id);
-  add({ id: 'id.layers', group: 'Identity', label: 'Every element is on a MANICAI standard layer', status: offLayer.length ? 'fail' : 'pass', detail: offLayer.length ? `Unknown layer: ${list(offLayer)}` : `${new Set(els.map((e) => e.layer)).size} layers used` });
+  add({ id: 'id.layers', group: 'Identity', label: 'Every element is on a Manica standard layer', status: offLayer.length ? 'fail' : 'pass', detail: offLayer.length ? `Unknown layer: ${list(offLayer)}` : `${new Set(els.map((e) => e.layer)).size} layers used` });
   const unclassified = els.filter((e) => !e.ifc.cls.startsWith('Ifc') || !e.ifc.type || ((e.ifc.type === 'USERDEFINED') && !e.ifc.objectType)).map((e) => e.id);
   add({ id: 'id.classes', group: 'Identity', label: 'Every element has an IFC class and type', status: unclassified.length ? 'fail' : 'pass', detail: unclassified.length ? `Missing or USERDEFINED without an object type: ${list(unclassified)}` : `${new Set(els.map((e) => e.ifc.cls)).size} IFC classes` });
   const lowest = model.storeys[0].elevation;
@@ -146,7 +146,7 @@ export function verifyModel(s: Stadium, model: BimModel = buildModel(s), ifcText
 /** The report as Markdown, for the export bundle. */
 export function reportMarkdown(s: Stadium, r: ModelReport): string {
   const icon = { pass: '✓', warn: '!', fail: '✗' } as const;
-  const lines = [`# MANICAI model check — ${s.project.name}`, '', `${r.elements} elements · ${r.pass} passed · ${r.warn} warnings · ${r.fail} failed`, '',
+  const lines = [`# Manica model check — ${s.project.name}`, '', `${r.elements} elements · ${r.pass} passed · ${r.warn} warnings · ${r.fail} failed`, '',
     'Consistency checks of a conceptual model — not code, structural or engineering checks.', '', '| | Check | Result |', '|---|---|---|'];
   for (const c of r.checks) lines.push(`| ${icon[c.status]} | ${c.group}: ${c.label} | ${c.detail.replace(/\|/g, '/')} |`);
   return lines.join('\n') + '\n';

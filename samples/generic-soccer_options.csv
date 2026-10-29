@@ -1,4 +1,4 @@
-# MANICAI capacity–proximity exploration — seeded search; see docs/STUDIES.md
+# Manica capacity–proximity exploration — seeded search; see docs/STUDIES.md
 option,capacity,mean_distance_m,within_150m,view_quality,min_c_mm,feasible,pareto,recommended,changes,breaks
 0,41998,84.37,0.6232,0.7264,60,true,true,false,the current design,
 1,70049,103.83,0.3253,0.6212,60,true,false,false,sidelines +2.8 m; ends +19.6 m; corner radius 12.5 m; Lower tier 35 rows (+9); Upper tier 28 rows (+7),
@@ -8,13 +8,13 @@ option,capacity,mean_distance_m,within_150m,view_quality,min_c_mm,feasible,paret
 5,52270,99.39,0.3489,0.6424,61,true,false,false,sidelines +12.4 m; ends +16.6 m; corner radius 17.5 m; Lower tier 35 rows (+9); Upper tier 15 rows (−6),
 6,46216,89.07,0.5509,0.6989,30,false,false,false,sidelines +7.2 m; ends −0.4 m; corner radius 26.0 m; Lower tier 23 rows (−3); Upper tier 27 rows (+6),C-value 30 mm below the 60 mm minimum
 7,56028,100.10,0.3567,0.6354,60,true,false,false,sidelines +9.9 m; ends +14.0 m; corner radius 8.5 m; Upper tier 26 rows (+5),
-8,35408,80.86,0.6803,0.7364,60,true,true,false,sidelines −0.2 m; ends −2.0 m; corner radius 1.5 m; Lower tier 20 rows (−6); Upper tier 20 rows (−1),
+8,35564,80.86,0.6817,0.7363,60,true,true,false,sidelines −0.2 m; ends −2.0 m; corner radius 1.5 m; Lower tier 20 rows (−6); Upper tier 20 rows (−1),
 9,31902,82.76,0.6833,0.7446,61,true,false,false,sidelines +6.7 m; ends +5.0 m; corner radius 31.0 m; Lower tier 22 rows (−4); Upper tier 15 rows (−6),
 10,38944,86.88,0.5667,0.7069,61,true,false,false,sidelines +2.0 m; ends +6.9 m; corner radius 11.0 m; Lower tier 19 rows (−7); Upper tier 23 rows (+2),
 11,38006,86.90,0.5895,0.7213,60,true,false,false,sidelines +8.4 m; ends +3.6 m; corner radius 26.0 m; Lower tier 21 rows (−5),
 12,33680,90.77,0.4989,0.6833,60,true,false,false,sidelines +13.8 m; ends +8.6 m; corner radius 7.0 m; Lower tier 16 rows (−10); Upper tier 18 rows (−3),
 13,51276,96.85,0.3991,0.6573,60,true,false,false,sidelines +9.4 m; ends +14.9 m; corner radius 20.0 m; Lower tier 31 rows (+5); Upper tier 19 rows (−2),
-14,48946,95.12,0.4354,0.6559,60,true,false,false,sidelines +5.7 m; ends +12.5 m; corner radius 2.5 m; Lower tier 22 rows (−4); Upper tier 25 rows (+4),
+14,49154,95.13,0.4335,0.6558,60,true,false,false,sidelines +5.7 m; ends +12.5 m; corner radius 2.5 m; Lower tier 22 rows (−4); Upper tier 25 rows (+4),
 15,48096,91.32,0.5071,0.6807,60,true,false,false,sidelines +4.3 m; ends +6.3 m; corner radius 5.0 m; Lower tier 29 rows (+3); Upper tier 20 rows (−1),
 16,54126,92.34,0.4893,0.6869,61,true,true,false,sidelines +0.7 m; ends +12.1 m; corner radius 29.0 m; Lower tier 33 rows (+7); Upper tier 22 rows (+1),
 17,54706,94.72,0.4490,0.6730,60,true,false,false,sidelines +11.1 m; ends −1.1 m; corner radius 10.0 m; Lower tier 25 rows (−1); Upper tier 29 rows (+8),
@@ -31,7 +31,7 @@ option,capacity,mean_distance_m,within_150m,view_quality,min_c_mm,feasible,paret
 28,52328,91.57,0.5136,0.6913,45,false,false,false,sidelines +1.4 m; ends +7.5 m; corner radius 27.0 m; Lower tier 29 rows (+3); Upper tier 26 rows (+5),C-value 45 mm below the 60 mm minimum
 29,45494,91.19,0.4998,0.6879,61,true,false,false,sidelines +6.4 m; ends +9.0 m; corner radius 17.0 m; Lower tier 32 rows (+6); Upper tier 16 rows (−5),
 30,33838,79.20,0.7089,0.7004,26,false,false,false,sidelines −2.0 m; ends −2.5 m; corner radius 5.0 m; Lower tier 21 rows (−5); Upper tier 19 rows (−2),C-value 26 mm below the 60 mm minimum
-31,45570,88.81,0.5474,0.6926,60,true,true,false,sidelines +2.3 m; ends +6.2 m; corner radius 4.0 m; Lower tier 29 rows (+3); Upper tier 18 rows (−3),
+31,45840,88.82,0.5457,0.6925,60,true,true,false,sidelines +2.3 m; ends +6.2 m; corner radius 4.0 m; Lower tier 29 rows (+3); Upper tier 18 rows (−3),
 32,49366,91.64,0.4992,0.6892,61,true,false,false,sidelines +2.4 m; ends +11.6 m; corner radius 26.0 m; Lower tier 27 rows (+1); Upper tier 24 rows (+3),
 33,55232,94.57,0.4551,0.6776,60,true,false,false,sidelines +5.4 m; ends +8.8 m; corner radius 26.0 m; Lower tier 31 rows (+5); Upper tier 25 rows (+4),
 34,34336,80.98,0.6700,0.7011,27,false,false,false,sidelines −2.0 m; ends +1.3 m; corner radius 4.0 m; Lower tier 19 rows (−7); Upper tier 20 rows (−1),C-value 27 mm below the 60 mm minimum
@@ -42,12 +42,12 @@ option,capacity,mean_distance_m,within_150m,view_quality,min_c_mm,feasible,paret
 39,47284,88.33,0.5651,0.6176,-9,false,false,false,ends +9.1 m; corner radius 34.0 m; Lower tier 32 rows (+6); Upper tier 20 rows (−1),C-value -9 mm below the 60 mm minimum
 40,44828,88.82,0.5457,0.7057,60,true,false,false,sidelines +4.5 m; ends +8.5 m; corner radius 24.5 m; Lower tier 33 rows (+7); Upper tier 15 rows (−6),
 41,54716,93.35,0.4717,0.6818,60,true,false,false,sidelines +1.6 m; ends +12.6 m; corner radius 30.0 m; Lower tier 34 rows (+8); Upper tier 22 rows (+1),
-42,45138,88.88,0.5481,0.6917,60,true,false,false,sidelines +2.7 m; ends +5.6 m; corner radius 2.5 m; Lower tier 29 rows (+3); Upper tier 18 rows (−3),
+42,45414,88.88,0.5458,0.6915,60,true,false,false,sidelines +2.7 m; ends +5.6 m; corner radius 2.5 m; Lower tier 29 rows (+3); Upper tier 18 rows (−3),
 43,54680,93.48,0.4669,0.6791,60,true,false,false,sidelines +0.5 m; ends +12.8 m; corner radius 27.5 m; Lower tier 34 rows (+8); Upper tier 22 rows (+1),
 44,47960,90.37,0.5163,0.6841,60,true,true,false,sidelines +1.8 m; ends +8.0 m; corner radius 5.0 m; Lower tier 31 rows (+5); Upper tier 18 rows (−3),
 45,55436,93.04,0.4824,0.6847,60,true,true,false,sidelines +1.0 m; ends +10.7 m; corner radius 28.5 m; Lower tier 34 rows (+8); Upper tier 23 rows (+2),
 46,47232,90.88,0.5150,0.6859,60,true,false,false,sidelines +4.8 m; ends +5.7 m; corner radius 8.0 m; Lower tier 28 rows (+2),
-47,49372,90.70,0.5135,0.6845,60,true,true,false,sidelines +1.4 m; ends +6.9 m; corner radius 6.0 m; Lower tier 32 rows (+6); Upper tier 19 rows (−2),
+47,49724,90.68,0.5138,0.6845,60,true,true,false,sidelines +1.4 m; ends +6.9 m; corner radius 6.0 m; Lower tier 32 rows (+6); Upper tier 19 rows (−2),
 48,45369,90.07,0.5295,0.6878,60,true,false,false,sidelines +5.4 m; ends +5.2 m; corner radius 5.0 m; Lower tier 28 rows (+2); Upper tier 19 rows (−2),
 49,52872,92.70,0.4801,0.6840,60,true,false,false,sidelines +1.4 m; ends +11.1 m; corner radius 26.0 m; Lower tier 33 rows (+7); Upper tier 22 rows (+1),
 50,44797,88.47,0.5538,0.7092,60,true,true,false,sidelines +5.1 m; ends +8.3 m; corner radius 26.5 m; Lower tier 34 rows (+8); Upper tier 14 rows (−7),

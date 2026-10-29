@@ -1,10 +1,10 @@
 # Design studies (Round 07)
 
-Round 07 turns MANICAI from a generator into a tool for comparing options. It adds six evaluation methods, a search over capacity against proximity, and a way to compare saved options side by side.
+Round 07 turns Manica from a generator into a tool for comparing options. It adds six evaluation methods, a search over capacity against proximity, and a way to compare saved options side by side.
 
-> Every study here is a **conceptual comparison between options**. None is a code check, an engineering analysis, a life-cycle assessment or a business case. The results describe MANICAI's parametric model, including the precedent-informed presets, not the real buildings.
+> Every study here is a **conceptual comparison between options**. None is a code check, an engineering analysis, a life-cycle assessment or a business case. The results describe Manica's parametric model, including the precedent-informed presets, not the real buildings.
 
-Each study below lists its **method**, its **assumptions**, the **quality of its data**, and how it has been **validated**. The standards ids (for example `manicai.egress`) point to [STANDARDS.md](STANDARDS.md), where each rule is tagged as guidance, assumption or engineer review, and as checked or recall.
+Each study below lists its **method**, its **assumptions**, the **quality of its data**, and how it has been **validated**. The standards ids (for example `manica.egress`) point to [STANDARDS.md](STANDARDS.md), where each rule is tagged as guidance, assumption or engineer review, and as checked or recall.
 
 ## Where to find them
 
@@ -18,12 +18,12 @@ Each study below lists its **method**, its **assumptions**, the **quality of its
 
 | Study | Inputs (schema `studies`) | Standards |
 |---|---|---|
-| View quality | none (fixed weights) | `manicai.quality` |
-| Egress | `egress.stepRate`, `levelRate`, `targetMin`, `maxTravel` | `greenguide.egress`, `manicai.egress`, `review.egress` |
-| Sun and shade | `sun.month`, `day`, `hour`, `latitude`; `site.latitude`, `site.northDeg` | `manicai.sun` |
-| Materials and carbon | `carbon.*` (10 factors) | `manicai.carbon`, `review.carbon` |
-| Revenue | `revenue.*` (prices, events, occupancy, currency) | `manicai.revenue` |
-| Explorer | none (seeded) | `manicai.explore` |
+| View quality | none (fixed weights) | `manica.quality` |
+| Egress | `egress.stepRate`, `levelRate`, `targetMin`, `maxTravel` | `greenguide.egress`, `manica.egress`, `review.egress` |
+| Sun and shade | `sun.month`, `day`, `hour`, `latitude`; `site.latitude`, `site.northDeg` | `manica.sun` |
+| Materials and carbon | `carbon.*` (10 factors) | `manica.carbon`, `review.carbon` |
+| Revenue | `revenue.*` (prices, events, occupancy, currency) | `manica.revenue` |
+| Explorer | none (seeded) | `manica.explore` |
 
 ## View quality (sightline heat map)
 
@@ -47,7 +47,7 @@ A seat scoring 0.7 or more counts as "good". The panel shows:
 
 **Assumptions.**
 
-- The weights and the 100 m full-score distance are MANICAI choices.
+- The weights and the 100 m full-score distance are Manica choices.
 - 190 m is FIFA's maximum viewing distance (recall).
 
 **Data quality.** Geometric, from the seat table.
@@ -82,7 +82,7 @@ The seats can be coloured by route length.
 
 - **Rates of passage:** 79 persons per metre per minute on stepped routes and 109 on level routes, from the SGSA Green Guide (6th ed.).
 - **Target egress time:** 8 minutes. The Green Guide range is about 2.5–8 minutes, depending on the ground's fire risk.
-- **Travel limit:** 30 m, a MANICAI default.
+- **Travel limit:** 30 m, a Manica default.
 
 US codes (NFPA 101, IBC) use different methods and numbers.
 
@@ -134,7 +134,7 @@ This is the seating stage only, and `review.egress` still applies.
 
 - Sun position is accurate to about a degree, and solar time is not clock time.
 - Only direct sun is counted: no diffuse sky, reflected light or cloud. There is no turf-growth model (photosynthetically active radiation, or grow lights) and no thermal-comfort model.
-- The pitch orientation of the precedent presets is the MANICAI default, not the real site's.
+- The pitch orientation of the precedent presets is the Manica default, not the real site's.
 
 **Validated (test AR).**
 
@@ -168,7 +168,7 @@ This is the seating stage only, and `review.egress` still applies.
 **Assumptions.**
 
 - The generic factors are recalled from the ICE database v3.0 (University of Bath and Circular Ecology, 2019).
-- The rates (steel share, roof steel, terrace thickness, facade) are MANICAI placeholders.
+- The rates (steel share, roof steel, terrace thickness, facade) are Manica placeholders.
 - Every factor can be edited (Carbon tab → Edit factors).
 
 **Data quality.** Order of magnitude. The following are left out:

@@ -12,8 +12,8 @@
  *   • the facade: a wall at the facade line up to the facade top;
  *   • the roof: the deck between its leading edge and eave over the stands it covers, the cap over the
  *     field (enclosed types) and retractable panels.
- * Roof coverings let some light through: metal 0, PTFE 0.10, ETFE 0.85 (MANICAI assumptions, recall of
- * typical membrane transmittance: standard manicai.sun). Trusses, frames, columns, boards and the
+ * Roof coverings let some light through: metal 0, PTFE 0.10, ETFE 0.85 (Manica assumptions, recall of
+ * typical membrane transmittance: standard manica.sun). Trusses, frames, columns, boards and the
  * catwalk are ignored. Results are geometric sun and shade only: no diffuse sky, reflected light,
  * grass growth model or thermal comfort.
  */

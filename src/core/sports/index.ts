@@ -184,7 +184,7 @@ function buildNfl(p: FieldParams): FieldModel {
       CORNER_NE: [X, Y, 0], CORNER_NW: [-X, Y, 0], CORNER_SE: [X, -Y, 0], CORNER_SW: [-X, -Y, 0],
     },
     lineColor: '#ffffff',
-    sources: ['nfl.rule1.field', 'nfl.rule1.border', 'nfl.rule1.lines', 'nfl.rule1.hash', 'nfl.rule1.goalposts', 'nfl.rule1.benches', 'manicai.nfl.teamarea'],
+    sources: ['nfl.rule1.field', 'nfl.rule1.border', 'nfl.rule1.lines', 'nfl.rule1.hash', 'nfl.rule1.goalposts', 'nfl.rule1.benches', 'manica.nfl.teamarea'],
   };
 }
 
@@ -211,7 +211,7 @@ function buildStage(p: FieldParams): FieldModel {
     goals: [], numbers: [], stage,
     landmarks: { FLOOR_CENTRE: [0, 0, 0], STAGE_LIP: [L / 2, 0, 0], STAGE_CENTRE: [L / 2 + STAGE_DEPTH / 2, 0, STAGE_DECK] },
     lineColor: '#d8d8dc',
-    sources: ['manicai.stage'],
+    sources: ['manica.stage'],
   };
 }
 

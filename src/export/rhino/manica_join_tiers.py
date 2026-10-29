@@ -1,6 +1,6 @@
-# MANICAI — join each tier's grouped terrace pieces into one closed polysurface,
+# Manica — join each tier's grouped terrace pieces into one closed polysurface,
 # then cut that tier's vomitory openings (objects named VOM.<tier>.*) out of it.
-# Run inside Rhino: _RunPythonScript manicai_join_tiers.py
+# Run inside Rhino: _RunPythonScript manica_join_tiers.py
 import rhinoscriptsyntax as rs
 
 joined = 0
@@ -29,4 +29,4 @@ for g in rs.GroupNames() or []:
     rs.ObjectName(result, g)
     joined += 1
     print("%s: closed=%s, vomitories cut=%d" % (g, rs.IsPolysurfaceClosed(result), cut))
-print("MANICAI: joined %d tier(s)" % joined)
+print("Manica: joined %d tier(s)" % joined)

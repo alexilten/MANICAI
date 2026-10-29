@@ -18,7 +18,7 @@
  *     the team areas either side of the players' tunnel on the main stand.
  *
  * These are spatially rational conceptual representations, not structural designs (standards:
- * manicai.structure, manicai.roof, manicai.boh).
+ * manica.structure, manica.roof, manica.boh).
  */
 import type { Project, RoofType, StandId } from '../schema';
 import type { Mm } from '../units';
@@ -46,7 +46,7 @@ export const ENCLOSED: RoofType[] = ['enclosed', 'etfe', 'truss', 'retractable',
 
 /**
  * The spherical envelope's proportions, from the published figures of the Sphere in Las Vegas
- * (Populous; Severud Associates; Wikipedia, checked 2026-10-29). Standards: manicai.sphere.
+ * (Populous; Severud Associates; Wikipedia, checked 2026-10-29). Standards: manica.sphere.
  */
 export const SPHERE = {
   /** Exosphere: 366 ft tall on a 516 ft diameter → top / radius */
@@ -98,7 +98,7 @@ export const BOH_LABEL: Record<BohKind, string> = {
 export const BOH_KINDS: BohKind[] = ['tunnel', 'lockers', 'officials', 'medical', 'media', 'kitchens', 'storage', 'loading', 'waste', 'grounds', 'eventOps'];
 
 /**
- * Back-of-house areas, m²: a fixed part plus a part per spectator. MANICAI planning assumptions for a
+ * Back-of-house areas, m²: a fixed part plus a part per spectator. Manica planning assumptions for a
  * first massing (not a brief or a standard), scaled by boh.scale.
  */
 export function bohNeeds(p: Project, capacity: number): Record<Exclude<BohKind, 'tunnel'>, number> {
@@ -533,7 +533,7 @@ export function buildArchitecture(
 }
 
 /**
- * Size the spherical envelope (manicai.sphere). The interior cylinder clears the back of the bowl and the
+ * Size the spherical envelope (manica.sphere). The interior cylinder clears the back of the bowl and the
  * cap springs above the top row, both by the roof clearance, keeping the published apex / radius
  * proportion. The Exosphere is the smallest truncated sphere with the published height / width
  * proportion that holds the dome (with its trusses), the building levels and the cores, with a clear

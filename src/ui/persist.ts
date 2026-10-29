@@ -1,19 +1,21 @@
 /**
- * Round 08: what MANICAI keeps in this browser. The open design is saved as you work and restored
+ * Round 08: what Manica keeps in this browser. The open design is saved as you work and restored
  * on the next visit, and designs saved as "My presets" sit beside the built-in presets. Nothing
  * leaves the browser; storage can be unavailable (private windows), so every call is guarded.
  */
 import { readProject, serializeProject, type Project } from '../core/schema';
 
-const AUTOSAVE_KEY = 'manicai.autosave.v1';
-const PRESETS_KEY = 'manicai.presets.v1';
+const AUTOSAVE_KEY = 'manica.autosave.v1';
+const PRESETS_KEY = 'manica.presets.v1';
 
 export const APP_VERSION = typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : 'dev';
 export const APP_BUILD = typeof __APP_BUILD__ === 'string' ? __APP_BUILD__ : 'local';
 export const APP_DATE = typeof __APP_DATE__ === 'string' ? __APP_DATE__ : '';
-export const APP_LABEL = `MANICAI ${APP_VERSION} (${APP_BUILD})`;
+export const APP_LABEL = `Manica ${APP_VERSION} (${APP_BUILD})`;
 
-function read(key: string): string | null { try { return localStorage.getItem(key); } catch { return null; } }
+/** before the rename from MANICAI the same data lived under manicai.* keys: fall back to them */
+const legacyKey = (key: string) => key.replace(/^manica\./, 'manicai.');
+function read(key: string): string | null { try { return localStorage.getItem(key) ?? localStorage.getItem(legacyKey(key)); } catch { return null; } }
 function write(key: string, v: string): boolean { try { localStorage.setItem(key, v); return true; } catch { return false; } }
 
 /** stamp a project with the app that saved it (kept in the file, ignored when read) */

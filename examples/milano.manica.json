@@ -1,0 +1,229 @@
+{
+  "schema": "manica.project",
+  "version": 6,
+  "name": "European two-tier bowl (Milan-inspired)",
+  "units": "metric",
+  "site": {
+    "northDeg": 90,
+    "latitude": 45.5,
+    "longitude": 9.1
+  },
+  "sport": "soccer",
+  "field": {
+    "length": 105000,
+    "width": 68000,
+    "runoffSide": 6000,
+    "runoffEnd": 7500
+  },
+  "bowl": {
+    "sideDistance": 8500,
+    "endDistance": 10500,
+    "cornerRadius": 16000,
+    "targetCapacity": 71500,
+    "stands": {}
+  },
+  "seating": {
+    "seatWidth": 500,
+    "aisleWidth": 1200,
+    "maxSeatsBetweenAisles": 28,
+    "eyeHeight": 1200,
+    "crossAisleWidth": 1500,
+    "wheelchairEyeHeight": 1150
+  },
+  "sightlines": {
+    "mode": "cvalue",
+    "targetC": 90,
+    "minC": 60,
+    "riserStep": 10,
+    "maxRakeDeg": 37,
+    "excludeBelowMin": false
+  },
+  "tiers": [
+    {
+      "id": "T1",
+      "name": "First ring",
+      "rows": 29,
+      "rowDepth": 800,
+      "riser": 380,
+      "elevation": 1500,
+      "overhang": 0,
+      "barrier": 800,
+      "kind": "general",
+      "crossAisles": [],
+      "vomitories": {
+        "enabled": true,
+        "every": 2,
+        "mouthRow": 12,
+        "width": 2800
+      },
+      "accessible": {
+        "perSection": 5,
+        "row": 0
+      }
+    },
+    {
+      "id": "T2",
+      "name": "Second ring",
+      "rows": 39,
+      "rowDepth": 800,
+      "riser": 380,
+      "elevation": 5000,
+      "overhang": -6000,
+      "barrier": 800,
+      "kind": "general",
+      "crossAisles": [],
+      "vomitories": {
+        "enabled": true,
+        "every": 2,
+        "mouthRow": 13,
+        "width": 2800
+      },
+      "accessible": {
+        "perSection": 4,
+        "row": 1
+      },
+      "targetC": 60
+    }
+  ],
+  "premium": [
+    {
+      "id": "P1",
+      "name": "Suite level",
+      "belowTier": "T2",
+      "kind": "suites",
+      "height": 4500,
+      "setback": 6000,
+      "stands": [
+        "N",
+        "S"
+      ],
+      "unitWidth": 5500,
+      "unitDepth": 8000,
+      "seatsPerUnit": 16
+    }
+  ],
+  "building": {
+    "concourseWidth": 10000,
+    "programDepth": 10000,
+    "concourseClear": 4000,
+    "allowances": {
+      "concessions": 0.06,
+      "restrooms": 0.07,
+      "retail": 0.015,
+      "firstAid": 0.003,
+      "clubLounge": 1
+    },
+    "cores": {
+      "spacing": 60000,
+      "width": 9000,
+      "depth": 11000,
+      "stairs": 2,
+      "stairWidth": 2400,
+      "lifts": 2
+    }
+  },
+  "architecture": {
+    "structure": {
+      "bay": 10000,
+      "column": 900,
+      "rakerDepth": 1100,
+      "material": "steel"
+    },
+    "roof": {
+      "type": "perimeter",
+      "stands": [
+        "N",
+        "S"
+      ],
+      "overhang": 2000,
+      "clearance": 9000,
+      "pitch": 4,
+      "depth": 5000,
+      "frameEvery": 2,
+      "open": 1,
+      "skyView": 20000,
+      "material": "ptfe"
+    },
+    "facade": {
+      "type": "glazed",
+      "module": 3000,
+      "offset": 3000,
+      "portals": 4,
+      "portalWidth": 12000,
+      "portalHeight": 7000,
+      "material": "glass"
+    },
+    "boh": {
+      "mainStand": "S",
+      "corridor": 6000,
+      "depth": 16000,
+      "clear": 4500,
+      "scale": 1
+    }
+  },
+  "systems": {
+    "lighting": {
+      "mount": "auto",
+      "target": 3000,
+      "lumens": 180000,
+      "watts": 1500,
+      "maintenance": 0.8,
+      "utilisation": 0.55
+    },
+    "boards": {
+      "type": "ends",
+      "width": 32000,
+      "height": 9000,
+      "clear": 30000,
+      "ribbon": true
+    },
+    "broadcast": {
+      "commentary": 40,
+      "compound": 2500
+    },
+    "mep": {
+      "scale": 1,
+      "ductZone": 900
+    },
+    "service": {
+      "yard": "auto",
+      "fieldAccess": "E",
+      "dockBays": 6
+    }
+  },
+  "studies": {
+    "egress": {
+      "stepRate": 79,
+      "levelRate": 109,
+      "targetMin": 8,
+      "maxTravel": 30000
+    },
+    "sun": {
+      "month": 3,
+      "day": 21,
+      "hour": 15,
+      "latitude": 40
+    },
+    "carbon": {
+      "concrete": 330,
+      "rebarRate": 120,
+      "rebar": 1.99,
+      "steel": 1.55,
+      "steelFraction": 0.05,
+      "terraceThickness": 250,
+      "roofSteel": 100,
+      "roofCovering": 40,
+      "facade": 120,
+      "uncertainty": 0.3
+    },
+    "revenue": {
+      "currency": "USD",
+      "events": 25,
+      "occupancy": 0.85,
+      "ticket": 60,
+      "club": 250,
+      "suite": 150000
+    }
+  },
+  "presetId": "milano"
+}

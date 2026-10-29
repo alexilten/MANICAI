@@ -49,10 +49,10 @@ export interface Cut { enabled: boolean; axis: 'x' | 'y'; offset: number }
 
 /** a saved design option to compare against (Round 07); kept in this browser */
 export interface Scenario { id: string; name: string; project: Project; savedAt: string }
-const SCENARIO_KEY = 'manicai.scenarios.v1';
+const SCENARIO_KEY = 'manica.scenarios.v1';
 function readScenarios(): Scenario[] {
   try {
-    const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(SCENARIO_KEY) : null;
+    const raw = typeof localStorage !== 'undefined' ? (localStorage.getItem(SCENARIO_KEY) ?? localStorage.getItem('manicai.scenarios.v1')) : null;
     if (!raw) return [];
     return (JSON.parse(raw) as Scenario[]).flatMap((x) => { try { return [{ ...x, project: parseProject(JSON.stringify(x.project)) }]; } catch { return []; } });
   } catch { return []; }
@@ -261,4 +261,4 @@ function seatReset(get: () => State, next: Project) {
 }
 
 // dev hook for the screenshot and benchmark scripts (also on a production build opened with ?debug)
-if (typeof window !== 'undefined' && (import.meta.env?.DEV || new URLSearchParams(window.location.search).has('debug'))) (window as unknown as { __manicai: typeof useStore }).__manicai = useStore;
+if (typeof window !== 'undefined' && (import.meta.env?.DEV || new URLSearchParams(window.location.search).has('debug'))) (window as unknown as { __manica: typeof useStore }).__manica = useStore;

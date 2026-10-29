@@ -87,7 +87,7 @@ function ViewStudy() {
       <KV k="Head-turn term" v={n(q.terms.turn, 2)} />
       {q.byTier.map((t) => <KV key={t.id} k={t.name} v={n(t.mean, 2)} />)}
       <ColourBy metric="quality" label="view quality" />
-      <Method>Quality = 0.5 distance + 0.3 sightline + 0.2 head turn, from each seat's distance to the far corner (1 at ≤ 100 m, 0 at 190 m), its C-value against the tier target and how far it faces away from the centre spot. MANICAI weights for comparing options, not a published index (manicai.quality).</Method>
+      <Method>Quality = 0.5 distance + 0.3 sightline + 0.2 head turn, from each seat's distance to the far corner (1 at ≤ 100 m, 0 at 190 m), its C-value against the tier target and how far it faces away from the centre spot. Manica weights for comparing options, not a published index (manica.quality).</Method>
     </>
   );
 }
@@ -112,7 +112,7 @@ function EgressStudy() {
       <NumberControl label="Egress time target" value={E.targetMin} min={2} max={12} step={0.5} suffix=" min" onChange={(v) => ed('egress', 'targetMin', v)} />
       <NumberControl label="Travel limit" value={E.maxTravel / 1000} min={10} max={60} step={1} suffix=" m" onChange={(v) => ed('egress', 'maxTravel', v * 1000)} />
       <ColourBy metric="egress" label="route to exit" />
-      <Method>Each seat walks along its row and the stepped aisle to the nearest vomitory of its tier (or the back of a tier without them); exits clear in seats ÷ (width × rate). Seating stage only, not an evacuation model: concourses, stairs and gates need a code analysis (greenguide.egress, manicai.egress, review.egress).</Method>
+      <Method>Each seat walks along its row and the stepped aisle to the nearest vomitory of its tier (or the back of a tier without them); exits clear in seats ÷ (width × rate). Seating stage only, not an evacuation model: concourses, stairs and gates need a code analysis (greenguide.egress, manica.egress, review.egress).</Method>
     </>
   );
 }
@@ -143,7 +143,7 @@ function SunStudy() {
       <NumberControl label="Site latitude" value={lat} min={-60} max={65} step={0.1} suffix="°" hint={st.project.site.latitude == null ? 'Study default: set the site latitude' : undefined} onChange={(v) => edit((p) => { p.site.latitude = v; }, 'site.latitude')} />
       <NumberControl label="Site north (bearing of +X)" value={st.project.site.northDeg} min={0} max={359} step={1} suffix="°" onChange={(v) => edit((p) => { p.site.northDeg = v; }, 'site.northDeg')} />
       <ColourBy metric="sun" label="sun at kick-off" />
-      <Method>Direct sun only, from the solar position at the site latitude in local solar time, cast through a massing of the terraces, building, facade and roof (metal opaque, PTFE 10 %, ETFE 85 % transmission). No diffuse light, turf growth or thermal comfort model (manicai.sun).</Method>
+      <Method>Direct sun only, from the solar position at the site latitude in local solar time, cast through a massing of the terraces, building, facade and roof (metal opaque, PTFE 10 %, ETFE 85 % transmission). No diffuse light, turf growth or thermal comfort model (manica.sun).</Method>
     </>
   );
 }
@@ -180,7 +180,7 @@ function CarbonStudy() {
           <NumberControl label="Range" value={Math.round(C.uncertainty * 100)} min={0} max={60} step={5} suffix=" %" onChange={(v) => ed('carbon', 'uncertainty', v / 100)} />
         </>
       )}
-      <Method>Cradle-to-gate (A1–A3) structure, roof and facade from the element model with generic factors (ICE v3, recall). No foundations, MEP or fit-out. Order of magnitude for comparing options, not a life-cycle assessment (manicai.carbon, review.carbon).</Method>
+      <Method>Cradle-to-gate (A1–A3) structure, roof and facade from the element model with generic factors (ICE v3, recall). No foundations, MEP or fit-out. Order of magnitude for comparing options, not a life-cycle assessment (manica.carbon, review.carbon).</Method>
     </>
   );
 }
@@ -204,7 +204,7 @@ function RevenueStudy() {
       <NumberControl label="General ticket" value={R.ticket} min={0} max={500} step={5} onChange={(v) => ed('revenue', 'ticket', v)} />
       <NumberControl label="Club seat, per event" value={R.club} min={0} max={2000} step={10} onChange={(v) => ed('revenue', 'club', v)} />
       <NumberControl label="Suite, per year" value={R.suite} min={0} max={1_000_000} step={5000} onChange={(v) => ed('revenue', 'suite', v)} />
-      <Method>Placeholder prices with no market data ({r.currency}); premium prices scaled ×0.75 and ×1.25 for the low and high scenarios. Gate and premium seats only; not a business case (manicai.revenue).</Method>
+      <Method>Placeholder prices with no market data ({r.currency}); premium prices scaled ×0.75 and ×1.25 for the low and high scenarios. Gate and premium seats only; not a business case (manica.revenue).</Method>
     </>
   );
 }

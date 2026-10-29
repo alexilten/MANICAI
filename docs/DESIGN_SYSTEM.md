@@ -1,6 +1,6 @@
-# MANICAI design system
+# Manica design system
 
-MANICAI's interface sits around a full-screen 3D model. The panels are frosted glass so the model
+Manica's interface sits around a full-screen 3D model. The panels are frosted glass so the model
 reads through them, the type is small and dense like a drawing's annotation, and colour is kept for
 meaning: the accent for what you can act on, semantic colours for checks, and data colours for the
 model. Round 08 gathered the styles into the tokens below; `src/ui/styles.css` is the source.
@@ -89,5 +89,5 @@ Each colouring has a legend in the right panel.
 
 Name things by what an architect recognises: "first-row distance", not "ring offset". Use the active
 voice and say exactly what happens: "Save as preset", then "Saved "Bowl B" to My presets in this
-browser". Each study and each check says what method it used and what it leaves out. MANICAI never
+browser". Each study and each check says what method it used and what it leaves out. Manica never
 claims code compliance, certification or engineering it has not done.

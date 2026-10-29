@@ -16,7 +16,7 @@
  *
  * Left out: foundations and piling, substructure, the field, cores, MEP, fit-out, transport,
  * construction, use and end of life. This is an order-of-magnitude comparison between options, not a
- * life-cycle assessment (standards: manicai.carbon, review.carbon).
+ * life-cycle assessment (standards: manica.carbon, review.carbon).
  */
 import { SLAB } from '../core/engine/building';
 import type { Stadium } from '../core/engine/stadium';

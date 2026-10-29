@@ -25,7 +25,7 @@ import type { Mm } from '../units';
 import { CORNERS, STANDS, type PlanRing } from './plan';
 import type { RegionRows } from './layout';
 
-/** eye point: this far in front of the riser behind the seat (see standards: manicai.eye) */
+/** eye point: this far in front of the riser behind the seat (see standards: manica.eye) */
 export const EYE_FROM_BACK = 400;
 /** seat reference point (pan centre): this far in front of the riser behind */
 export const SEAT_FROM_BACK = 300;

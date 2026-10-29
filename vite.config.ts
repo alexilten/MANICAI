@@ -21,7 +21,7 @@ export default defineConfig({
     __APP_DATE__: JSON.stringify(new Date().toISOString().slice(0, 10)),
   },
   build: {
-    // three.js and React change less often than MANICAI: separate files stay cached across deploys
+    // three.js and React change less often than Manica: separate files stay cached across deploys
     rollupOptions: {
       output: {
         manualChunks: (id) => {

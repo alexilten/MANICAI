@@ -1,5 +1,5 @@
 /**
- * Round 08: About MANICAI (version, build, file format, what the tool is and is not) and the keyboard
+ * Round 08: About Manica (version, build, file format, what the tool is and is not) and the keyboard
  * shortcuts, in one sheet. Opened from the logo, or with ? for the shortcuts.
  */
 import { useEffect } from 'react';
@@ -33,9 +33,9 @@ export function AboutSheet() {
   if (!dialog) return null;
   return (
     <div className="sheet-backdrop" onClick={() => setDialog(null)}>
-      <section className="sheet glass" role="dialog" aria-modal="true" aria-label="About MANICAI" onClick={(e) => e.stopPropagation()}>
+      <section className="sheet glass" role="dialog" aria-modal="true" aria-label="About Manica" onClick={(e) => e.stopPropagation()}>
         <header className="sheet-head">
-          <div className="logo"><span className="logo-mark" />MANICAI</div>
+          <div className="logo"><span className="logo-mark" />Manica</div>
           <Segmented size="sm" value={dialog} onChange={setDialog} options={[{ value: 'about', label: 'About' }, { value: 'keys', label: 'Shortcuts' }]} />
           <button className="close" onClick={() => setDialog(null)} aria-label="Close">×</button>
         </header>
@@ -45,7 +45,7 @@ export function AboutSheet() {
             <dl className="kv-list">
               <dt>Version</dt><dd className="mono">{APP_VERSION}</dd>
               <dt>Build</dt><dd className="mono">{APP_BUILD}{APP_DATE && ` · ${APP_DATE}`}</dd>
-              <dt>Project format</dt><dd className="mono">manicai.project v{SCHEMA_VERSION}</dd>
+              <dt>Project format</dt><dd className="mono">manica.project v{SCHEMA_VERSION}</dd>
               <dt>Units</dt><dd>millimetres, Z up, origin at the centre of the field</dd>
             </dl>
             <p className="small muted">An independent experimental tool. Not an official product of, or endorsed by, MANICA Architecture or any other studio. Precedent-informed presets are parametric studies built from published facts, not the architects' geometry.</p>

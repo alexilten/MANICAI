@@ -24,7 +24,7 @@ import { studiesMarkdown } from '../src/studies/report';
 
 mkdirSync('examples', { recursive: true });
 mkdirSync('samples', { recursive: true });
-for (const pr of PRESETS) writeFileSync(`examples/${pr.id}.manicai.json`, serializeProject(pr.build()) + '\n');
+for (const pr of PRESETS) writeFileSync(`examples/${pr.id}.manica.json`, serializeProject(pr.build()) + '\n');
 
 const require = createRequire(import.meta.url);
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

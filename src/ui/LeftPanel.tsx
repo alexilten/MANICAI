@@ -363,7 +363,7 @@ function RoofControls() {
         <LengthControl label="Structural depth" units={u} value={r.depth} min={1500} max={15000} step={250} hint="Primary frames at the column line, tapering to the edge" onChange={(v) => set('roof', (x) => { x.depth = v; }, 'depth')} />
         <NumberControl label="Primary frame every n grid lines" value={r.frameEvery} min={1} max={6} step={1} hint={`${am.roofFrames} primary frames`} onChange={(v) => set('roof', (x) => { x.frameEvery = v; }, 'every')} />
         {r.type === 'retractable' && <NumberControl label="Retractable panels open" value={Math.round(r.open * 100)} min={0} max={100} step={5} suffix="%" onChange={(v) => set('roof', (x) => { x.open = v / 100; }, 'open')} />}
-        <LengthControl label="High-ball view wanted" units={u} value={r.skyView} min={5000} max={60000} step={1000} hint="MANICAI assumption: height over the centre spot the back row should see under the edge (enclosed: clear height)" onChange={(v) => set('roof', (x) => { x.skyView = v; }, 'sky')} />
+        <LengthControl label="High-ball view wanted" units={u} value={r.skyView} min={5000} max={60000} step={1000} hint="Manica assumption: height over the centre spot the back row should see under the edge (enclosed: clear height)" onChange={(v) => set('roof', (x) => { x.skyView = v; }, 'sky')} />
         <div className="sub-label">Membrane / deck</div>
         <Finishes value={r.material} options={ROOF_FINISH} onChange={(v) => set('roof', (x) => { x.material = v; }, 'mat')} />
       </>}
@@ -418,7 +418,7 @@ function BohControls() {
       <LengthControl label="Service corridor" units={u} value={B.corridor} min={3000} max={15000} step={250} onChange={(v) => set('boh', (x) => { x.corridor = v; }, 'cor')} />
       <LengthControl label="Room band depth" units={u} value={B.depth} min={6000} max={40000} step={500} onChange={(v) => set('boh', (x) => { x.depth = v; }, 'depth')} />
       <LengthControl label="Clear height wanted" units={u} value={B.clear} min={3000} max={8000} step={100} hint={`${formatLength(am.bohHeight, u)} available under the lowest concourse`} onChange={(v) => set('boh', (x) => { x.clear = v; }, 'clear')} />
-      <NumberControl label="Area allowance" value={Math.round(B.scale * 100)} min={25} max={300} step={5} suffix="%" hint={`${fmtInt(am.bohArea)} of ${fmtInt(am.bohNeeded)} m² placed (MANICAI assumptions)`} onChange={(v) => set('boh', (x) => { x.scale = v / 100; }, 'scale')} />
+      <NumberControl label="Area allowance" value={Math.round(B.scale * 100)} min={25} max={300} step={5} suffix="%" hint={`${fmtInt(am.bohArea)} of ${fmtInt(am.bohNeeded)} m² placed (Manica assumptions)`} onChange={(v) => set('boh', (x) => { x.scale = v / 100; }, 'scale')} />
     </Section>
   );
 }
@@ -473,7 +473,7 @@ function MepControls() {
   const { u, S, sm, set } = useSys();
   return (
     <Section title="MEP & service access" summary={`${(sm.mep.demandKW / 1000).toFixed(1)} MW est. · ${sm.mep.transformers} transformers`} defaultOpen={false}>
-      <NumberControl label="Plant area allowance" value={Math.round(S.mep.scale * 100)} min={25} max={300} step={5} suffix="%" hint="Scales the MANICAI planning ratios for plant, switchgear, yards and tanks" onChange={(v) => set('mep', (x) => { x.scale = v / 100; }, 'scale')} />
+      <NumberControl label="Plant area allowance" value={Math.round(S.mep.scale * 100)} min={25} max={300} step={5} suffix="%" hint="Scales the Manica planning ratios for plant, switchgear, yards and tanks" onChange={(v) => set('mep', (x) => { x.scale = v / 100; }, 'scale')} />
       <LengthControl label="Duct zone under concourse ceilings" units={u} value={S.mep.ductZone} min={300} max={2000} step={50} onChange={(v) => set('mep', (x) => { x.ductZone = v; }, 'duct')} />
       <div className="sub-label">Service yard & energy centre on</div>
       <Segmented size="sm" value={S.service.yard} onChange={(v) => set('service', (x) => { x.yard = v; }, 'yard')} options={[{ value: 'auto', label: `Auto (${sm.service.yard})` }, ...STAND_IDS.map((g) => ({ value: g, label: g }))]} />

@@ -1,39 +1,41 @@
 {
-  "schema": "manicai.project",
+  "schema": "manica.project",
   "version": 6,
-  "name": "Four stands with a steep home end (Everton-inspired)",
+  "name": "Spherical immersive venue (Sphere-inspired)",
   "units": "metric",
   "site": {
     "northDeg": 90,
-    "latitude": 53.4,
-    "longitude": -3
+    "latitude": 36.1,
+    "longitude": -115.2
   },
-  "sport": "soccer",
+  "sport": "stage",
   "field": {
-    "length": 105000,
-    "width": 68000,
-    "runoffSide": 5500,
-    "runoffEnd": 6000
+    "length": 26000,
+    "width": 12000,
+    "runoffSide": 8000,
+    "runoffEnd": 8000
   },
   "bowl": {
-    "sideDistance": 7500,
-    "endDistance": 8500,
-    "cornerRadius": 0,
-    "targetCapacity": 52888,
+    "sideDistance": 9000,
+    "endDistance": 9000,
+    "cornerRadius": 15000,
+    "targetCapacity": 17600,
     "stands": {
-      "W": {
-        "distance": 7000,
-        "rows": {
-          "T1": 49,
-          "T2": 0
-        }
+      "E": {
+        "open": true
+      },
+      "NE": {
+        "open": true
+      },
+      "SE": {
+        "open": true
       }
     }
   },
   "seating": {
     "seatWidth": 500,
     "aisleWidth": 1200,
-    "maxSeatsBetweenAisles": 28,
+    "maxSeatsBetweenAisles": 40,
     "eyeHeight": 1200,
     "crossAisleWidth": 1500,
     "wheelchairEyeHeight": 1150
@@ -43,40 +45,18 @@
     "targetC": 90,
     "minC": 60,
     "riserStep": 10,
-    "maxRakeDeg": 34,
+    "maxRakeDeg": 40,
     "excludeBelowMin": false
   },
   "tiers": [
     {
       "id": "T1",
-      "name": "Lower tier",
-      "rows": 33,
-      "rowDepth": 800,
+      "name": "100 level",
+      "rows": 26,
+      "rowDepth": 760,
       "riser": 380,
-      "elevation": 1200,
+      "elevation": 600,
       "overhang": 0,
-      "barrier": 800,
-      "kind": "general",
-      "crossAisles": [],
-      "vomitories": {
-        "enabled": true,
-        "every": 2,
-        "mouthRow": 12,
-        "width": 2800
-      },
-      "accessible": {
-        "perSection": 5,
-        "row": 0
-      }
-    },
-    {
-      "id": "T2",
-      "name": "Upper tier",
-      "rows": 29,
-      "rowDepth": 800,
-      "riser": 380,
-      "elevation": 4600,
-      "overhang": -5000,
       "barrier": 800,
       "kind": "general",
       "crossAisles": [],
@@ -88,15 +68,117 @@
       },
       "accessible": {
         "perSection": 4,
+        "row": 0
+      },
+      "targetC": 60
+    },
+    {
+      "id": "T2",
+      "name": "200 level",
+      "rows": 14,
+      "rowDepth": 760,
+      "riser": 380,
+      "elevation": 2000,
+      "overhang": 2000,
+      "barrier": 800,
+      "kind": "general",
+      "crossAisles": [],
+      "vomitories": {
+        "enabled": false,
+        "every": 2,
+        "mouthRow": 8,
+        "width": 2800
+      },
+      "accessible": {
+        "perSection": 3,
+        "row": 1
+      },
+      "targetC": 60
+    },
+    {
+      "id": "T3",
+      "name": "300 level",
+      "rows": 11,
+      "rowDepth": 760,
+      "riser": 380,
+      "elevation": 2000,
+      "overhang": 1500,
+      "barrier": 800,
+      "kind": "general",
+      "crossAisles": [],
+      "vomitories": {
+        "enabled": false,
+        "every": 2,
+        "mouthRow": 8,
+        "width": 2800
+      },
+      "accessible": {
+        "perSection": 3,
+        "row": 1
+      },
+      "targetC": 60
+    },
+    {
+      "id": "T4",
+      "name": "400 level",
+      "rows": 15,
+      "rowDepth": 760,
+      "riser": 380,
+      "elevation": 4000,
+      "overhang": 1500,
+      "barrier": 800,
+      "kind": "general",
+      "crossAisles": [],
+      "vomitories": {
+        "enabled": false,
+        "every": 2,
+        "mouthRow": 8,
+        "width": 2800
+      },
+      "accessible": {
+        "perSection": 3,
         "row": 1
       },
       "targetC": 60
     }
   ],
-  "premium": [],
+  "premium": [
+    {
+      "id": "P1",
+      "name": "Suite level 1",
+      "belowTier": "T2",
+      "kind": "suites",
+      "height": 3600,
+      "setback": 0,
+      "stands": [
+        "W",
+        "N",
+        "S"
+      ],
+      "unitWidth": 9000,
+      "unitDepth": 6000,
+      "seatsPerUnit": 30
+    },
+    {
+      "id": "P2",
+      "name": "Suite level 2",
+      "belowTier": "T3",
+      "kind": "suites",
+      "height": 3600,
+      "setback": 0,
+      "stands": [
+        "W",
+        "N",
+        "S"
+      ],
+      "unitWidth": 9000,
+      "unitDepth": 6000,
+      "seatsPerUnit": 30
+    }
+  ],
   "building": {
-    "concourseWidth": 10000,
-    "programDepth": 10000,
+    "concourseWidth": 5000,
+    "programDepth": 3500,
     "concourseClear": 4000,
     "allowances": {
       "concessions": 0.06,
@@ -108,7 +190,7 @@
     "cores": {
       "spacing": 60000,
       "width": 9000,
-      "depth": 11000,
+      "depth": 5000,
       "stairs": 2,
       "stairWidth": 2400,
       "lifts": 2
@@ -122,31 +204,31 @@
       "material": "steel"
     },
     "roof": {
-      "type": "perimeter",
+      "type": "sphere",
       "stands": [
         "N",
         "S"
       ],
       "overhang": 2000,
-      "clearance": 9000,
+      "clearance": 3000,
       "pitch": 4,
       "depth": 5000,
       "frameEvery": 2,
       "open": 1,
       "skyView": 20000,
-      "material": "ptfe"
+      "material": "metal"
     },
     "facade": {
       "type": "glazed",
       "module": 3000,
       "offset": 3000,
-      "portals": 4,
+      "portals": 0,
       "portalWidth": 12000,
       "portalHeight": 7000,
       "material": "glass"
     },
     "boh": {
-      "mainStand": "S",
+      "mainStand": "N",
       "corridor": 6000,
       "depth": 16000,
       "clear": 4500,
@@ -155,7 +237,7 @@
   },
   "systems": {
     "lighting": {
-      "mount": "auto",
+      "mount": "roof",
       "target": 3000,
       "lumens": 180000,
       "watts": 1500,
@@ -163,11 +245,11 @@
       "utilisation": 0.55
     },
     "boards": {
-      "type": "ends",
+      "type": "none",
       "width": 32000,
       "height": 9000,
       "clear": 30000,
-      "ribbon": true
+      "ribbon": false
     },
     "broadcast": {
       "commentary": 40,
@@ -217,5 +299,5 @@
       "suite": 150000
     }
   },
-  "presetId": "steep-end"
+  "presetId": "sphere"
 }

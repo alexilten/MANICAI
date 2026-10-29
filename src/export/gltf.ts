@@ -2,8 +2,8 @@
  * glTF 2.0 binary (.glb) export (Round 06), for visualisation tools, game engines and web viewers.
  *
  *   • metres, +Y up (glTF convention): stadium (x, y, z) mm → (x, z, −y) / 1000
- *   • a node per element, named by its MANICAI id, with its IFC class, category, layer, model status and
- *     key values in `extras`; nodes are grouped under one parent per top-level MANICAI layer
+ *   • a node per element, named by its Manica id, with its IFC class, category, layer, model status and
+ *     key values in `extras`; nodes are grouped under one parent per top-level Manica layer
  *   • one material per top-level layer, coloured as in the Rhino layer standard
  *   • seats as GPU instances of one generic seat per tier (EXT_mesh_gpu_instancing, supported by three.js,
  *     Babylon.js, Blender and most web viewers; listed as used, not required)
@@ -74,7 +74,7 @@ export function exportGlb(s: Stadium, opts: GltfOptions = {}): Uint8Array {
   const inGroup = (layer: string, node: number) => { const top = layer.split('::')[0]; const g = groups.get(top); if (g) g.push(node); else groups.set(top, [node]); };
   for (const e of model.elements) {
     if (e.voids) continue;
-    nodes.push({ name: e.id, mesh: meshOf(e.id, e.mesh(), e.layer), extras: { manicaiId: e.id, name: e.name, ifcClass: e.ifc.cls, ifcType: e.ifc.objectType ?? e.ifc.type, category: e.category, layer: e.layer, status: STATUS_LABEL[e.status], ...e.props } });
+    nodes.push({ name: e.id, mesh: meshOf(e.id, e.mesh(), e.layer), extras: { manicaId: e.id, name: e.name, ifcClass: e.ifc.cls, ifcType: e.ifc.objectType ?? e.ifc.type, category: e.category, layer: e.layer, status: STATUS_LABEL[e.status], ...e.props } });
     inGroup(e.layer, nodes.length - 1);
   }
 
@@ -118,11 +118,11 @@ export function exportGlb(s: Stadium, opts: GltfOptions = {}): Uint8Array {
 
   const groupNodes: number[] = [];
   for (const [name, kids] of [...groups].sort(([a], [b]) => a.localeCompare(b))) { nodes.push({ name, children: kids }); groupNodes.push(nodes.length - 1); }
-  nodes.push({ name: s.project.name, children: groupNodes, extras: { generator: 'MANICAI', units: 'metres, +Y up (stadium +Z); origin at the centre of the field', capacity: s.metrics.total, note: 'Conceptual design — not a construction document' } });
+  nodes.push({ name: s.project.name, children: groupNodes, extras: { generator: 'Manica', units: 'metres, +Y up (stadium +Z); origin at the centre of the field', capacity: s.metrics.total, note: 'Conceptual design — not a construction document' } });
   const root = nodes.length - 1;
 
   const json: any = {
-    asset: { version: '2.0', generator: 'MANICAI 0.6.0' },
+    asset: { version: '2.0', generator: 'Manica 0.6.0' },
     scene: 0, scenes: [{ name: s.project.name, nodes: [root] }],
     nodes, meshes, materials, accessors, bufferViews, buffers: [{ byteLength }],
     ...(extensionsUsed.length ? { extensionsUsed } : {}),

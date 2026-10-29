@@ -16,11 +16,11 @@
  *   • MEP: risers beside every core, an air-handling room and an electrical / telecom room at every
  *     level by every core, duct zones under the concourse ceilings, a cable tray along the event-level
  *     corridor, and an energy centre (central plant, switchgear, transformers, generators, water and
- *     fire pumps, telecom head end) on the service frontage, sized from MANICAI planning ratios;
+ *     fire pumps, telecom head end) on the service frontage, sized from Manica planning ratios;
  *   • service access: a truck court at the loading dock frontage and a vehicle tunnel onto the field.
  *
- * Everything here is a conceptual space reservation (standards: manicai.lighting, fifa.lighting,
- * manicai.boards, manicai.broadcast, manicai.mep). No product, photometry or engineered system is implied.
+ * Everything here is a conceptual space reservation (standards: manica.lighting, fifa.lighting,
+ * manica.boards, manica.broadcast, manica.mep). No product, photometry or engineered system is implied.
  */
 import type { Project, StandId } from '../schema';
 import type { FieldModel } from '../sports';
@@ -45,7 +45,7 @@ export const SYSTEM_TONE: Record<SystemId, string> = {
 export const MIN_LIGHT_ANGLE = 25;
 /** largest fixture tilt from the downward vertical before glare (recall) */
 export const MAX_TILT = 70;
-/** MANICAI: clearance between the back row's tread and the bottom of an end video board */
+/** Manica: clearance between the back row's tread and the bottom of an end video board */
 export const BOARD_CLEAR_BEHIND = 3000;
 /** generic transformer and generator ratings used for counting (placeholders, not products) */
 export const TRANSFORMER_KVA = 2500;
@@ -95,14 +95,14 @@ export interface Systems {
   metrics: SystemsMetrics;
 }
 
-/** spectators per Wi-Fi access point in the bowl (MANICAI planning ratio) */
+/** spectators per Wi-Fi access point in the bowl (Manica planning ratio) */
 const SEATS_PER_AP = 75;
 /** speaker clusters along the catwalk at this spacing */
 const SPEAKER_SPACING = 20000;
 const deg = (r: number) => (r * 180) / Math.PI;
 const frac = (v: number) => v - Math.floor(v);
 
-/** MEP areas (m²) and loads from MANICAI planning ratios, scaled by mep.scale. */
+/** MEP areas (m²) and loads from Manica planning ratios, scaled by mep.scale. */
 export function mepNeeds(p: Project, capacity: number, conditioned: number, loadKW: number) {
   const k = p.systems.mep.scale;
   const demandKW = loadKW + 0.06 * conditioned;

@@ -4,7 +4,7 @@
  * the model check — so they all describe the same objects with the same ids.
  *
  * Each element carries
- *   • its MANICAI id (stable across exports and regenerations of the same project), name and layer;
+ *   • its Manica id (stable across exports and regenerations of the same project), name and layer;
  *   • an IFC class, predefined type and object type, and an aggregate parent (the roof, the facade);
  *   • a model status that keeps actual building elements apart from conceptual masses, space
  *     reservations and generic placeholders (brief §13);
@@ -56,7 +56,7 @@ export const STATUS_LABEL: Record<ModelStatus, string> = {
 export interface BimElement {
   id: string;
   name: string;
-  /** MANICAI layer path (as in the Rhino export) */
+  /** Manica layer path (as in the Rhino export) */
   layer: string;
   /** schedule category */
   category: string;

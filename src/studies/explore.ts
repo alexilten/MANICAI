@@ -222,5 +222,5 @@ export function exploreCsv(r: ExploreResult): string {
   const cell = (s: string) => (/[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s);
   const head = 'option,capacity,mean_distance_m,within_150m,view_quality,min_c_mm,feasible,pareto,recommended,changes,breaks';
   const rows = r.candidates.map((c) => [c.id, c.capacity, (c.meanCentre / 1000).toFixed(2), c.within150.toFixed(4), c.quality.toFixed(4), Math.round(c.minC), c.feasible, c.pareto, c.id === r.recommended, c.changes.join('; '), c.breaks.join('; ')].map((v) => cell(String(v))).join(','));
-  return ['# MANICAI capacity–proximity exploration — seeded search; see docs/STUDIES.md', head, ...rows].join('\n') + '\n';
+  return ['# Manica capacity–proximity exploration — seeded search; see docs/STUDIES.md', head, ...rows].join('\n') + '\n';
 }

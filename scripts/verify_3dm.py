@@ -1,10 +1,10 @@
-"""Independent check of MANICAI .3dm files with the Python rhino3dm (openNURBS) bindings.
+"""Independent check of Manica .3dm files with the Python rhino3dm (openNURBS) bindings.
 
     pip install rhino3dm
     python3 scripts/verify_3dm.py samples/*.3dm
 
 Prints units, layers, block definitions with instance counts, groups, and whether the embedded
-MANICAI project is present. Exits non-zero if a file cannot be read or is not in millimetres.
+Manica project is present. Exits non-zero if a file cannot be read or is not in millimetres.
 """
 import json
 import sys
@@ -27,7 +27,7 @@ for path in sys.argv[1:]:
     project = None
     for i in range(len(m.Strings)):
         k, v = m.Strings[i]
-        if k == "manicai.project":
+        if k == "manica.project":
             project = json.loads(v)
     print(json.dumps({
         "file": path, "units": units, "layers": len(m.Layers), "objects": len(m.Objects),

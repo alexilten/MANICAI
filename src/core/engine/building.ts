@@ -14,7 +14,7 @@
  *   • cores (stairs and lifts) stand outside the outermost floor plate at a regular spacing.
  *
  * This is conceptual space planning. Exit widths, travel distances and fixture counts depend on the
- * jurisdiction's code and are not checked (standards: review.egress, manicai.program).
+ * jurisdiction's code and are not checked (standards: review.egress, manica.program).
  */
 import type { PremiumLevel, Project, StandId } from '../schema';
 import type { Mm } from '../units';

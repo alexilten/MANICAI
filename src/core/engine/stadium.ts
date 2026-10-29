@@ -233,17 +233,17 @@ function addBuilding(p: Project, ring: PlanRing, profiles: TierProfile[], m: Met
   m.total = m.net + m.suiteSeats;
   const diff = m.total - p.bowl.targetCapacity;
   if (Math.abs(diff) > p.bowl.targetCapacity * 0.02) w.push({ level: 'info', code: 'capacity.target', message: `Capacity is ${Math.abs(diff).toLocaleString('en-US')} ${diff > 0 ? 'above' : 'below'} the ${p.bowl.targetCapacity.toLocaleString('en-US')} target. "Fit rows to target" adjusts the row counts; "Suggest moves" lists other options.` });
-  if (b.metrics.programPlaced < b.metrics.programNeeded * 0.98) w.push({ level: 'warn', code: 'program.short', rule: 'manicai.program', message: `The concourses have frontage for ${Math.round(b.metrics.programPlaced).toLocaleString('en-US')} m² of the ${Math.round(b.metrics.programNeeded).toLocaleString('en-US')} m² of concessions, toilets and retail the allowances ask for. Deepen the program zone or add a concourse.` });
+  if (b.metrics.programPlaced < b.metrics.programNeeded * 0.98) w.push({ level: 'warn', code: 'program.short', rule: 'manica.program', message: `The concourses have frontage for ${Math.round(b.metrics.programPlaced).toLocaleString('en-US')} m² of the ${Math.round(b.metrics.programNeeded).toLocaleString('en-US')} m² of concessions, toilets and retail the allowances ask for. Deepen the program zone or add a concourse.` });
   for (const l of p.premium ?? []) {
     const ti = p.tiers.findIndex((t) => t.id === l.belowTier);
-    if (ti <= 0) w.push({ level: 'warn', code: 'premium.tier', rule: 'manicai.premium', message: `${l.name} sits under ${l.belowTier}, which is not an upper tier, so it is not built. Put premium levels under tier 2 or above.` });
+    if (ti <= 0) w.push({ level: 'warn', code: 'premium.tier', rule: 'manica.premium', message: `${l.name} sits under ${l.belowTier}, which is not an upper tier, so it is not built. Put premium levels under tier 2 or above.` });
   }
   for (const lv of b.levels) {
     if (lv.kind !== 'concourse') continue;
     const t = profiles[lv.tier];
     if (lv.d0 >= t.back - 1 && t.index > 0 && p.tiers[t.index].vomitories?.enabled) w.push({ level: 'info', code: 'concourse.behind', message: `${t.name}: the soffit never clears ${(p.building.concourseClear / 1000).toFixed(1)} m above the vomitory floor, so its concourse starts behind the tier.` });
   }
-  if (b.metrics.maxToCore > 60000) w.push({ level: 'info', code: 'core.spacing', rule: 'manicai.cores', message: `Up to ${(b.metrics.maxToCore / 1000).toFixed(0)} m along the concourse to the nearest core. Reduce the core spacing if the code's travel distance is shorter.` });
+  if (b.metrics.maxToCore > 60000) w.push({ level: 'info', code: 'core.spacing', rule: 'manica.cores', message: `Up to ${(b.metrics.maxToCore / 1000).toFixed(0)} m along the concourse to the nearest core. Reduce the core spacing if the code's travel distance is shorter.` });
   return b;
 }
 
@@ -252,12 +252,12 @@ function addArchitecture(p: Project, ring: PlanRing, layout: Layout, profiles: T
   const a = buildArchitecture(p, ring, layout, profiles, b, { seats: seats.seats, net: m.net, fieldLength: field.length, fieldWidth: field.width });
   const r = p.architecture.roof, am = a.metrics;
   const open = !ENCLOSED.includes(r.type) || (r.type === 'retractable' && r.open > 0.5);
-  if (r.type !== 'open' && am.viewClear < r.skyView) w.push({ level: 'warn', code: 'roof.view', rule: 'manicai.roof', message: open
+  if (r.type !== 'open' && am.viewClear < r.skyView) w.push({ level: 'warn', code: 'roof.view', rule: 'manica.roof', message: open
     ? `${ROOF_LABEL[r.type]}: the back-row sightline under the roof edge reaches only ${(am.viewClear / 1000).toFixed(1)} m over the centre spot (${(r.skyView / 1000).toFixed(0)} m wanted for high balls). Raise the roof, pull its edge back or pitch it up.`
     : `${ROOF_LABEL[r.type]}: ${(am.viewClear / 1000).toFixed(1)} m clear over the centre spot (${(r.skyView / 1000).toFixed(0)} m wanted). Raise the roof clearance.` });
-  if (am.bohArea < am.bohNeeded * 0.98) w.push({ level: 'warn', code: 'boh.short', rule: 'manicai.boh', message: `Back-of-house: ${Math.round(am.bohArea).toLocaleString('en-US')} m² placed of the ${Math.round(am.bohNeeded).toLocaleString('en-US')} m² assumed. Deepen the back-of-house band or reduce the allowance.` });
-  if (am.bohHeight < 3000) w.push({ level: 'warn', code: 'boh.headroom', rule: 'manicai.boh', message: `Back-of-house rooms get ${(am.bohHeight / 1000).toFixed(1)} m clear under the lowest concourse. Raise the lower tier's vomitory row or the concourse level.` });
-  w.push({ level: 'info', code: 'scope.r04', rule: 'manicai.structure', message: 'Structure, roof and facade are spatial, conceptual representations: member sizes, spans and loads are not engineered and need a structural engineer.' });
+  if (am.bohArea < am.bohNeeded * 0.98) w.push({ level: 'warn', code: 'boh.short', rule: 'manica.boh', message: `Back-of-house: ${Math.round(am.bohArea).toLocaleString('en-US')} m² placed of the ${Math.round(am.bohNeeded).toLocaleString('en-US')} m² assumed. Deepen the back-of-house band or reduce the allowance.` });
+  if (am.bohHeight < 3000) w.push({ level: 'warn', code: 'boh.headroom', rule: 'manica.boh', message: `Back-of-house rooms get ${(am.bohHeight / 1000).toFixed(1)} m clear under the lowest concourse. Raise the lower tier's vomitory row or the concourse level.` });
+  w.push({ level: 'info', code: 'scope.r04', rule: 'manica.structure', message: 'Structure, roof and facade are spatial, conceptual representations: member sizes, spans and loads are not engineered and need a structural engineer.' });
   return a;
 }
 
@@ -265,15 +265,15 @@ function addArchitecture(p: Project, ring: PlanRing, layout: Layout, profiles: T
 function addSystems(p: Project, ring: PlanRing, layout: Layout, profiles: TierProfile[], b: Building, a: Architecture, seats: SeatResult, field: FieldModel, m: Metrics, w: Warning[]): Systems {
   const s = buildSystems(p, ring, layout, profiles, b, a, { field, seats: seats.seats, capacity: m.total, skyView: p.architecture.roof.skyView });
   const sm = s.metrics, L = sm.lighting, B = p.systems.boards;
-  if (p.systems.lighting.mount === 'roof' && L.mount === 'masts') w.push({ level: 'info', code: 'lighting.mount', rule: 'manicai.lighting', message: 'The roof does not ring the field, so the floodlights stand on four corner masts instead of a roof catwalk.' });
+  if (p.systems.lighting.mount === 'roof' && L.mount === 'masts') w.push({ level: 'info', code: 'lighting.mount', rule: 'manica.lighting', message: 'The roof does not ring the field, so the floodlights stand on four corner masts instead of a roof catwalk.' });
   if (L.fixtures > 0 && L.minAngle < MIN_LIGHT_ANGLE) w.push({ level: 'warn', code: 'lighting.angle', rule: 'fifa.lighting', message: `The lowest floodlights are ${L.minAngle.toFixed(1)}° above the horizontal from the centre spot (${MIN_LIGHT_ANGLE}° wanted to keep glare out of players' eyes). Raise the roof or the masts.` });
   if (L.overTilt > 0) w.push({ level: 'warn', code: 'lighting.tilt', rule: 'fifa.lighting', message: `${L.overTilt} floodlight${L.overTilt > 1 ? 's are' : ' is'} aimed more than ${MAX_TILT}° from the vertical (steepest ${L.maxTilt.toFixed(0)}°), which adds glare. Mount them higher or closer to the field.` });
-  if (B.type === 'centre' && !sm.boards.built) w.push({ level: 'warn', code: 'board.centre', rule: 'manicai.boards', message: 'A centre-hung board needs a fixed roof over the field (enclosed, ETFE or truss), so it is not built. Use end boards or change the roof.' });
-  if (B.type === 'centre' && sm.boards.built && B.clear < p.architecture.roof.skyView) w.push({ level: 'warn', code: 'board.low', rule: 'manicai.boards', message: `The centre-hung board's underside is ${(B.clear / 1000).toFixed(1)} m above the field, inside the ${(p.architecture.roof.skyView / 1000).toFixed(0)} m high-ball zone. Raise it.` });
-  if (sm.boards.clash > 0 && B.type === 'centre') w.push({ level: 'warn', code: 'board.roof', rule: 'manicai.boards', message: `The centre-hung board reaches ${(sm.boards.clash / 1000).toFixed(1)} m into the roof structure. Lower it or make it shorter.` });
-  if (sm.boards.clash > 0 && B.type === 'ends') w.push({ level: sm.boards.clash > B.height / 2 ? 'warn' : 'info', code: 'board.roof', rule: 'manicai.boards', message: `The roof leaves room for end boards ${((B.height - sm.boards.clash) / 1000).toFixed(1)} m tall (${(B.height / 1000).toFixed(1)} m asked), so they are cut to fit. Raise the roof clearance for taller boards.` });
-  if (sm.service.yardFit < 0.98) w.push({ level: 'warn', code: 'systems.yard', rule: 'manicai.mep', message: `The ${({ N: 'north', S: 'south', E: 'east', W: 'west' } as const)[sm.service.yard]} frontage holds only ${Math.round(sm.service.yardFit * 100)}% of the service yard and energy centre. Pick a longer frontage or reduce the plant allowance.` });
-  if (p.building.concourseClear - p.systems.mep.ductZone < 3000) w.push({ level: 'warn', code: 'mep.duct', rule: 'manicai.mep', message: `The duct zone leaves ${((p.building.concourseClear - p.systems.mep.ductZone) / 1000).toFixed(1)} m clear on the concourses. Raise the concourse clear height or shallow the duct zone.` });
-  w.push({ level: 'info', code: 'scope.r05', rule: 'manicai.mep', message: 'Lighting, boards and MEP are space reservations from planning ratios and a generic fixture: illuminance uniformity, loads, plant sizing and smoke control need lighting and MEP engineers.' });
+  if (B.type === 'centre' && !sm.boards.built) w.push({ level: 'warn', code: 'board.centre', rule: 'manica.boards', message: 'A centre-hung board needs a fixed roof over the field (enclosed, ETFE or truss), so it is not built. Use end boards or change the roof.' });
+  if (B.type === 'centre' && sm.boards.built && B.clear < p.architecture.roof.skyView) w.push({ level: 'warn', code: 'board.low', rule: 'manica.boards', message: `The centre-hung board's underside is ${(B.clear / 1000).toFixed(1)} m above the field, inside the ${(p.architecture.roof.skyView / 1000).toFixed(0)} m high-ball zone. Raise it.` });
+  if (sm.boards.clash > 0 && B.type === 'centre') w.push({ level: 'warn', code: 'board.roof', rule: 'manica.boards', message: `The centre-hung board reaches ${(sm.boards.clash / 1000).toFixed(1)} m into the roof structure. Lower it or make it shorter.` });
+  if (sm.boards.clash > 0 && B.type === 'ends') w.push({ level: sm.boards.clash > B.height / 2 ? 'warn' : 'info', code: 'board.roof', rule: 'manica.boards', message: `The roof leaves room for end boards ${((B.height - sm.boards.clash) / 1000).toFixed(1)} m tall (${(B.height / 1000).toFixed(1)} m asked), so they are cut to fit. Raise the roof clearance for taller boards.` });
+  if (sm.service.yardFit < 0.98) w.push({ level: 'warn', code: 'systems.yard', rule: 'manica.mep', message: `The ${({ N: 'north', S: 'south', E: 'east', W: 'west' } as const)[sm.service.yard]} frontage holds only ${Math.round(sm.service.yardFit * 100)}% of the service yard and energy centre. Pick a longer frontage or reduce the plant allowance.` });
+  if (p.building.concourseClear - p.systems.mep.ductZone < 3000) w.push({ level: 'warn', code: 'mep.duct', rule: 'manica.mep', message: `The duct zone leaves ${((p.building.concourseClear - p.systems.mep.ductZone) / 1000).toFixed(1)} m clear on the concourses. Raise the concourse clear height or shallow the duct zone.` });
+  w.push({ level: 'info', code: 'scope.r05', rule: 'manica.mep', message: 'Lighting, boards and MEP are space reservations from planning ratios and a generic fixture: illuminance uniformity, loads, plant sizing and smoke control need lighting and MEP engineers.' });
   return s;
 }
