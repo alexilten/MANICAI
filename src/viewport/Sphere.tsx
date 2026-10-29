@@ -60,12 +60,17 @@ function drawExosphere(g: CanvasRenderingContext2D, w: number, h: number) {
     gr.addColorStop(0, c); gr.addColorStop(1, 'rgba(0,0,0,0)');
     g.fillStyle = gr; g.fillRect(x - r, y - r, 2 * r, 2 * r);
   };
-  for (let k = 0; k < 4; k++) { const x = ((k + 0.5) * w) / 4; orb(x, h * 0.42, h * 0.32, 'rgba(120,230,255,0.55)'); orb(x + w / 8, h * 0.62, h * 0.22, 'rgba(255,190,90,0.35)'); }
-  // the puck grid: dark gaps between lit dots
-  g.fillStyle = 'rgba(0,0,0,0.35)';
-  const p = 8;
-  for (let y = 0; y < h; y += p) g.fillRect(0, y, w, 2);
-  for (let x = 0; x < w; x += p) g.fillRect(x, 0, 2, h);
+  for (let k = 0; k < 4; k++) {
+    const x = ((k + 0.5) * w) / 4;
+    orb(x, h * 0.45, h * 0.4, 'rgba(110,235,255,0.85)');
+    orb(x + w / 8, h * 0.68, h * 0.26, 'rgba(255,170,80,0.7)');
+    orb(x - w / 16, h * 0.25, h * 0.18, 'rgba(255,90,170,0.6)');
+  }
+  // the puck grid: thin dark gaps between lit dots
+  g.fillStyle = 'rgba(0,0,0,0.22)';
+  const p = 6;
+  for (let y = 0; y < h; y += p) g.fillRect(0, y, w, 1);
+  for (let x = 0; x < w; x += p) g.fillRect(x, 0, 1, h);
 }
 
 /** Generic media plane content: a sky that brightens towards the centre of view, with a low horizon glow. */
@@ -106,18 +111,18 @@ export function SphereRoof({ s, clip, xray }: { s: SphereEnvelope; clip: THREE.P
   );
 }
 
-/** The Exosphere's steel diagrid: two families of helical members and a ring at every tenth of the height. */
+/** The Exosphere's steel diagrid: two families of helical members and a ring at every sixth of the height. */
 export function SphereDiagrid({ s, clip }: { s: SphereEnvelope; clip: THREE.Plane[] }) {
   const geo = useGeo(() => {
     const r = s.R - SPHERE.exoDepth / 2, [e0, e1] = exoRange(s, r);
     const P = (az: number, e: number) => [s.cx + r * Math.cos(e) * Math.cos(az), s.cy + r * Math.cos(e) * Math.sin(az), s.zc + r * Math.sin(e)];
-    const pts: number[] = [], n = 72, steps = 48, twist = 1.2;
+    const pts: number[] = [], n = 36, steps = 32, twist = 1.2;
     for (const sg of [-1, 1]) for (let k = 0; k < n; k++) for (let i = 0; i < steps; i++) {
       const ea = e0 + ((e1 - e0) * i) / steps, eb = e0 + ((e1 - e0) * (i + 1)) / steps, az = (2 * Math.PI * k) / n;
       pts.push(...P(az + sg * twist * (ea - e0), ea), ...P(az + sg * twist * (eb - e0), eb));
     }
-    for (let i = 0; i <= 10; i++) {
-      const e = e0 + ((e1 - e0) * i) / 10;
+    for (let i = 0; i <= 6; i++) {
+      const e = e0 + ((e1 - e0) * i) / 6;
       for (let j = 0; j < 128; j++) pts.push(...P((2 * Math.PI * j) / 128, e), ...P((2 * Math.PI * (j + 1)) / 128, e));
     }
     const g = new THREE.BufferGeometry();
@@ -125,7 +130,7 @@ export function SphereDiagrid({ s, clip }: { s: SphereEnvelope; clip: THREE.Plan
     return g;
   }, [s]);
   if (!geo) return null;
-  return <lineSegments geometry={geo}><lineBasicMaterial color="#5d6168" clippingPlanes={clip} /></lineSegments>;
+  return <lineSegments geometry={geo}><lineBasicMaterial color="#7d828a" transparent opacity={0.6} clippingPlanes={clip} /></lineSegments>;
 }
 
 /** The Exosphere LED skin: an emissive sphere, see-through in x-ray. */
@@ -133,16 +138,16 @@ export function Exosphere({ s, clip, xray, night }: { s: SphereEnvelope; clip: T
   const geo = useGeo(() => { const [e0, e1] = exoRange(s, s.R); return lathe(arc(s.R, s.zc, e0, e1, 72), s.cx, s.cy, 192); }, [s]);
   const tex = useTexture(drawExosphere, 2048, 1024, []);
   if (!geo) return null;
-  const op = xray ? 0.14 : 1;
+  const op = xray ? 0.08 : 1;
   return (
     <mesh geometry={geo} castShadow={!xray}>
-      <meshStandardMaterial color="#111" emissive="#ffffff" emissiveMap={tex} emissiveIntensity={night ? 1.25 : 0.95} roughness={0.55} metalness={0.1} transparent={op < 1} opacity={op} depthWrite={op >= 1} clippingPlanes={clip} />
+      <meshStandardMaterial color="#111" emissive="#ffffff" emissiveMap={tex} emissiveIntensity={xray ? 0.35 : night ? 1.4 : 1.15} roughness={0.55} metalness={0.1} transparent={op < 1} opacity={op} depthWrite={op >= 1} clippingPlanes={clip} />
     </mesh>
   );
 }
 
-/** The interior LED media plane: the cone of view from the eye point, lit from within. */
-export function MediaPlane({ s, clip }: { s: SphereEnvelope; clip: THREE.Plane[] }) {
+/** The interior LED media plane: the cone of view from the eye point, lit from within; see-through in x-ray. */
+export function MediaPlane({ s, clip, xray }: { s: SphereEnvelope; clip: THREE.Plane[]; xray: boolean }) {
   const geo = useGeo(() => {
     // the first (rows + 1) × cols points of the solid are its viewing face; repeat the first column to close the uv seam
     const rows = 36, cols = 128, m = screenSolid(s, 300, rows, cols);
@@ -163,5 +168,5 @@ export function MediaPlane({ s, clip }: { s: SphereEnvelope; clip: THREE.Plane[]
   }, [s]);
   const tex = useTexture(drawScreen, 1024, 512, []);
   if (!geo) return null;
-  return <mesh geometry={geo}><meshBasicMaterial map={tex} side={THREE.DoubleSide} clippingPlanes={clip} toneMapped={false} /></mesh>;
+  return <mesh geometry={geo}><meshBasicMaterial map={tex} side={THREE.DoubleSide} clippingPlanes={clip} toneMapped={false} transparent={xray} opacity={xray ? 0.22 : 1} depthWrite={!xray} /></mesh>;
 }

@@ -91,7 +91,7 @@ export function Viewport() {
         {sphere && layers.roof && mode !== 'analysis' && <SphereRoof s={sphere} clip={clip} xray={xray} />}
         {sphere && layers.facade && mode !== 'analysis' && <SphereDiagrid s={sphere} clip={clip} />}
         {sphere && layers.exosphere && mode !== 'analysis' && <Exosphere s={sphere} clip={clip} xray={xray} night={night} />}
-        {sphere && layers.screen && <MediaPlane s={sphere} clip={clip} />}
+        {sphere && layers.screen && <MediaPlane s={sphere} clip={clip} xray={xray} />}
         {layers.facade && !tech && <Plaza ring={stadium.ring} arch={stadium.architecture} night={night} />}
         <SelectedSeat stadium={stadium} />
         {layers.dimensions && <Dimensions stadium={stadium} />}
@@ -206,7 +206,8 @@ function viewFor(view: CameraView, s: Stadium) {
   const b = s.bounds;
   const c = toThree([0, 0, (b.max[2]) * 0.3]);
   const w = (b.max[0] - b.min[0]) * MM, d = (b.max[1] - b.min[1]) * MM, h = b.max[2] * MM;
-  const sz = Math.max(w, d);
+  // a tall envelope (the sphere) needs the camera further back than its plan alone asks
+  const sz = Math.max(w, d, h * 2);
   switch (view) {
     case 'plan': return { fov: 12, pos: new THREE.Vector3(0, sz * 5, 0.001), target: new THREE.Vector3(0, 0, 0) };
     case 'elevation': return { fov: 10, pos: new THREE.Vector3(0, h * 0.45, sz * 6.2), target: new THREE.Vector3(0, h * 0.45, 0) };
