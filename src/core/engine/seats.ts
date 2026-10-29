@@ -169,7 +169,7 @@ function generate(project: Project, ring: PlanRing, profiles: TierProfile[], reg
 
         // vomitory rows for this section
         let vFrom = -1, vTo = -1;
-        if (vom?.enabled && nRows > 2 && (sectionNo - 1) % Math.max(1, Math.round(vom.every)) === 0) {
+        if (vom?.enabled && nRows > 2 && (sectionNo - 1) % Math.max(1, Math.round(vom.every)) === 0 && (u1 - u0) * rowSeats(0).len > vom.width) {
           const m0 = Math.min(nRows - 1, Math.max(0, Math.round(vom.mouthRow) - 1));
           const floor = m0 > 0 ? prof.rows[m0 - 1].z : prof.rows[0].z;
           let m1 = m0;

@@ -12,6 +12,15 @@ file; an older Manica refuses a newer file instead of half-reading it.
 - **New name.** MANICAI is now Manica in the app, docs, file names and exports: projects save as `.manica.json` with the schema id `manica.project`, Rhino user strings use `manica.*`, IFC property sets are `MANICA_Common`, `MANICA_Project` and so on, and blocks are `MANICA_SEAT_…`.
 - **Nothing is lost.** Files saved as `manicai.project` (JSON or .3dm) still open and are re-saved under the new id. The autosave, My presets and saved scenarios kept under the old browser keys are read until the next save writes the new ones. Share links are unchanged.
 
+## Unreleased · Sphere-inspired preset
+
+- **New preset: Spherical immersive venue (Sphere-inspired).** A 17,600-seat horseshoe of four steep tiers (100–400 levels) and two suite levels facing an end stage, under a spherical envelope. Published facts and Manica's assumptions are listed with the preset; the envelope keeps Sphere's proportions but is sized to clear this bowl, so it comes out larger than the built venue.
+- **Stage event floor.** A third field type, *Stage*: a flat event floor with a 16 m stage deck at one end, and sightlines taken to the floor's edge.
+- **Spherical envelope.** A new roof type that replaces the roof and facade with a dome on 32 radial trusses between a compression ring and a tension ring, an Exosphere LED skin on its own diagrid, and an interior LED media plane that wraps the audience's view of the stage. The main loudspeaker array hangs as 14 clusters over the stage, and there are no floodlights.
+- **Two LED layers.** *Exosphere LED* and *Interior LED screen* appear in the layer list only when the design has them, and export to a new Rhino, IFC and DXF layer, `18_LED`.
+- **Corner suites.** Suites now follow a premium level round the corners between two stands that have them, so a round bowl gets suites too.
+- **Fixes.** A stand without a straight no longer gets a players' tunnel or a vomitory narrower than the vomitory itself, and the floodlight glare check is skipped when there are no floodlights.
+
 ## 1.0.0 · First complete release (2026-10-26)
 
 Rounds 00–08 of the Master Brief roadmap are complete, and this release marks Manica 1.0. It contains everything listed under 0.1.0 to 0.8.0 below. Proposed next work is in [EVALUATION.md](docs/EVALUATION.md): an IFC test pack for Revit and ArchiCAD, arenas, concourse and gate egress, and a headless generator.

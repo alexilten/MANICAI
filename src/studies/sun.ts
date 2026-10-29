@@ -17,7 +17,7 @@
  * catwalk are ignored. Results are geometric sun and shade only: no diffuse sky, reflected light,
  * grass growth model or thermal comfort.
  */
-import { ENCLOSED, FACADE_SKIN, roofTopAt, roofUnderAt } from '../core/engine/architecture';
+import { ENCLOSED, FACADE_SKIN, insideSphere, roofTopAt, roofUnderAt } from '../core/engine/architecture';
 import { SEGMENTS, type SegmentId } from '../core/engine/plan';
 import type { Stadium } from '../core/engine/stadium';
 import type { RoofMaterial } from '../core/schema';
@@ -107,6 +107,7 @@ export function shadeModel(s: Stadium) {
   /** fraction of direct sun reaching a point: 1 in full sun, 0 in shade, between under a translucent roof */
   const sunAt = (x: number, y: number, z: number, v: [number, number, number], step = 1500): number => {
     if (v[2] <= 0.0175) return 0; // below 1° the sun is ignored
+    if (A.sphere && insideSphere(A.sphere, x, y, z)) return 0; // the opaque spherical envelope shades its whole interior
     let light = 1, capHit = false, deckHit = false;
     // panels: one slab test each
     for (const b of panels) {

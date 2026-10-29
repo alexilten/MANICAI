@@ -12,7 +12,7 @@ export type AnalysisMetric = 'cvalue' | 'distance' | 'quality' | 'egress' | 'sun
 /** metrics coloured from a Round 07 study (one value per seat) */
 export const STUDY_METRICS: AnalysisMetric[] = ['quality', 'egress', 'sun'];
 
-export type LayerKey = 'field' | 'seats' | 'terraces' | 'premium' | 'concourses' | 'cores' | 'structure' | 'roof' | 'facade' | 'lighting' | 'hvac' | 'electrical' | 'plumbing' | 'avit' | 'broadcast' | 'boh' | 'site' | 'dimensions' | 'reference';
+export type LayerKey = 'field' | 'seats' | 'terraces' | 'premium' | 'concourses' | 'cores' | 'structure' | 'roof' | 'facade' | 'exosphere' | 'screen' | 'lighting' | 'hvac' | 'electrical' | 'plumbing' | 'avit' | 'broadcast' | 'boh' | 'site' | 'dimensions' | 'reference';
 export const LAYERS: { key: LayerKey; label: string; rhino: string }[] = [
   { key: 'field', label: 'Field', rhino: '01_FIELD' },
   { key: 'terraces', label: 'Terraces', rhino: '02_BOWL_GEOMETRY' },
@@ -23,6 +23,8 @@ export const LAYERS: { key: LayerKey; label: string; rhino: string }[] = [
   { key: 'structure', label: 'Structure', rhino: '08_STRUCTURE' },
   { key: 'roof', label: 'Roof', rhino: '09_ROOF' },
   { key: 'facade', label: 'Facade', rhino: '10_FACADE' },
+  { key: 'exosphere', label: 'Exosphere LED', rhino: '18_LED::EXOSPHERE' },
+  { key: 'screen', label: 'Interior LED screen', rhino: '18_LED::MEDIA_PLANE' },
   { key: 'hvac', label: 'HVAC', rhino: '11_HVAC' },
   { key: 'electrical', label: 'Electrical', rhino: '12_ELECTRICAL' },
   { key: 'plumbing', label: 'Plumbing', rhino: '13_PLUMBING' },
@@ -38,6 +40,8 @@ export const LAYERS: { key: LayerKey; label: string; rhino: string }[] = [
 export const FUTURE_LAYERS: { label: string; round: string }[] = [
   { label: 'Site & precinct', round: 'later' },
 ];
+/** LED surfaces: listed only when the envelope carries them (the spherical envelope) */
+export const LED_LAYERS: LayerKey[] = ['exosphere', 'screen'];
 /** the Round 05 systems, for the isolate view */
 export const SYSTEM_LAYERS: LayerKey[] = ['lighting', 'hvac', 'electrical', 'plumbing', 'avit', 'broadcast', 'site'];
 
@@ -135,7 +139,7 @@ export const useStore = create<State>((set, get) => ({
   past: [], future: [], lastEditKey: null, lastEditAt: 0,
   mode: 'explore', metric: 'cvalue',
   view: 'perspective', viewNonce: 0,
-  layers: { field: true, seats: true, terraces: true, premium: true, concourses: true, cores: true, structure: true, roof: true, facade: true, lighting: true, hvac: true, electrical: true, plumbing: true, avit: true, broadcast: true, boh: true, site: true, dimensions: false, reference: false },
+  layers: { field: true, seats: true, terraces: true, premium: true, concourses: true, cores: true, structure: true, roof: true, facade: true, exosphere: true, screen: true, lighting: true, hvac: true, electrical: true, plumbing: true, avit: true, broadcast: true, boh: true, site: true, dimensions: false, reference: false },
   xray: false,
   night: false,
   isolated: null,
@@ -219,7 +223,7 @@ export const useStore = create<State>((set, get) => ({
     const { layers, isolated } = get();
     if (on && !isolated) {
       const next = { ...layers };
-      for (const k of Object.keys(next) as LayerKey[]) next[k] = k === 'field' || k === 'terraces' || k === 'roof' || k === 'facade' || SYSTEM_LAYERS.includes(k);
+      for (const k of Object.keys(next) as LayerKey[]) next[k] = k === 'field' || k === 'terraces' || k === 'roof' || k === 'facade' || k === 'exosphere' || k === 'screen' || SYSTEM_LAYERS.includes(k);
       set({ isolated: layers, layers: next, xray: true });
     } else if (!on && isolated) set({ layers: isolated, isolated: null, xray: false });
   },

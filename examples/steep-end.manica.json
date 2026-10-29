@@ -24,7 +24,7 @@
       "W": {
         "distance": 7000,
         "rows": {
-          "T1": 49,
+          "T1": 48,
           "T2": 0
         }
       }
@@ -50,7 +50,7 @@
     {
       "id": "T1",
       "name": "Lower tier",
-      "rows": 33,
+      "rows": 32,
       "rowDepth": 800,
       "riser": 380,
       "elevation": 1200,
@@ -61,7 +61,7 @@
       "vomitories": {
         "enabled": true,
         "every": 2,
-        "mouthRow": 12,
+        "mouthRow": 11,
         "width": 2800
       },
       "accessible": {
@@ -72,7 +72,7 @@
     {
       "id": "T2",
       "name": "Upper tier",
-      "rows": 29,
+      "rows": 30,
       "rowDepth": 800,
       "riser": 380,
       "elevation": 4600,

@@ -41,15 +41,15 @@ export function LeftPanel() {
     <aside className="panel left glass">
       <div className="panel-scroll">
         <Section title="Sport" summary={sport.label}>
-          <Segmented value={p.sport} onChange={setSport} options={[{ value: 'soccer', label: 'Soccer' }, { value: 'nfl', label: 'NFL' }, { value: 'baseball' as SportId, label: 'Baseball', disabled: true, title: 'Baseball needs its own asymmetric field and bowl system — planned' }]} />
+          <Segmented value={p.sport} onChange={setSport} options={[{ value: 'soccer', label: 'Soccer' }, { value: 'nfl', label: 'NFL' }, { value: 'stage', label: 'Stage', title: 'An event floor in front of an end stage (concerts, shows)' }, { value: 'baseball' as SportId, label: 'Baseball', disabled: true, title: 'Baseball needs its own asymmetric field and bowl system — planned' }]} />
           <p className="muted small">Field anchored at the world origin (0,0,0): centre of the field, field level. +X runs along the field.</p>
         </Section>
 
         <Section title="Field" summary={`${formatLength(p.field.length, u)} × ${formatLength(p.field.width, u)}`}>
           <LengthControl label="Length" units={u} value={p.field.length} min={sport.limits.length[0]} max={sport.limits.length[1]} step={500} disabled={sport.limits.fixed}
-            hint={sport.limits.fixed ? 'Fixed by NFL Rule 1: 360 ft including end zones' : 'IFAB Law 1 (international): 100–110 m'} onChange={(v) => set((x) => { x.field.length = v; }, 'field.length')} />
+            hint={sport.limits.fixed ? 'Fixed by NFL Rule 1: 360 ft including end zones' : p.sport === 'stage' ? 'Event floor, stage end to back · a 16 m stage stands at +X' : 'IFAB Law 1 (international): 100–110 m'} onChange={(v) => set((x) => { x.field.length = v; }, 'field.length')} />
           <LengthControl label="Width" units={u} value={p.field.width} min={sport.limits.width[0]} max={sport.limits.width[1]} step={500} disabled={sport.limits.fixed}
-            hint={sport.limits.fixed ? '160 ft' : '64–75 m'} onChange={(v) => set((x) => { x.field.width = v; }, 'field.width')} />
+            hint={sport.limits.fixed ? '160 ft' : p.sport === 'stage' ? 'Event floor across' : '64–75 m'} onChange={(v) => set((x) => { x.field.width = v; }, 'field.width')} />
           <LengthControl label="Run-off, sides" units={u} value={p.field.runoffSide} min={2000} max={20000} step={250} onChange={(v) => set((x) => { x.field.runoffSide = v; }, 'field.runoffSide')} />
           <LengthControl label="Run-off, ends" units={u} value={p.field.runoffEnd} min={2000} max={20000} step={250} onChange={(v) => set((x) => { x.field.runoffEnd = v; }, 'field.runoffEnd')} />
         </Section>
@@ -339,7 +339,7 @@ function useArch() {
   return { p, st, u: p.units, A: p.architecture, am: st.architecture.metrics, set };
 }
 
-const ROOF_TYPES: RoofType[] = ['open', 'canopy', 'perimeter', 'enclosed', 'etfe', 'truss', 'retractable'];
+const ROOF_TYPES: RoofType[] = ['open', 'canopy', 'perimeter', 'enclosed', 'etfe', 'truss', 'retractable', 'sphere'];
 
 /** Roof typology and its controls, coordinated with the bowl heights and sightlines. */
 function RoofControls() {

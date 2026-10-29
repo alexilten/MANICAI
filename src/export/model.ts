@@ -17,7 +17,7 @@
  * Seats (tens of thousands of instances of a few generic families) and floodlights (aimed instances of
  * one family) stay as tables and are written as typed instances by each exporter.
  */
-import { BOH_LABEL, boxSolid, capSolid, pieceSolid, ROOF_LABEL, roofSkin, type Piece } from '../core/engine/architecture';
+import { BOH_LABEL, boxSolid, capSolid, domeSection, exoSection, pieceSolid, ROOF_LABEL, roofSkin, screenSolid, shellSection, SPHERE, sphereRibs, type Piece } from '../core/engine/architecture';
 import { bandSolid, PROGRAM_LABEL, SLAB, type BoxMesh, type Span } from '../core/engine/building';
 import { isCorner, pointAt, SEGMENTS, type PlanRing, type SegmentId } from '../core/engine/plan';
 import { tierOutline } from '../core/engine/profile';
@@ -309,6 +309,12 @@ export function buildModel(s: Stadium): BimModel {
     }
   }
 
+  if (f.stage) {
+    const q = f.stage.rect;
+    add({ id: 'FIELD.STAGE', name: 'Stage', layer: '01_FIELD::STAGE', category: 'Field', ifc: { cls: 'IfcSlab', type: 'USERDEFINED', objectType: 'Performance stage' }, status: 'mass', base: 0,
+      shapes: [{ kind: 'box', min: [q.minX, q.minY, 0], max: [q.maxX, q.maxY, f.stage.z] }], props: { DeckLevel: f.stage.z, Depth: Math.round(q.maxX - q.minX), Width: Math.round(q.maxY - q.minY) } });
+  }
+
   // ── terraces: straight runs as section sweeps, corners as section revolves; vomitories cut them
   for (const t of s.profiles) {
     const club = p.tiers[t.index]?.kind === 'club';
@@ -371,10 +377,12 @@ export function buildModel(s: Stadium): BimModel {
   const memberLayer = { raker: '08_STRUCTURE::RAKERS', column: '08_STRUCTURE::COLUMNS', roofFrame: '09_ROOF::PRIMARY_FRAMES', mullion: '10_FACADE::MULLIONS' } as const;
   const memberCat = { raker: 'Structure: rakers', column: 'Structure: columns', roofFrame: 'Roof: primary frames', mullion: 'Facade: mullions / fins' } as const;
   const r = AR.roof;
-  const hasRoof = r.spans.length > 0 || !!r.cap || r.boxes.length > 0;
+  const hasRoof = r.spans.length > 0 || !!r.cap || r.boxes.length > 0 || !!AR.sphere;
   if (hasRoof) aggregates.push({ id: 'ROOF', name: `Roof (${ROOF_LABEL[r.type]})`, ifc: { cls: 'IfcRoof', type: 'USERDEFINED', objectType: ROOF_LABEL[r.type] }, layer: '09_ROOF', status: 'mass', base: Math.round(r.zTop0), props: { RoofType: r.type, Material: p.architecture.roof.material, Coverage: +AR.metrics.coverage.toFixed(3) } });
-  const hasFacade = AR.facade.pieces.length > 0;
-  if (hasFacade) aggregates.push({ id: 'FACADE', name: 'Facade', ifc: { cls: 'IfcCurtainWall', type: 'USERDEFINED', objectType: `Facade (${p.architecture.facade.type})` }, layer: '10_FACADE', status: 'mass', base: 0, props: { FacadeType: p.architecture.facade.type, Material: p.architecture.facade.material } });
+  const hasFacade = AR.facade.pieces.length > 0 || !!AR.sphere;
+  if (hasFacade) aggregates.push(AR.sphere
+    ? { id: 'FACADE', name: 'Exosphere', ifc: { cls: 'IfcCurtainWall', type: 'USERDEFINED', objectType: 'Spherical LED envelope (Exosphere)' }, layer: '10_FACADE', status: 'mass', base: 0, props: { WidthMm: Math.round(2 * AR.sphere.R), HeightMm: Math.round(AR.sphere.top), LedAreaM2: Math.round(AR.sphere.exoArea) } }
+    : { id: 'FACADE', name: 'Facade', ifc: { cls: 'IfcCurtainWall', type: 'USERDEFINED', objectType: `Facade (${p.architecture.facade.type})` }, layer: '10_FACADE', status: 'mass', base: 0, props: { FacadeType: p.architecture.facade.type, Material: p.architecture.facade.material } });
   for (const m of AR.members) {
     const st = pointAt(ring, m.seg, m.u, 0), tx = -st.ny, ty = st.nx;
     const shape: Shape = { kind: 'sweep', origin: [st.x - (tx * m.width) / 2, st.y - (ty * m.width) / 2, 0], x: [st.nx, st.ny], dir: [tx, ty], section: m.section as V2[], depth: m.width };
@@ -388,6 +396,7 @@ export function buildModel(s: Stadium): BimModel {
     for (const b of r.boxes) add({ id: b.id, name: b.kind === 'truss' ? 'Roof truss' : 'Roof panel', layer: b.kind === 'truss' ? '09_ROOF::TRUSSES' : '09_ROOF::PANELS', category: b.kind === 'truss' ? 'Roof: trusses' : 'Roof: panels',
       ifc: b.kind === 'truss' ? { cls: 'IfcMember', type: 'CHORD', objectType: 'Long-span truss (envelope)' } : { cls: 'IfcPlate', type: 'USERDEFINED', objectType: 'Retractable roof panel' }, parent: 'ROOF', status: 'mass', base: b.min[2], shapes: [{ kind: 'box', min: b.min, max: b.max }], props: { Depth: Math.round(b.max[2] - b.min[2]) } });
   }
+  for (const e of sphereElements(s)) add(e);
   for (const q of AR.facade.pieces) add({ id: q.id, name: 'Facade skin', layer: '10_FACADE::SKIN', category: 'Facade: skin', ifc: { cls: 'IfcPlate', type: 'CURTAIN_PANEL' }, parent: 'FACADE', status: 'mass', base: q.z0, shapes: [pieceShape(ring, q)], mesh: () => pieceSolid(ring, q), props: { Height: Math.round(q.z1 - q.z0) } });
   for (const q of AR.facade.bands) add({ id: q.id, name: 'Facade band', layer: '10_FACADE::BANDS', category: 'Facade: bands', ifc: { cls: 'IfcMember', type: 'USERDEFINED', objectType: 'Facade band' }, parent: 'FACADE', status: 'mass', base: q.z0, shapes: [pieceShape(ring, q)], mesh: () => pieceSolid(ring, q), props: {} });
   for (const q of AR.facade.canopies) add({ id: q.id, name: 'Entrance canopy', layer: '10_FACADE::PORTALS', category: 'Facade: portal canopies', ifc: { cls: 'IfcSlab', type: 'USERDEFINED', objectType: 'Entrance canopy' }, status: 'mass', base: q.z0, shapes: [pieceShape(ring, q)], mesh: () => pieceSolid(ring, q), props: { ClearHeight: Math.round(q.z0) } });
@@ -441,7 +450,7 @@ export function buildModel(s: Stadium): BimModel {
     if (!m) continue;
     add({ id: b.id, name: b.label, layer: m.layer, category: sysCat(b.system), ifc: m.ifc, status: m.status, base: b.z0, shapes: [bandShape(ring, b.span, b.d0, b.d1, b.z0, b.z1)], mesh: () => bandSolid(ring, b.span, b.d0, b.d1, b.z0, b.z1), props: { System: b.system, Use: b.label, Depth: Math.round(b.z1 - b.z0) } });
   }
-  for (const b of SYS.boxes) add({ id: b.id, name: b.label, layer: '15_AV_IT::VIDEO_BOARDS', category: sysCat(b.system), ifc: { cls: 'IfcAudioVisualAppliance', type: 'DISPLAY', objectType: b.label }, status: 'placeholder', base: b.min[2], shapes: [{ kind: 'box', min: b.min, max: b.max }], props: { Underside: Math.round(b.min[2]) } });
+  for (const b of SYS.boxes) add({ id: b.id, name: b.label, layer: b.kind === 'speaker' ? '15_AV_IT::SPEAKERS' : '15_AV_IT::VIDEO_BOARDS', category: sysCat(b.system), ifc: { cls: 'IfcAudioVisualAppliance', type: b.kind === 'speaker' ? 'SPEAKER' : 'DISPLAY', objectType: b.label }, status: 'placeholder', base: b.min[2], shapes: [{ kind: 'box', min: b.min, max: b.max }], props: { Underside: Math.round(b.min[2]) } });
 
   // ── storeys: field level and every distinct building level
   const storeys: Storey[] = [{ id: 'L00', name: 'Field level', elevation: 0 }];
@@ -450,6 +459,38 @@ export function buildModel(s: Stadium): BimModel {
   [...byZ.keys()].sort((a, b) => a - b).forEach((z, i) => storeys.push({ id: `L${String(i + 1).padStart(2, '0')}`, name: [...new Set(byZ.get(z))].join(' / '), elevation: z }));
 
   return { elements: els, aggregates, storeys };
+}
+
+/**
+ * The spherical envelope's elements (roof type 'sphere'): the structural dome with its 32 trusses and
+ * rings, the Exosphere's diagrid zone and LED skin, and the interior LED media plane. Shared by the
+ * element model and the Rhino export. Revolved shells are written as two half revolves.
+ */
+export function sphereElements(s: Stadium): (Omit<BimElement, 'mesh'> & { mesh?: () => BoxMesh })[] {
+  const sp = s.architecture.sphere;
+  if (!sp) return [];
+  const c: V3 = [sp.cx, sp.cy, 0];
+  const halves = (section: V2[]): Shape[] => [{ kind: 'revolve', centre: c, x: [1, 0], section, angle: Math.PI }, { kind: 'revolve', centre: c, x: [-1, 0], section, angle: Math.PI }];
+  const out: (Omit<BimElement, 'mesh'> & { mesh?: () => BoxMesh })[] = [];
+  const ro = sp.capR + SPHERE.domeGap;
+  const crownZ = sp.capZ + Math.sqrt(ro * ro - sp.crownR ** 2);
+  out.push({ id: 'ROOF.DOME', name: 'Dome shell', layer: '09_ROOF::DOME', category: 'Roof: dome', ifc: { cls: 'IfcRoof', type: 'DOME_ROOF', objectType: 'Steel-framed concrete dome' }, parent: 'ROOF', status: 'mass', base: Math.round(sp.springZ),
+    shapes: halves(domeSection(sp) as V2[]), props: { SpringLevel: Math.round(sp.springZ), Apex: Math.round(crownZ), AreaM2: Math.round(sp.domeArea), Thickness: SPHERE.shell } });
+  sphereRibs(sp).forEach((pts, k) => out.push({ id: `ROOF.TRUSS.${String(k + 1).padStart(2, '0')}`, name: 'Radial dome truss', layer: '09_ROOF::TRUSSES', category: 'Roof: trusses', ifc: { cls: 'IfcMember', type: 'CHORD', objectType: 'Radial dome truss' }, parent: 'ROOF', status: 'mass', base: Math.round(pts[0][2]),
+    shapes: pts.slice(1).map((q, i) => ({ kind: 'tube', from: pts[i], to: q, r: 700 }) as Shape), props: { Depth: SPHERE.ribDepth } }));
+  const ring = (r0: number, r1: number, z0: number, z1: number): V2[] => [[r0, z0], [r1, z0], [r1, z1], [r0, z1]];
+  out.push({ id: 'ROOF.COMPRESSION_RING', name: 'Compression ring', layer: '09_ROOF::RINGS', category: 'Roof: rings', ifc: { cls: 'IfcMember', type: 'USERDEFINED', objectType: 'Dome compression ring' }, parent: 'ROOF', status: 'mass', base: Math.round(crownZ),
+    shapes: halves(ring(sp.crownR - 1000, sp.crownR + 1000, crownZ, crownZ + 2000)), props: { Radius: Math.round(sp.crownR) } });
+  out.push({ id: 'ROOF.TENSION_RING', name: 'Tension ring (concourse roof)', layer: '09_ROOF::RINGS', category: 'Roof: rings', ifc: { cls: 'IfcMember', type: 'USERDEFINED', objectType: 'Dome tension ring' }, parent: 'ROOF', status: 'mass', base: Math.round(sp.springZ - 2000),
+    shapes: halves(ring(sp.a, sp.a + SPHERE.domeGap + SPHERE.shell + 2500, sp.springZ - 2000, sp.springZ)), props: { Radius: Math.round(sp.a) } });
+  out.push({ id: 'FACADE.EXOSPHERE.DIAGRID', name: 'Exosphere diagrid', layer: '10_FACADE::DIAGRID', category: 'Facade: Exosphere diagrid', ifc: { cls: 'IfcMember', type: 'USERDEFINED', objectType: 'Steel diagrid shell zone' }, parent: 'FACADE', status: 'mass', base: 0,
+    shapes: halves(exoSection(sp) as V2[]), props: { Radius: Math.round(sp.R), Depth: SPHERE.exoDepth } });
+  out.push({ id: 'FACADE.EXOSPHERE.LED', name: 'Exosphere LED skin', layer: '18_LED::EXOSPHERE', category: 'LED: Exosphere', ifc: { cls: 'IfcAudioVisualAppliance', type: 'DISPLAY', objectType: 'LED puck skin (generic)' }, parent: 'FACADE', status: 'placeholder', base: 0,
+    shapes: halves(shellSection(sp.R, 100, sp.zc, Math.asin(-sp.zc / sp.R), Math.acos(1500 / sp.R), 48) as V2[]), props: { AreaM2: Math.round(sp.exoArea), Pucks: sp.pucks, PuckPitch: SPHERE.puckPitch } });
+  const screen = screenSolid(sp);
+  out.push({ id: 'LED.MEDIA_PLANE', name: 'LED media plane', layer: '18_LED::MEDIA_PLANE', category: 'LED: media plane', ifc: { cls: 'IfcAudioVisualAppliance', type: 'DISPLAY', objectType: 'Interior LED media plane (generic)' }, status: 'placeholder', base: 0,
+    shapes: [{ kind: 'mesh', mesh: screen }], props: { AreaM2: Math.round(sp.screenArea), Apex: Math.round(sp.apex) } });
+  return out;
 }
 
 function minZ(m: BoxMesh) { let z = Infinity; for (let k = 2; k < m.positions.length; k += 3) z = Math.min(z, m.positions[k]); return z; }

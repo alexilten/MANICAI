@@ -2,17 +2,17 @@
   {
     "file": "four-stand-30k_rhino8.3dm",
     "preset": "four-stand",
-    "seats": 30444,
-    "grossSeats": 31560,
-    "vomitories": 18,
+    "seats": 29540,
+    "grossSeats": 30504,
+    "vomitories": 14,
     "wheelchair": 196,
     "exportedSeats": true,
-    "bytes": 26510928,
-    "exportMs": 4032,
+    "bytes": 25668253,
+    "exportMs": 6684,
     "readBack": {
       "units": "Millimeters",
-      "layers": 113,
-      "objects": 33831,
+      "layers": 120,
+      "objects": 32759,
       "blocks": [
         {
           "name": "MANICA_FLOODLIGHT_GENERIC",
@@ -22,7 +22,7 @@
         {
           "name": "MANICA_SEAT_500MM",
           "parts": 3,
-          "instances": 30248
+          "instances": 29344
         },
         {
           "name": "MANICA_WHEELCHAIR_1400x900MM",
@@ -44,11 +44,11 @@
     "vomitories": 42,
     "wheelchair": 290,
     "exportedSeats": false,
-    "bytes": 3698366,
-    "exportMs": 194,
+    "bytes": 3700105,
+    "exportMs": 347,
     "readBack": {
       "units": "Millimeters",
-      "layers": 113,
+      "layers": 120,
       "objects": 2453,
       "blocks": [
         {
@@ -71,11 +71,11 @@
     "vomitories": 50,
     "wheelchair": 462,
     "exportedSeats": false,
-    "bytes": 4735712,
-    "exportMs": 322,
+    "bytes": 4737451,
+    "exportMs": 463,
     "readBack": {
       "units": "Millimeters",
-      "layers": 123,
+      "layers": 130,
       "objects": 3433,
       "blocks": [
         {
@@ -99,11 +99,11 @@
     "vomitories": 48,
     "wheelchair": 458,
     "exportedSeats": false,
-    "bytes": 4856807,
-    "exportMs": 333,
+    "bytes": 4858546,
+    "exportMs": 703,
     "readBack": {
       "units": "Millimeters",
-      "layers": 123,
+      "layers": 130,
       "objects": 3500,
       "blocks": [
         {

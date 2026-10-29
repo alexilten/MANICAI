@@ -40,7 +40,7 @@
     {
       "id": "T1",
       "name": "Lower tier",
-      "rows": 20,
+      "rows": 19,
       "rowDepth": 800,
       "riser": 380,
       "elevation": 1200,

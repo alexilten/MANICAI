@@ -38,6 +38,7 @@ export function Lighting({ ring, sys, clip, night, aiming }: { ring: PlanRing; s
   const ref = useRef<THREE.InstancedMesh>(null!);
   const n = sys.fixtures.length;
   useLayoutEffect(() => {
+    if (!ref.current) return; // no floodlights (an enclosed sphere)
     const m = new THREE.Matrix4(), q = new THREE.Quaternion(), pos = new THREE.Vector3(), dir = new THREE.Vector3(), one = new THREE.Vector3(1, 1, 1);
     // the fixture's face (local -Y… its 450 mm axis) turns toward its aim point
     const face = new THREE.Vector3(0, -1, 0);
@@ -82,11 +83,12 @@ export function Lighting({ ring, sys, clip, night, aiming }: { ring: PlanRing; s
 export function AvIt({ ring, sys, clip, night }: { ring: PlanRing; sys: SystemsModel; clip: THREE.Plane[]; night: boolean }) {
   const screens = useGeo(() => {
     const parts = sys.zones.filter((z) => z.kind === 'board' || z.kind === 'ribbon').map((z) => ({ m: pieceSolid(ring, z) }));
-    for (const b of sys.boxes) parts.push({ m: boxSolid(b.min, b.max) });
+    for (const b of sys.boxes) if (b.kind !== 'speaker') parts.push({ m: boxSolid(b.min, b.max) });
     return parts.length ? merge(parts) : null;
   }, [ring, sys]);
   const kit = useGeo(() => {
     const parts = sys.zones.filter((z) => z.kind === 'boardFrame' || z.kind === 'speaker').map((z) => ({ m: pieceSolid(ring, z), color: z.kind === 'speaker' ? '#2b2e33' : '#6d7178' }));
+    for (const b of sys.boxes) if (b.kind === 'speaker') parts.push({ m: boxSolid(b.min, b.max), color: '#2b2e33' });
     return parts.length ? merge(parts) : null;
   }, [ring, sys]);
   return (

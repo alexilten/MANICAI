@@ -10,12 +10,12 @@ import { checkModel } from '../export/browser';
 import type { ModelReport } from '../export/verify';
 import { Icon } from './icons';
 import { StudiesSection } from './StudiesPanel';
-import { FUTURE_LAYERS, LAYERS, useStore, type AnalysisMetric } from './store';
+import { FUTURE_LAYERS, LAYERS, LED_LAYERS, useStore, type AnalysisMetric } from './store';
 import { legendFor } from '../viewport/palette';
 import { PROGRAM_LEGEND, PROGRAM_TONES } from '../viewport/Building';
 import { PROGRAM_KINDS, PROGRAM_LABEL, SLAB } from '../core/engine/building';
 import { tierOutline } from '../core/engine/profile';
-import { BOH_KINDS, BOH_LABEL, COLUMN_SETBACK, EAVE, ROOF_LABEL, ROOF_SKIN, type BohKind } from '../core/engine/architecture';
+import { BOH_KINDS, BOH_LABEL, COLUMN_SETBACK, EAVE, ROOF_LABEL, ROOF_SKIN, SPHERE, type BohKind } from '../core/engine/architecture';
 import { MAX_TILT, MIN_LIGHT_ANGLE, SYSTEM_LABEL, SYSTEM_TONE, SYSTEMS } from '../core/engine/systems';
 import { BOH_TONES, FACADE_FINISH, ROOF_FINISH, STRUCTURE_FINISH } from '../viewport/Architecture';
 
@@ -97,7 +97,7 @@ export function RightPanel() {
 
         <Section title="Layers">
           <ul className="layers">
-            {LAYERS.map((l) => (
+            {LAYERS.filter((l) => st.architecture.sphere || !LED_LAYERS.includes(l.key)).map((l) => (
               <li key={l.key} className={layers[l.key] ? '' : 'off'}>
                 <button onClick={() => toggle(l.key)}>
                   <span className="eye">{layers[l.key] ? <Icon.eye /> : <Icon.eyeOff />}</span>
@@ -294,6 +294,7 @@ function EnvelopeSection() {
   const u = p.units;
   const am = st.architecture.metrics, A = p.architecture;
   const roofed = A.roof.type !== 'open';
+  const sp = st.architecture.sphere;
   const byKind = BOH_KINDS.map((k) => ({ k, area: st.architecture.boh.zones.filter((z) => z.kind === k).reduce((a, z) => a + z.area, 0) })).filter((x) => x.area > 0 && x.k !== 'tunnel');
   return (
     <Section title="Envelope & structure" summary={`${ROOF_LABEL[A.roof.type]} · ${n(am.grossArea)} m² GFA`} defaultOpen={false}>
@@ -306,9 +307,18 @@ function EnvelopeSection() {
       <div className="sub-label">Envelope</div>
       <KV k="Envelope footprint" v={formatArea(am.envelopeFootprint * 1e6, u)} />
       <KV k="Facade perimeter · area" v={`${formatLength(am.envelopePerimeter, u)} · ${n(am.facadeArea)} m²`} />
-      <KV k="Facade modules" v={`${n(am.facadeModules)} at ${formatLength(A.facade.module, u)}`} />
+      {!sp && <KV k="Facade modules" v={`${n(am.facadeModules)} at ${formatLength(A.facade.module, u)}`} />}
       <KV k="Building height" v={formatLength(Math.max(am.roofTop, am.facadeTop), u)} />
       {roofed && <KV k="Eave · top of roof" v={`${formatLength(am.eave, u)} · ${formatLength(am.roofTop, u)}`} />}
+      {sp && (
+        <>
+          <div className="sub-label">Sphere</div>
+          <KV k="Exosphere diameter · height" v={`${formatLength(2 * sp.R, u)} · ${formatLength(sp.top, u)}`} />
+          <KV k="Exosphere LED" v={`${n(sp.exoArea)} m² · ${n(sp.pucks)} pucks at ${formatLength(SPHERE.puckPitch, u)}`} />
+          <KV k="Interior LED screen" v={`${n(sp.screenArea)} m² · apex ${formatLength(sp.apex, u)}`} />
+          <KV k="Dome span · trusses" v={`${formatLength(2 * sp.a, u)} · ${sp.ribs} radial`} />
+        </>
+      )}
       <div className="sub-label">Structure</div>
       <KV k="Radial frames" v={`${am.frames} at ${formatLength(A.structure.bay, u)}`} />
       <KV k="Ring grid lines" v={st.architecture.rings.map((r) => r.id.slice(3)).join(' · ')} />

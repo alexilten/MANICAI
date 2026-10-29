@@ -10,7 +10,7 @@
 import type { Mm } from '../units';
 import { ft, m } from '../units';
 
-export type SportId = 'soccer' | 'nfl';
+export type SportId = 'soccer' | 'nfl' | 'stage';
 export type Vec2 = [number, number];
 export type Vec3 = [number, number, number];
 
@@ -24,7 +24,7 @@ export type Marking =
 
 export interface Rect { minX: Mm; maxX: Mm; minY: Mm; maxY: Mm }
 
-export interface FieldZone { id: string; label: string; kind: 'endzone' | 'border' | 'team' | 'runoff'; rect: Rect }
+export interface FieldZone { id: string; label: string; kind: 'endzone' | 'border' | 'team' | 'runoff' | 'stage'; rect: Rect }
 export interface GoalFrame { id: string; /** inner post faces (soccer) / upright centres (NFL), field level */ posts: [Vec2, Vec2]; crossbarZ: Mm; postTopZ: Mm; depth: Mm; kind: 'soccer' | 'nfl' }
 export interface NumberLabel { text: string; at: Vec2; height: Mm; rotation: number }
 
@@ -41,6 +41,8 @@ export interface FieldModel {
   zones: FieldZone[];
   goals: GoalFrame[];
   numbers: NumberLabel[];
+  /** a raised performance stage beyond the east end of the floor (event venues), deck level `z` */
+  stage: { rect: Rect; z: Mm } | null;
   /** named local landmarks in mm — the documented points other systems attach to */
   landmarks: Record<string, Vec3>;
   /** sightline point of focus: the field boundary at field level, inset by `focusInset` */
@@ -106,6 +108,7 @@ function buildSoccer(p: FieldParams): FieldModel {
     zones: [{ id: 'RUNOFF', label: 'Run-off', kind: 'runoff', rect: surface }],
     goals: [1, -1].map((s) => ({ id: s > 0 ? 'GOAL_E' : 'GOAL_W', kind: 'soccer' as const, posts: [[s * L / 2, -3660], [s * L / 2, 3660]] as [Vec2, Vec2], crossbarZ: 2440, postTopZ: 2440, depth: 2000 })),
     numbers: [],
+    stage: null,
     landmarks: {
       CENTRE_MARK: [0, 0, 0],
       PENALTY_MARK_E: [L / 2 - 11000, 0, 0], PENALTY_MARK_W: [-L / 2 + 11000, 0, 0],
@@ -173,6 +176,7 @@ function buildNfl(p: FieldParams): FieldModel {
     ],
     goals: [1, -1].map((s) => ({ id: s > 0 ? 'GOALPOST_E' : 'GOALPOST_W', kind: 'nfl' as const, posts: [[s * X, -ft(9, 3)], [s * X, ft(9, 3)]] as [Vec2, Vec2], crossbarZ: ft(10), postTopZ: ft(45), depth: ft(6) })),
     numbers,
+    stage: null,
     landmarks: {
       MIDFIELD: [0, 0, 0],
       GOAL_LINE_E: [G, 0, 0], GOAL_LINE_W: [-G, 0, 0],
@@ -181,6 +185,33 @@ function buildNfl(p: FieldParams): FieldModel {
     },
     lineColor: '#ffffff',
     sources: ['nfl.rule1.field', 'nfl.rule1.border', 'nfl.rule1.lines', 'nfl.rule1.hash', 'nfl.rule1.goalposts', 'nfl.rule1.benches', 'manica.nfl.teamarea'],
+  };
+}
+
+// ── event floor and stage (concert halls and immersive venues) ───────────────────────────────
+/** stage depth beyond the east edge of the floor, and its deck height (Manica planning assumptions) */
+export const STAGE_DEPTH = m(16);
+export const STAGE_DECK = 1500;
+
+function buildStage(p: FieldParams): FieldModel {
+  const L = p.length, W = p.width;
+  const boundary = half(L, W);
+  const surface: Rect = { minX: -L / 2 - p.runoffEnd, maxX: L / 2 + p.runoffEnd, minY: -W / 2 - p.runoffSide, maxY: W / 2 + p.runoffSide };
+  // the stage spans the floor and its side margins, from the east edge of the floor back STAGE_DEPTH
+  const stage = { rect: { minX: L / 2, maxX: L / 2 + STAGE_DEPTH, minY: surface.minY, maxY: surface.maxY }, z: STAGE_DECK };
+  const w = 100, mk: Marking[] = [
+    { kind: 'line', id: 'FLOOR_EDGE_W', a: [-L / 2, -W / 2], b: [-L / 2, W / 2], width: w },
+    { kind: 'line', id: 'FLOOR_EDGE_N', a: [-L / 2, W / 2], b: [L / 2, W / 2], width: w },
+    { kind: 'line', id: 'FLOOR_EDGE_S', a: [-L / 2, -W / 2], b: [L / 2, -W / 2], width: w },
+    { kind: 'line', id: 'STAGE_LIP', a: [L / 2, surface.minY], b: [L / 2, surface.maxY], width: w },
+  ];
+  return {
+    sport: 'stage', length: L, width: W, boundary, surface, markings: mk,
+    zones: [{ id: 'STAGE', label: 'Stage', kind: 'stage', rect: stage.rect }],
+    goals: [], numbers: [], stage,
+    landmarks: { FLOOR_CENTRE: [0, 0, 0], STAGE_LIP: [L / 2, 0, 0], STAGE_CENTRE: [L / 2 + STAGE_DEPTH / 2, 0, STAGE_DECK] },
+    lineColor: '#d8d8dc',
+    sources: ['manica.stage'],
   };
 }
 
@@ -199,5 +230,12 @@ export const SPORTS: Record<SportId, SportDef> = {
     defaults: { length: ft(360), width: ft(160), runoffSide: ft(30) + ft(6), runoffEnd: ft(15), sideDistance: m(16), endDistance: m(12) },
     build: buildNfl,
     focusLabel: 'nearest sideline / end line, at field level',
+  },
+  stage: {
+    id: 'stage', label: 'Event floor · Stage',
+    limits: { length: [m(20), m(80)], width: [m(20), m(80)], fixed: false },
+    defaults: { length: m(36), width: m(36), runoffSide: m(2), runoffEnd: m(2), sideDistance: m(3), endDistance: m(3) },
+    build: buildStage,
+    focusLabel: 'nearest edge of the event floor, at floor level',
   },
 };
