@@ -28,7 +28,7 @@
 import { annotations } from '../core/engine/annotations';
 import { BOH_KINDS, BOH_LABEL, capSolid, roofSkin, stationsAt, type Member, type Piece } from '../core/engine/architecture';
 import { bandSolid, PROGRAM_KINDS, PROGRAM_LABEL, SLAB, type BoxMesh, type Span } from '../core/engine/building';
-import { arcSweep, loopArea, pieceLoop, ringLoop, type Loop } from './model';
+import { arcSweep, loopArea, mergeMeshes, pieceLoop, ringLoop, shapeMesh, sphereElements, type Loop } from './model';
 import { isCorner, pointAt, SECTORS, SECTOR_LABEL, SEGMENTS, type SegmentId } from '../core/engine/plan';
 import { tierOutline } from '../core/engine/profile';
 import { SEAT_STATUS, seatId } from '../core/engine/seats';
@@ -45,7 +45,7 @@ export const APP_VERSION = '0.6.0';
 /** The MANICAI layer standard. Systems that are not generated yet keep their place in the hierarchy. */
 export const LAYER_TREE: { name: string; color: [number, number, number]; children: string[] }[] = [
   { name: '00_REFERENCE', color: [150, 150, 150], children: ['ORIGIN', 'NORTH'] },
-  { name: '01_FIELD', color: [90, 140, 80], children: ['SURFACE', 'MARKINGS', 'GOALS', 'ZONES'] },
+  { name: '01_FIELD', color: [90, 140, 80], children: ['SURFACE', 'MARKINGS', 'GOALS', 'ZONES', 'STAGE'] },
   { name: '02_BOWL_GEOMETRY', color: [120, 120, 128], children: ['FRONT_ROW_LINE', 'ROW_LINES'] },
   { name: '03_SEATING', color: [70, 76, 90], children: [] },
   { name: '04_ACCESSIBILITY', color: [30, 96, 190], children: ['WHEELCHAIR_POSITIONS', 'COMPANION_SEATS'] },
@@ -53,8 +53,8 @@ export const LAYER_TREE: { name: string; color: [number, number, number]; childr
   { name: '06_CONCOURSES', color: [160, 150, 140], children: ['FLOOR_PLATES', 'PROGRAM', ...PROGRAM_KINDS.map((k) => `PROGRAM::${PROGRAM_LABEL[k].toUpperCase().replace(/[^A-Z0-9]+/g, '_')}`)] },
   { name: '07_VERTICAL_CIRCULATION', color: [150, 110, 160], children: ['VOMITORIES', 'CORES'] },
   { name: '08_STRUCTURE', color: [110, 112, 118], children: ['GRID', 'RAKERS', 'COLUMNS'] },
-  { name: '09_ROOF', color: [200, 200, 205], children: ['DECK', 'CAP', 'PRIMARY_FRAMES', 'TRUSSES', 'PANELS'] },
-  { name: '10_FACADE', color: [180, 175, 165], children: ['SKIN', 'MULLIONS', 'BANDS', 'PORTALS'] },
+  { name: '09_ROOF', color: [200, 200, 205], children: ['DECK', 'CAP', 'PRIMARY_FRAMES', 'TRUSSES', 'PANELS', 'DOME', 'RINGS'] },
+  { name: '10_FACADE', color: [180, 175, 165], children: ['SKIN', 'MULLIONS', 'BANDS', 'PORTALS', 'DIAGRID'] },
   { name: '11_HVAC', color: [60, 150, 200], children: ['CENTRAL_PLANT', 'AIR_HANDLING', 'RISERS', 'DUCT_ZONES'] },
   { name: '12_ELECTRICAL', color: [230, 170, 30], children: ['SWITCHGEAR', 'TRANSFORMERS', 'GENERATORS', 'ROOMS', 'RISERS', 'CABLE_TRAYS'] },
   { name: '13_PLUMBING', color: [40, 120, 200], children: ['WATER_STORAGE', 'RISERS'] },
@@ -62,6 +62,7 @@ export const LAYER_TREE: { name: string; color: [number, number, number]; childr
   { name: '15_AV_IT', color: [0, 150, 170], children: ['VIDEO_BOARDS', 'RIBBON_BOARDS', 'SPEAKERS', 'TELECOM', 'BROADCAST', 'BROADCAST::CAMERAS', 'BROADCAST::TRIBUNE', 'BROADCAST::COMPOUND'] },
   { name: '16_BACK_OF_HOUSE', color: [140, 140, 120], children: ['SERVICE_CORRIDOR', ...BOH_KINDS.map((k) => slugOf(BOH_LABEL[k]))] },
   { name: '17_SITE', color: [120, 150, 110], children: ['SERVICE_YARD', 'FIELD_ACCESS'] },
+  { name: '18_LED', color: [64, 120, 255], children: ['EXOSPHERE', 'MEDIA_PLANE'] },
   { name: '90_DIMENSIONS', color: [10, 132, 255], children: [] },
   { name: '91_ANALYSIS', color: [230, 40, 40], children: ['SIGHTLINES', 'EXCLUDED_SEATS'] },
 ];
@@ -154,6 +155,7 @@ export function exportRhino(rh: RhinoModule, s: Stadium, opts: RhinoExportOption
       add(pl.toPolylineCurve(), attrs('01_FIELD::ZONES', z.id, { label: z.label }));
       free(pl);
     }
+    if (f.stage) { const q = f.stage.rect; add(rh.Extrusion.createBoxExtrusion(new rh.Box(new rh.BoundingBox([q.minX, q.minY, 0], [q.maxX, q.maxY, f.stage.z])), true), attrs('01_FIELD::STAGE', 'FIELD.STAGE', { deck_mm: f.stage.z })); }
     for (const g of f.goals) {
       const post = (a: number[], b: number[], r: number, name: string) => add(tube(rh, a, b, r), attrs('01_FIELD::GOALS', name));
       const [A, B] = g.posts, x = A[0];
@@ -266,6 +268,7 @@ export function exportRhino(rh: RhinoModule, s: Stadium, opts: RhinoExportOption
     sk.deck.forEach((m, i) => add(meshOf(m), attrs('09_ROOF::DECK', `ROOF.DECK${sk.deck.length > 1 ? `.${i + 1}` : ''}`, { type: r.type, material: p.architecture.roof.material })));
     if (r.cap) add(meshOf(capSolid(ring, r.dIn, r.cap.z, r.cap.rise)), attrs('09_ROOF::CAP', 'ROOF.CAP', { type: r.type, rise_mm: Math.round(r.cap.rise) }));
     for (const b of r.boxes) add(rh.Extrusion.createBoxExtrusion(new rh.Box(new rh.BoundingBox(b.min, b.max)), true), attrs(b.kind === 'truss' ? '09_ROOF::TRUSSES' : '09_ROOF::PANELS', b.id, { depth_mm: Math.round(b.max[2] - b.min[2]) }));
+    for (const e of sphereElements(s)) add(meshOf(mergeMeshes(e.shapes.map(shapeMesh))), attrs(e.layer, e.id, Object.fromEntries(Object.entries(e.props).map(([k, v]) => [k, String(v)]))));
     for (const q of AR.facade.pieces) add(pieceExtrusion(rh, ring, q), attrs('10_FACADE::SKIN', q.id, { type: p.architecture.facade.type, material: p.architecture.facade.material, height_mm: Math.round(q.z1 - q.z0) }));
     for (const q of AR.facade.bands) add(pieceExtrusion(rh, ring, q), attrs('10_FACADE::BANDS', q.id));
     for (const q of AR.facade.canopies) add(pieceExtrusion(rh, ring, q), attrs('10_FACADE::PORTALS', q.id, { clear_height_mm: Math.round(q.z0) }));
@@ -291,7 +294,7 @@ export function exportRhino(rh: RhinoModule, s: Stadium, opts: RhinoExportOption
     }
     const bandLayer: Record<string, string> = { duct: '11_HVAC::DUCT_ZONES', tray: '12_ELECTRICAL::CABLE_TRAYS', catwalk: '14_LIGHTING::CATWALK' };
     for (const b of SYS.bands) add(bandExtrusion(rh, ring, b.span, b.d0, b.d1, b.z0, b.z1), attrs(bandLayer[b.kind], b.id, { use: b.label, depth_mm: Math.round(b.z1 - b.z0) }));
-    for (const b of SYS.boxes) add(rh.Extrusion.createBoxExtrusion(new rh.Box(new rh.BoundingBox(b.min, b.max)), true), attrs('15_AV_IT::VIDEO_BOARDS', b.id, { use: b.label, underside_mm: Math.round(b.min[2]) }));
+    for (const b of SYS.boxes) add(rh.Extrusion.createBoxExtrusion(new rh.Box(new rh.BoundingBox(b.min, b.max)), true), attrs(b.kind === 'speaker' ? '15_AV_IT::SPEAKERS' : '15_AV_IT::VIDEO_BOARDS', b.id, { use: b.label, underside_mm: Math.round(b.min[2]) }));
     for (const c of SYS.cameras) add(new rh.LineCurve(c.eye, c.target), attrs('15_AV_IT::BROADCAST::CAMERAS', `${c.id}.VIEW`, { use: c.label, depression_deg: c.depression.toFixed(1) }));
     // floodlights: one generic block, an instance per fixture turned toward its aim point
     if (SYS.fixtures.length) {

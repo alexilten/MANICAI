@@ -72,6 +72,7 @@ const CITY: Record<string, { lat: number; lon: number; city: string }> = {
   'freedom-park': { lat: 25.8, lon: -80.2, city: 'Miami' }, allegiant: { lat: 36.1, lon: -115.2, city: 'Las Vegas' },
   chiefs: { lat: 39.1, lon: -94.5, city: 'Kansas City' }, nissan: { lat: 36.2, lon: -86.8, city: 'Nashville' },
   milano: { lat: 45.5, lon: 9.1, city: 'Milan' }, birmingham: { lat: 52.5, lon: -1.9, city: 'Birmingham' },
+  sphere: { lat: 36.1, lon: -115.2, city: 'Las Vegas' },
 };
 
 const P = (meta: PresetMeta, make: () => Project): Preset => {
@@ -236,6 +237,50 @@ export const PRESETS: Preset[] = [
       p.bowl = { sideDistance: 8000, endDistance: 7000, cornerRadius: 8000, targetCapacity: 62000, stands: {} };
       p.tiers = [tier('T1', 'Lower tier', { rows: 26, elevation: 1300 }), tier('T2', 'Upper tier', { rows: 30, elevation: 4800, overhang: -6000, targetC: 60 })];
       p.architecture.roof = { ...p.architecture.roof, type: 'retractable', material: 'metal' };
+      return fitted(p);
+    }),
+  P({ id: 'sphere', name: 'Spherical immersive venue — Sphere-inspired', short: '17,600 · LED sphere, wraparound screen, steep amphitheatre', category: 'precedent', sport: 'stage', precedent: 'sphere',
+      verified: [
+        'Immersive concert and film venue (Populous), opened 29 Sep 2023, Las Vegas',
+        '17,600 seated, 20,000 with the standing floor; all seats face the stage; seating takes about two-thirds of the interior, the stage the rest',
+        'Four seating tiers (100–400 levels) and two suite levels; 23 suites; lowest tier partly retractable',
+        'Exosphere: 516 ft (157 m) wide, 366 ft (112 m) tall; 580,000 ft² of LED, about 1.2 million pucks at 8 in centres on a steel diagrid independent of the building',
+        'Interior LED media plane: about 160,000 ft² (15,000 m²), 16K, wrapping over the audience to an apex 240 ft (73 m) above the event floor; 400 ft (122 m) dome',
+        'Dome of 32 radial trusses with a compression ring; the concourse roof acts as the tension ring (Severud)',
+        'Main loudspeaker array of 14 clusters 25–30 ft above the stage; about 10,000 haptic seats',
+      ],
+      assumed: [
+        'Horseshoe plan opening onto a stage at the east end; a 36 × 30 m event floor, 16 m deep stage at +1.5 m',
+        'Tier rows fitted to 17,600 with the suite seats; tier heights and rows are not published',
+        'Suite levels under the 200 and 300 levels round the back of the horseshoe; the suite count is what fits at 9 m per suite, not the published 23',
+        '36° rake limit (steeper than the 34° football guidance, as reported for the upper levels)',
+        'Exosphere and media plane keep the published proportions but are sized by Manica to clear this bowl; the media plane is a cap of the dome aimed at the stage',
+        'No floodlights: production lighting rigs through the media plane. The loudspeaker array is drawn as 14 boxes above the stage',
+      ], confidence: 'low' },
+    () => {
+      const p = base('stage', 'Spherical immersive venue (Sphere-inspired)', 'sphere');
+      // sightlines to a 26 × 12 m strip of a 42 × 28 m event floor; the horseshoe's west end is a semicircle
+      p.field = { length: 26000, width: 12000, runoffSide: 8000, runoffEnd: 8000 };
+      p.bowl = { sideDistance: 9000, endDistance: 9000, cornerRadius: 15000, targetCapacity: 17600, stands: { E: { open: true }, NE: { open: true }, SE: { open: true } } };
+      p.sightlines.maxRakeDeg = 40;
+      p.seating.maxSeatsBetweenAisles = 40;
+      p.tiers = [
+        tier('T1', '100 level', { rows: 25, elevation: 600, rowDepth: 760, targetC: 60 }),
+        tier('T2', '200 level', { rows: 13, elevation: 2000, overhang: 2000, rowDepth: 760, targetC: 60 }),
+        tier('T3', '300 level', { rows: 11, elevation: 2000, overhang: 1500, rowDepth: 760, targetC: 60 }),
+        tier('T4', '400 level', { rows: 14, elevation: 4000, overhang: 1500, rowDepth: 760, targetC: 60 }),
+      ];
+      p.premium = [
+        suiteLevel('P1', 'T2', { name: 'Suite level 1', height: 3600, setback: 0, stands: ['W', 'N', 'S'], unitWidth: 9000, unitDepth: 6000, seatsPerUnit: 30 }),
+        suiteLevel('P2', 'T3', { name: 'Suite level 2', height: 3600, setback: 0, stands: ['W', 'N', 'S'], unitWidth: 9000, unitDepth: 6000, seatsPerUnit: 30 }),
+      ];
+      p.building = { ...p.building, concourseWidth: 5000, programDepth: 3500, cores: { ...p.building.cores, depth: 5000 } };
+      p.architecture.roof = { ...p.architecture.roof, type: 'sphere', material: 'metal', clearance: 3000, skyView: 20000 };
+      p.architecture.facade = { ...p.architecture.facade, portals: 0 };
+      p.architecture.boh.mainStand = 'N';
+      p.systems.boards = { ...p.systems.boards, type: 'none', ribbon: false };
+      p.systems.lighting = { ...p.systems.lighting, mount: 'roof' };
+      p.systems.service = { ...p.systems.service, fieldAccess: 'E', yard: 'auto' };
       return fitted(p);
     }),
 ];

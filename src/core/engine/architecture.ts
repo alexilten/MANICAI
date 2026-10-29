@@ -39,10 +39,56 @@ export const COLUMN_SETBACK = 1500;
 
 export const ROOF_LABEL: Record<RoofType, string> = {
   open: 'Open air', canopy: 'Partial canopy', perimeter: 'Perimeter canopy', enclosed: 'Fixed enclosed',
-  etfe: 'Translucent ETFE', truss: 'Long-span truss', retractable: 'Retractable',
+  etfe: 'Translucent ETFE', truss: 'Long-span truss', retractable: 'Retractable', sphere: 'Sphere (dome + LED Exosphere)',
 };
 /** roof types with a cap or panels over the field */
-export const ENCLOSED: RoofType[] = ['enclosed', 'etfe', 'truss', 'retractable'];
+export const ENCLOSED: RoofType[] = ['enclosed', 'etfe', 'truss', 'retractable', 'sphere'];
+
+/**
+ * The spherical envelope's proportions, from the published figures of the Sphere in Las Vegas
+ * (Populous; Severud Associates; Wikipedia, checked 2026-10-29). Standards: manicai.sphere.
+ */
+export const SPHERE = {
+  /** Exosphere: 366 ft tall on a 516 ft diameter → top / radius */
+  heightRatio: 366 / 258,
+  /** interior: a 400 ft diameter cylinder under a spherical cap whose apex is 240 ft above the event floor → apex / radius */
+  apexRatio: 240 / 200,
+  /** the cap rises at least this share of the interior radius above the spring */
+  minRise: 0.3,
+  /** media plane share of the interior above the floor, from 160,000 ft² on the published interior (cap from a 160 ft spring) */
+  screenShare: 160000 / (2 * Math.PI * 200 * 160 + Math.PI * (200 ** 2 + 80 ** 2)),
+  /** catwalk and rigging zone between the media plane and the structural dome */
+  domeGap: 4500,
+  /** dome: sprayed concrete over the steel frame */
+  shell: 250,
+  /** radial roof trusses (32 of about 100 t each) and their depth */
+  ribs: 32, ribDepth: 3000,
+  /** diagrid zone of the Exosphere, and the clear zone kept between it and the dome or building */
+  exoDepth: 1500, exoClear: 1500,
+  /** LED puck centres on the Exosphere (8 in) */
+  puckPitch: 203.2,
+} as const;
+
+/**
+ * A spherical envelope: the Exosphere (a steel diagrid and LED skin on a truncated sphere standing on
+ * the ground) around the interior, a cylinder under a spherical cap ("a bulging cylinder with a
+ * spherical cap") whose inner face carries the LED media plane. Centres are at the plan centre of the
+ * bowl (cx, cy); heights are above the event floor.
+ */
+export interface SphereEnvelope {
+  cx: Mm; cy: Mm;
+  /** Exosphere radius, centre height, top and its circle on the ground */
+  R: Mm; zc: Mm; top: Mm; groundR: Mm;
+  /** interior: cylinder radius a up to the spring, then a cap of radius capR centred at capZ up to the apex */
+  a: Mm; springZ: Mm; capR: Mm; capZ: Mm; apex: Mm;
+  /** the structural dome (domeGap outside the media plane) closes on a compression ring of radius crownR */
+  crownR: Mm;
+  /** media plane: the interior surface seen within `half` (radians) of `axis` from the point (cx, cy, eyeZ) */
+  eyeZ: Mm; axis: [number, number, number]; half: number;
+  /** areas, m²: media plane, Exosphere above ground, structural dome */
+  screenArea: number; exoArea: number; domeArea: number;
+  pucks: number; ribs: number;
+}
 
 export type BohKind = 'tunnel' | 'lockers' | 'officials' | 'medical' | 'media' | 'kitchens' | 'storage' | 'loading' | 'waste' | 'grounds' | 'eventOps';
 export const BOH_LABEL: Record<BohKind, string> = {
@@ -124,6 +170,8 @@ export interface Architecture {
   roof: Roof;
   facade: { d: Mm; pieces: Piece[]; bands: Piece[]; canopies: Piece[]; top: Record<SegmentId, Mm> };
   boh: { zones: BohZone[]; corridor: { d0: Mm; d1: Mm; z: Mm } | null };
+  /** spherical envelope (roof type 'sphere'): replaces the roof deck and the facade */
+  sphere: SphereEnvelope | null;
   metrics: ArchMetrics;
 }
 
@@ -194,7 +242,11 @@ export function buildArchitecture(
   const members: Member[] = [];
 
   // ── key lines
-  const dF = bm.outerD + F.offset;            // facade line
+  const type = R.type;
+  const isSphere = type === 'sphere';
+  const sphere = isSphere ? sizeSphere(p, ring, layout, profiles, building) : null;
+  // a sphere: the facade line is the largest offset of the plan ring that stands inside the Exosphere's ground circle
+  const dF = sphere ? sphereFacadeLine(ring, sphere) : bm.outerD + F.offset;
   const dCol = dF - COLUMN_SETBACK;            // outer column line
   const dOut = dF + EAVE;                      // roof eave
   let topZ = 0, dTop = 0;
@@ -210,10 +262,10 @@ export function buildArchitecture(
   const parapet = Math.max(coreTop, topZ + 3000);
 
   // ── roof: which segments it covers, its leading edge and levels
-  const type = R.type;
   const roofed = type !== 'open';
   const stands = new Set<StandId>(R.stands);
-  const covers = (seg: SegmentId) => roofed && (type !== 'canopy' || (!isCorner(seg) && stands.has(seg as StandId)));
+  // the sphere's dome is drawn on its own, so no roof deck or frames bear on the column line
+  const covers = (seg: SegmentId) => roofed && !isSphere && (type !== 'canopy' || (!isCorner(seg) && stands.has(seg as StandId)));
   const minDist = Math.min(...STANDS.map((g) => ring.dist[g]));
   const dIn = Math.max(-R.overhang, -(minDist + Math.min(ctx.fieldLength, ctx.fieldWidth) / 2) + 5000);
   const slope = Math.tan((R.pitch * Math.PI) / 180);
@@ -302,11 +354,11 @@ export function buildArchitecture(
   });
 
   // ── roof skin, cap, trusses and panels
-  const spans: Span[] = !roofed ? [] : type === 'canopy' ? STANDS.filter((g) => stands.has(g) && segmentLength(ring, g, 0) > 1000).map((g) => ({ seg: g, u0: 0, u1: 1 })) : ['ring'];
+  const spans: Span[] = !roofed || isSphere ? [] : type === 'canopy' ? STANDS.filter((g) => stands.has(g) && segmentLength(ring, g, 0) > 1000).map((g) => ({ seg: g, u0: 0, u1: 1 })) : ['ring'];
   const enclosed = ENCLOSED.includes(type);
   const halfX = ring.hx + dIn, halfY = ring.hy + dIn;
   const rise = type === 'enclosed' || type === 'etfe' ? 0.08 * Math.min(halfX, halfY) : 0;
-  const cap = enclosed && type !== 'retractable' ? { z: top(dIn), rise } : null;
+  const cap = enclosed && type !== 'retractable' && !isSphere ? { z: top(dIn), rise } : null;
   const boxes: WorldBox[] = [];
   let trussDepth = 0;
   const spacing = Math.max(15000, S.bay * Math.max(1, R.frameEvery) * 1.5);
@@ -339,8 +391,8 @@ export function buildArchitecture(
   const pH = Math.min(F.portalHeight, parapet - 2000);
   for (const seg of SEGMENTS) {
     const L = segmentLength(ring, seg, dF);
-    ftop[seg] = covers(seg) ? top(dF) : parapet;
-    if (L < 500) continue;
+    ftop[seg] = sphere ? sphere.top : covers(seg) ? top(dF) : parapet;
+    if (L < 500 || sphere) continue;
     const zt = ftop[seg];
     const portal = (F.portals === 8 || (F.portals === 4 && !isCorner(seg))) && L > F.portalWidth + 4000;
     const pw = portal ? F.portalWidth / L : 0;
@@ -398,7 +450,8 @@ export function buildArchitecture(
       let right = sMain + (tunnelW / 2) * k, left = sMain - (tunnelW / 2) * k;
       // the players' tunnel: from the field edge through the lower tier to the corridor, on the main stand centre
       const Lm = segmentLength(ring, main, 0);
-      zones.push({ id: 'BOH.TUNNEL', kind: 'tunnel', seg: main, u0: 0.5 - tunnelW / 2 / Lm, u1: 0.5 + tunnelW / 2 / Lm, d0: -Math.min(4000, ring.dist[main] - 1000), d1: b0, z0: 0, z1: Math.min(4000, bohHeight), area: (tunnelW * (b0 + 4000)) / 1e6 });
+      // no tunnel where the main stand has no straight to centre it on (a round bowl)
+      if (Lm > tunnelW) zones.push({ id: 'BOH.TUNNEL', kind: 'tunnel', seg: main, u0: 0.5 - tunnelW / 2 / Lm, u1: 0.5 + tunnelW / 2 / Lm, d0: -Math.min(4000, ring.dist[main] - 1000), d1: b0, z0: 0, z1: Math.min(4000, bohHeight), area: (tunnelW * (b0 + 4000)) / 1e6 });
       order.forEach((kind, i) => {
         if (area[i] <= 0) return;
         const len = ((area[i] * 1e6) / depth) * k;
@@ -421,20 +474,21 @@ export function buildArchitecture(
 
   // ── roof metrics: areas, coverage, view
   let roofPlan = 0;
-  if (roofed) {
+  if (sphere) roofPlan = (Math.PI * (sphere.a + SPHERE.domeGap) ** 2) / 1e6;
+  else if (roofed) {
     if (type === 'canopy') for (const sp of spans) if (sp !== 'ring') roofPlan += (segmentLength(ring, sp.seg, 0) * (dOut - dIn)) / 1e6;
     if (type !== 'canopy') roofPlan = (enclosedArea(ring, dOut) - enclosedArea(ring, dIn)) / 1e6;
   }
   const capPlan = enclosed ? enclosedArea(ring, dIn) / 1e6 : 0;
   const capSpan = 2 * Math.min(halfX, halfY);
-  let roofSurface = roofPlan / Math.cos(Math.atan(slope)) + capPlan * (1 + (8 / 3) * (rise / Math.max(1, capSpan)) ** 2);
+  let roofSurface = sphere ? sphere.domeArea : roofPlan / Math.cos(Math.atan(slope)) + capPlan * (1 + (8 / 3) * (rise / Math.max(1, capSpan)) ** 2);
   for (const b of boxes) if (b.kind === 'panel') roofSurface += ((b.max[0] - b.min[0]) * (b.max[1] - b.min[1])) / 1e6;
   const panels = boxes.filter((b) => b.kind === 'panel');
   const st = ctx.seats;
   let covered = 0;
   if (roofed) for (let i = 0; i < st.count; i++) {
     if (st.status[i] !== 0) continue;
-    if (type === 'enclosed' || type === 'etfe' || type === 'truss') { covered++; continue; }
+    if (type === 'enclosed' || type === 'etfe' || type === 'truss' || isSphere) { covered++; continue; }
     const sec = st.sector[i]; // SECTORS: north, south, east, west, then corners
     const seg = (['N', 'S', 'E', 'W'] as SegmentId[])[sec];
     if (type === 'canopy' && (sec > 3 || !stands.has(seg as StandId))) continue;
@@ -455,25 +509,203 @@ export function buildArchitecture(
       const z = dIn <= dC ? under(dC) : r.eyeZ + ((zEdge - r.eyeZ) * (r.eyeD - dC)) / (r.eyeD - dIn);
       viewClear = Math.min(viewClear, z);
     }
-  } else if (cap) viewClear = cap.z + cap.rise - ROOF_SKIN - trussDepth;
+  } else if (sphere) viewClear = sphere.apex;
+  else if (cap) viewClear = cap.z + cap.rise - ROOF_SKIN - trussDepth;
   else if (type === 'retractable') viewClear = Math.max(top(dIn), top(dOut)) + R.depth + 1500 - trussDepth;
   if (!Number.isFinite(viewClear)) viewClear = 0;
 
-  const roofTop = !roofed ? 0 : Math.max(top(dIn) + (exposed ? depthAt(dIn) : 0), top(dOut) + (exposed ? R.depth : 0), cap ? cap.z + cap.rise : 0, ...boxes.map((b) => b.max[2]));
+  const roofTop = !roofed ? 0 : sphere ? sphere.top : Math.max(top(dIn) + (exposed ? depthAt(dIn) : 0), top(dOut) + (exposed ? R.depth : 0), cap ? cap.z + cap.rise : 0, ...boxes.map((b) => b.max[2]));
   return {
     frames, rings, members, roof,
     facade: { d: dF, pieces, bands, canopies, top: ftop },
     boh: { zones, corridor },
+    sphere,
     metrics: {
       frames: frames.length, rakers, columns, roofFrames,
       roofPlan, roofSurface, covered, coverage: ctx.net ? covered / ctx.net : 0, viewClear,
-      roofTop, eave: roofed ? top(dOut) : 0,
-      facadeD: dF, facadeArea, facadeModules: modules, facadeTop: Math.max(...Object.values(ftop)), portals,
-      envelopeFootprint: enclosedArea(ring, dF) / 1e6, envelopePerimeter: perimeter(ring, dF),
+      roofTop, eave: sphere ? sphere.springZ : roofed ? top(dOut) : 0,
+      facadeD: dF, facadeArea: sphere ? sphere.exoArea : facadeArea, facadeModules: sphere ? sphere.pucks : modules, facadeTop: Math.max(...Object.values(ftop)), portals,
+      envelopeFootprint: sphere ? (Math.PI * sphere.groundR ** 2) / 1e6 : enclosedArea(ring, dF) / 1e6, envelopePerimeter: sphere ? 2 * Math.PI * sphere.groundR : perimeter(ring, dF),
       bohArea, bohNeeded, bohCorridorArea, bohHeight,
       grossArea: bm.grossArea + bohArea + bohCorridorArea,
     },
   };
+}
+
+/**
+ * Size the spherical envelope (manicai.sphere). The interior cylinder clears the back of the bowl and the
+ * cap springs above the top row, both by the roof clearance, keeping the published apex / radius
+ * proportion. The Exosphere is the smallest truncated sphere with the published height / width
+ * proportion that holds the dome (with its trusses), the building levels and the cores, with a clear
+ * zone behind its diagrid. The media plane is the part of the interior aimed at the stage, sized to the
+ * published share and reaching the floor behind the stage.
+ */
+export function sizeSphere(p: Project, ring: PlanRing, layout: Layout, profiles: TierProfile[], building: Building): SphereEnvelope {
+  const clear = p.architecture.roof.clearance;
+  const plan: [number, number, number][] = []; // (x, y, z)
+  const around = (d: Mm, z: Mm, segs: readonly SegmentId[] = SEGMENTS) => {
+    for (const seg of segs) for (let k = 0; k <= (isCorner(seg) ? 8 : 1); k++) {
+      const q = pointAt(ring, seg, k / (isCorner(seg) ? 8 : 1), d);
+      plan.push([q.x, q.y, z]);
+    }
+  };
+  let top = 0;
+  for (const seg of SEGMENTS) profiles.forEach((t) => {
+    const n = layout.rows[seg][t.index];
+    if (n <= 0) return;
+    const r = t.rows[Math.min(n, t.rows.length) - 1];
+    top = Math.max(top, r.z);
+    around(r.d + t.rowDepth, r.z);
+  });
+  const stage = pointAt(ring, 'E', 0.5, 0).x + STAGE_ROOM;
+  // the plan centre on the bowl's axis that keeps the interior smallest (a horseshoe sits off the ring centre)
+  const reachFrom = (x0: number) => Math.max(...plan.map(([x, y]) => Math.hypot(x - x0, y - ring.cy)), stage - x0);
+  let cx = ring.cx, best = Infinity;
+  for (let k = 0; k <= 40; k++) { const x0 = ring.cx - ring.hx + (2 * ring.hx * k) / 40, v = reachFrom(x0); if (v < best) { best = v; cx = x0; } }
+  const cy = ring.cy;
+  const pts: [number, number][] = plan.map(([x, y, z]) => [Math.hypot(x - cx, y - cy), z]);
+  // interior: the cylinder clears the bowl and the stage, the cap springs above the top row
+  const reach = best;
+  const springZ = Math.max(top + clear, ...building.levels.map((l) => l.z + 4000));
+  const a0 = reach + clear;
+  const a = Math.max(a0, springZ / (SPHERE.apexRatio - SPHERE.minRise));
+  const apex = SPHERE.apexRatio * a, rise = apex - springZ;
+  const capR = (a * a + rise * rise) / (2 * rise), capZ = apex - capR;
+  // Exosphere: hold the building, the cylinder wall and the dome (with trusses) inside the diagrid's clear zone
+  pts.length = 0; plan.length = 0;
+  for (const l of building.levels) around(l.d1, l.z + 4000);
+  for (const c of building.cores) around(c.d1, c.zTop);
+  around(building.metrics.outerD + COLUMN_SETBACK, 0);
+  for (const [x, y, z] of plan) pts.push([Math.hypot(x - cx, y - cy), z]);
+  const out = SPHERE.domeGap + SPHERE.shell + SPHERE.ribDepth;
+  const eS = Math.asin(Math.min(1, (springZ - capZ) / (capR + out)));
+  for (let k = 0; k <= 12; k++) { const e = eS + (Math.PI / 2 - eS) * (k / 12); pts.push([(capR + out) * Math.cos(e), capZ + (capR + out) * Math.sin(e)]); }
+  pts.push([a + out, 0], [a + out, springZ]);
+  const kc = SPHERE.heightRatio - 1, gap = SPHERE.exoDepth + SPHERE.exoClear;
+  const solve = (ok: (r: number) => boolean) => { let lo = 1000, hi = 1e6; for (let i = 0; i < 60; i++) { const m = (lo + hi) / 2; if (ok(m)) hi = m; else lo = m; } return hi; };
+  const R = solve((x) => pts.every(([rho, z]) => z < kc * x + x - gap && rho * rho + (z - kc * x) ** 2 <= (x - gap) ** 2));
+  const zc = kc * R;
+  const env: SphereEnvelope = {
+    cx, cy, R, zc, top: zc + R, groundR: Math.sqrt(R * R - zc * zc),
+    a, springZ, capR, capZ, apex, crownR: 0.08 * a,
+    eyeZ: springZ * 0.4, axis: [1, 0, 0], half: 0,
+    screenArea: 0, exoArea: (2 * Math.PI * R * (zc + R)) / 1e6, domeArea: 0, pucks: 0, ribs: SPHERE.ribs,
+  };
+  env.pucks = Math.round((env.exoArea * 1e6) / SPHERE.puckPitch ** 2);
+  const ro = capR + SPHERE.domeGap;
+  env.domeArea = (2 * Math.PI * ro * (capZ + ro - springZ)) / 1e6;
+  // media plane: bisect the half-angle on the published share; the lowest edge meets the floor behind the stage
+  const total = (2 * Math.PI * a * springZ + 2 * Math.PI * capR * rise) / 1e6;
+  const dip = Math.atan2(env.eyeZ, a);
+  let lo = 0.2, hi = Math.PI * 0.95;
+  for (let i = 0; i < 30; i++) {
+    const h = (lo + hi) / 2;
+    env.half = h; env.axis = axisAt(h - dip);
+    if (screenAreaOf(env) < SPHERE.screenShare * total) lo = h; else hi = h;
+  }
+  env.half = lo; env.axis = axisAt(lo - dip);
+  env.screenArea = screenAreaOf(env);
+  return env;
+}
+/** room kept for the stage house between the floor's east edge and the interior wall */
+const STAGE_ROOM = 18000;
+const axisAt = (el: number): [number, number, number] => [Math.cos(el), 0, Math.sin(el)];
+
+/** Where the ray from the media-plane eye point along unit `v` meets the interior surface (cylinder below the spring, cap above). */
+export function interiorHit(s: SphereEnvelope, v: [number, number, number], grow = 0): [number, number, number] {
+  const h = Math.hypot(v[0], v[1]);
+  const a = s.a + grow, R = s.capR + grow;
+  // cylinder: horizontal reach a
+  if (h > 1e-9) {
+    const t = a / h, z = s.eyeZ + v[2] * t;
+    if (z <= s.springZ) return [s.cx + v[0] * t, s.cy + v[1] * t, Math.max(0, z)];
+  }
+  // cap: |(0,0,eyeZ − capZ) + t v| = R
+  const oz = s.eyeZ - s.capZ, b = oz * v[2], c = oz * oz - R * R;
+  const t = -b + Math.sqrt(Math.max(0, b * b - c));
+  return [s.cx + v[0] * t, s.cy + v[1] * t, s.eyeZ + v[2] * t];
+}
+
+/** Directions in the media-plane cone: polar angle th from the axis, azimuth ps about it. */
+function coneDir(s: SphereEnvelope, th: number, ps: number): [number, number, number] {
+  const ax = s.axis, u = norm3(cross3([0, 0, 1], ax)), w = cross3(ax, u);
+  const sn = Math.sin(th), co = Math.cos(th);
+  return norm3([0, 1, 2].map((j) => ax[j] * co + (u[j] * Math.cos(ps) + w[j] * Math.sin(ps)) * sn));
+}
+
+/** Area of the media plane, m² (the surface hit by the cone, summed over a grid of small quads). */
+function screenAreaOf(s: SphereEnvelope, rows = 40, cols = 96): number {
+  let A = 0;
+  const P = (i: number, j: number) => interiorHit(s, coneDir(s, (s.half * i) / rows, (2 * Math.PI * j) / cols));
+  for (let i = 0; i < rows; i++) for (let j = 0; j < cols; j++) {
+    const p0 = P(i, j), p1 = P(i + 1, j), p2 = P(i + 1, j + 1), p3 = P(i, j + 1);
+    A += (triArea(p0, p1, p2) + triArea(p0, p2, p3));
+  }
+  return A / 1e6;
+}
+const triArea = (a: number[], b: number[], c: number[]) => Math.hypot(...cross3([b[0] - a[0], b[1] - a[1], b[2] - a[2]], [c[0] - a[0], c[1] - a[1], c[2] - a[2]])) / 2;
+
+/** The largest plan offset of the ring that stays inside the Exosphere's ground circle. */
+function sphereFacadeLine(ring: PlanRing, s: SphereEnvelope): Mm {
+  const far = (d: Mm) => Math.max(...stationsAt(ring, d, 8).map(([x, y]) => Math.hypot(x - s.cx, y - s.cy)));
+  let lo = 0, hi = s.groundR;
+  for (let i = 0; i < 40; i++) { const m = (lo + hi) / 2; if (far(m) <= s.groundR - FACADE_SKIN) lo = m; else hi = m; }
+  return lo;
+}
+
+/** Is a point inside the Exosphere? */
+export const insideSphere = (s: SphereEnvelope, x: number, y: number, z: number) => z >= 0 && (x - s.cx) ** 2 + (y - s.cy) ** 2 + (z - s.zc) ** 2 < s.R * s.R;
+
+/** The media plane as a closed panel `thick` deep behind its face (rows from the axis outward). */
+export function screenSolid(s: SphereEnvelope, thick = 300, rows = 36, cols = 128): BoxMesh {
+  const pos: number[] = [];
+  for (const g of [0, thick]) for (let i = 0; i <= rows; i++) for (let j = 0; j < cols; j++) pos.push(...interiorHit(s, coneDir(s, (s.half * i) / rows, (2 * Math.PI * j) / cols), g));
+  return closeGrid(pos, rows, cols);
+}
+
+/** Close a two-layer (rows + 1) × cols grid of points (layer 0 then layer 1) into a solid: faces, back faces and the two rims. */
+function closeGrid(pos: number[], rows: number, cols: number): BoxMesh {
+  const n = (rows + 1) * cols, idx: number[] = [];
+  const id = (sh: number, i: number, j: number) => sh * n + i * cols + (j % cols);
+  for (let i = 0; i < rows; i++) for (let j = 0; j < cols; j++) {
+    idx.push(id(0, i, j), id(0, i + 1, j + 1), id(0, i + 1, j), id(0, i, j), id(0, i, j + 1), id(0, i + 1, j + 1));
+    idx.push(id(1, i, j), id(1, i + 1, j), id(1, i + 1, j + 1), id(1, i, j), id(1, i + 1, j + 1), id(1, i, j + 1));
+  }
+  for (const [i, f] of [[0, false], [rows, true]] as const) for (let j = 0; j < cols; j++) {
+    if (f) idx.push(id(0, i, j), id(1, i, j + 1), id(1, i, j), id(0, i, j), id(0, i, j + 1), id(1, i, j + 1));
+    else idx.push(id(0, i, j), id(1, i, j), id(1, i, j + 1), id(0, i, j), id(1, i, j + 1), id(0, i, j + 1));
+  }
+  return orient({ positions: new Float32Array(pos), index: new Uint32Array(idx) });
+}
+const cross3 = (a: number[], b: number[]): [number, number, number] => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const norm3 = (a: number[]): [number, number, number] => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
+
+/** (radius, z) section of a spherical shell band about the vertical axis, from elevation e0 to e1 (radians), inner radius r, thickness t. */
+export function shellSection(r: Mm, t: Mm, zc: Mm, e0: number, e1: number, steps = 24): [number, number][] {
+  const arc = (rad: number) => Array.from({ length: steps + 1 }, (_, k) => { const e = e0 + ((e1 - e0) * k) / steps; return [rad * Math.cos(e), zc + rad * Math.sin(e)] as [number, number]; });
+  return [...arc(r), ...arc(r + t).reverse()];
+}
+/** The structural dome's section: the cap of the interior, domeGap outside the media plane, from the spring to the crown ring. */
+export function domeSection(s: SphereEnvelope): [number, number][] {
+  const r = s.capR + SPHERE.domeGap;
+  return shellSection(r, SPHERE.shell, s.capZ, Math.asin(Math.min(1, (s.springZ - s.capZ) / r)), Math.acos(Math.min(1, s.crownR / r)));
+}
+/** The Exosphere's diagrid zone (section), from the ground to a small crown opening. */
+export function exoSection(s: SphereEnvelope, t: Mm = SPHERE.exoDepth): [number, number][] {
+  return shellSection(s.R - t, t, s.zc, Math.asin(-s.zc / (s.R - t)), Math.acos(Math.min(1, 1500 / (s.R - t))), 48);
+}
+
+/** The 32 radial dome trusses as polylines over the dome, from the spring to the crown ring. */
+export function sphereRibs(s: SphereEnvelope, steps = 10): [number, number, number][][] {
+  const rd = s.capR + SPHERE.domeGap + SPHERE.shell + SPHERE.ribDepth / 2;
+  const e0 = Math.asin(Math.min(1, (s.springZ - s.capZ) / rd)), e1 = Math.acos(Math.min(1, s.crownR / rd));
+  return Array.from({ length: s.ribs }, (_, k) => {
+    const az = (2 * Math.PI * k) / s.ribs;
+    return Array.from({ length: steps + 1 }, (_, i) => {
+      const e = e0 + ((e1 - e0) * i) / steps;
+      return [s.cx + Math.cos(az) * Math.cos(e) * rd, s.cy + Math.sin(az) * Math.cos(e) * rd, s.capZ + Math.sin(e) * rd] as [number, number, number];
+    });
+  });
 }
 
 /** Soffit under the lower tier (on grade: down to the ground) at plan offset d. */

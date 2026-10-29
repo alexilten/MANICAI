@@ -82,11 +82,12 @@ export function Lighting({ ring, sys, clip, night, aiming }: { ring: PlanRing; s
 export function AvIt({ ring, sys, clip, night }: { ring: PlanRing; sys: SystemsModel; clip: THREE.Plane[]; night: boolean }) {
   const screens = useGeo(() => {
     const parts = sys.zones.filter((z) => z.kind === 'board' || z.kind === 'ribbon').map((z) => ({ m: pieceSolid(ring, z) }));
-    for (const b of sys.boxes) parts.push({ m: boxSolid(b.min, b.max) });
+    for (const b of sys.boxes) if (b.kind !== 'speaker') parts.push({ m: boxSolid(b.min, b.max) });
     return parts.length ? merge(parts) : null;
   }, [ring, sys]);
   const kit = useGeo(() => {
     const parts = sys.zones.filter((z) => z.kind === 'boardFrame' || z.kind === 'speaker').map((z) => ({ m: pieceSolid(ring, z), color: z.kind === 'speaker' ? '#2b2e33' : '#6d7178' }));
+    for (const b of sys.boxes) if (b.kind === 'speaker') parts.push({ m: boxSolid(b.min, b.max), color: '#2b2e33' });
     return parts.length ? merge(parts) : null;
   }, [ring, sys]);
   return (

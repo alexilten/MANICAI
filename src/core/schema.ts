@@ -81,7 +81,7 @@ export interface BuildingParams {
   cores: { spacing: Mm; width: Mm; depth: Mm; stairs: number; stairWidth: Mm; lifts: number };
 }
 
-export type RoofType = 'open' | 'canopy' | 'perimeter' | 'enclosed' | 'etfe' | 'truss' | 'retractable';
+export type RoofType = 'open' | 'canopy' | 'perimeter' | 'enclosed' | 'etfe' | 'truss' | 'retractable' | 'sphere';
 export type FacadeType = 'glazed' | 'solid' | 'perforated' | 'fins';
 export type StructureMaterial = 'steel' | 'steelDark' | 'concrete';
 export type RoofMaterial = 'ptfe' | 'etfe' | 'metal';
@@ -445,9 +445,9 @@ export function readProject(text: string): { project: Project; repaired: string[
 const STANDS: string[] = ['N', 'S', 'E', 'W'];
 /** fields with a fixed set of values; anything else falls back to the default */
 const ENUMS: [string, (string | number)[]][] = [
-  ['sport', ['soccer', 'nfl']], ['units', ['metric', 'imperial']], ['sightlines.mode', ['cvalue', 'riser']],
+  ['sport', ['soccer', 'nfl', 'stage']], ['units', ['metric', 'imperial']], ['sightlines.mode', ['cvalue', 'riser']],
   ['architecture.structure.material', ['steel', 'steelDark', 'concrete']],
-  ['architecture.roof.type', ['open', 'canopy', 'perimeter', 'enclosed', 'etfe', 'truss', 'retractable']],
+  ['architecture.roof.type', ['open', 'canopy', 'perimeter', 'enclosed', 'etfe', 'truss', 'retractable', 'sphere']],
   ['architecture.roof.material', ['ptfe', 'etfe', 'metal']],
   ['architecture.facade.type', ['glazed', 'solid', 'perforated', 'fins']],
   ['architecture.facade.material', ['glass', 'aluminium', 'bronze', 'precast']],

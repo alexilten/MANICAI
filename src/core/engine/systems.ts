@@ -150,12 +150,24 @@ export function buildSystems(
   const litArea = ((fs.maxX - fs.minX) * (fs.maxY - fs.minY)) / 1e6;
   const N = Math.max(4, Math.ceil((L.target * litArea) / Math.max(1, L.lumens * L.maintenance * L.utilisation)));
   const ringed = roof.type !== 'open' && STANDS.every((g) => covers(g) || segmentLength(ring, g, 0) < 1000);
-  const mount: 'roof' | 'masts' = L.mount === 'masts' || !ringed ? 'masts' : 'roof';
+  // a spherical envelope: production lighting rigs from the dome through the media plane, so no floodlights are planned
+  const sphere = arch.sphere;
+  const mount: 'roof' | 'masts' = sphere ? 'roof' : L.mount === 'masts' || !ringed ? 'masts' : 'roof';
   const spread = (k: number) => [0.08 + 0.84 * frac(k * 0.6180339887), 0.08 + 0.84 * frac(k * 0.4142135624 + 0.5)];
   let mastHeight = 0;
   const dCat = roof.dIn + 1500;
   const zCat = mount === 'roof' ? roofUnderAt(roof, dCat) - 1500 : 0;
-  if (mount === 'roof') {
+  if (sphere) {
+    // the main loudspeaker array: 14 clusters in an arc 25–30 ft above the stage (published), placeholders
+    const st = ctx.field.stage;
+    if (st) {
+      const y0 = st.rect.minY, y1 = st.rect.maxY, x = st.rect.minX + 1500, z = st.z + 8400;
+      for (let k = 0; k < 14; k++) {
+        const y = y0 + ((y1 - y0) * (k + 0.5)) / 14, bow = 2500 * (1 - (2 * (k + 0.5) / 14 - 1) ** 2);
+        boxes.push({ id: `AV.ARRAY.${String(k + 1).padStart(2, '0')}`, system: 'avit', kind: 'speaker', label: 'Main loudspeaker cluster', min: [x - bow - 600, y - 700, z], max: [x - bow + 600, y + 700, z + 2400] });
+      }
+    }
+  } else if (mount === 'roof') {
     for (const sp of roof.spans) bands.push({ id: `LGT.CATWALK${sp === 'ring' ? '' : `.${sp.seg}`}`, system: 'lighting', kind: 'catwalk', label: 'Lighting catwalk', span: sp, d0: dCat - 700, d1: dCat + 700, z0: zCat - 150, z1: zCat });
     // more fixtures on the long sides than on the ends
     const segs = STANDS.filter((g) => covers(g) && segmentLength(ring, g, dCat) > 1000);
@@ -266,7 +278,7 @@ export function buildSystems(
   }
 
   // ── speakers along the catwalk, Wi-Fi from the seat count
-  let speakers = 0;
+  let speakers = boxes.filter((b) => b.kind === 'speaker').length;
   if (mount === 'roof') for (const sp of roof.spans) {
     for (const g of sp === 'ring' ? SEGMENTS : [sp.seg]) {
       const len = segmentLength(ring, g, dCat);
