@@ -12,7 +12,7 @@ interface State { error: Error | null }
 export class ErrorBoundary extends Component<Props, State> {
   state: State = { error: null };
   static getDerivedStateFromError(error: Error): State { return { error }; }
-  componentDidCatch(error: Error) { console.error(`[MANICAI] ${this.props.area} failed`, error); }
+  componentDidCatch(error: Error) { console.error(`[Manica] ${this.props.area} failed`, error); }
   private retry = (fix?: () => void) => { fix?.(); this.setState({ error: null }); };
   render() {
     const { error } = this.state;

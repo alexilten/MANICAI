@@ -4,10 +4,10 @@
  * Input is the resolved Stadium — the same model the viewport draws — so the file always matches
  * what the designer sees. Output:
  *   • millimetre model units; the local stadium frame (origin = field centre at field level, +X field length, +Z up)
- *   • the MANICAI layer standard (00_REFERENCE … 91_ANALYSIS) with tier/sector sub-layers
+ *   • the Manica layer standard (00_REFERENCE … 91_ANALYSIS) with tier/sector sub-layers
  *   • terraces as exact NURBS: each straight run is the tier section extruded along it, each corner the
  *     section revolved about the corner centre. The pieces of one tier share edges exactly and are grouped;
- *     run manicai_join_tiers.py (or _Join on the group) for one closed polysurface per tier
+ *     run manica_join_tiers.py (or _Join on the group) for one closed polysurface per tier
  *   • every seat in use as a named block instance (one block definition per seat width) carrying its id and C-value;
  *     club seats on 05_PREMIUM, wheelchair positions and companion seats on 04_ACCESSIBILITY, and the positions
  *     removed for vomitories / platforms as named points on 91_ANALYSIS::EXCLUDED_SEATS
@@ -23,7 +23,7 @@
  *     (14_LIGHTING), boards, ribbons, speakers, telecom and broadcast (15_AV_IT), the service yard and
  *     field access (17_SITE)
  *   • field markings as true lines and arcs; goals as solids
- *   • the full project JSON in the document strings, so MANICAI can reopen the file parametrically
+ *   • the full project JSON in the document strings, so Manica can reopen the file parametrically
  */
 import { annotations } from '../core/engine/annotations';
 import { BOH_KINDS, BOH_LABEL, capSolid, roofSkin, stationsAt, type Member, type Piece } from '../core/engine/architecture';
@@ -42,7 +42,7 @@ export type RhinoModule = any;
 
 export const APP_VERSION = '0.6.0';
 
-/** The MANICAI layer standard. Systems that are not generated yet keep their place in the hierarchy. */
+/** The Manica layer standard. Systems that are not generated yet keep their place in the hierarchy. */
 export const LAYER_TREE: { name: string; color: [number, number, number]; children: string[] }[] = [
   { name: '00_REFERENCE', color: [150, 150, 150], children: ['ORIGIN', 'NORTH'] },
   { name: '01_FIELD', color: [90, 140, 80], children: ['SURFACE', 'MARKINGS', 'GOALS', 'ZONES'] },
@@ -82,8 +82,8 @@ export function exportRhino(rh: RhinoModule, s: Stadium, opts: RhinoExportOption
   const doc = new rh.File3dm();
   doc.settings().modelUnitSystem = rh.UnitSystem.Millimeters;
   doc.settings().modelAbsoluteTolerance = 0.01;
-  doc.applicationName = 'MANICAI';
-  doc.applicationDetails = `MANICAI ${APP_VERSION} — generative stadium design engine`;
+  doc.applicationName = 'Manica';
+  doc.applicationDetails = `Manica ${APP_VERSION} — generative stadium design engine`;
 
   // ── layers
   const layerIndex = new Map<string, number>();
@@ -120,7 +120,7 @@ export function exportRhino(rh: RhinoModule, s: Stadium, opts: RhinoExportOption
     const a = new rh.ObjectAttributes();
     a.layerIndex = L(layer);
     a.name = name;
-    for (const [k, v] of Object.entries(user)) a.setUserString(`manicai.${k}`, String(v));
+    for (const [k, v] of Object.entries(user)) a.setUserString(`manica.${k}`, String(v));
     return a;
   };
   const add = (geom: any, a: any) => { doc.objects().add(geom, a); free(geom, a); };
@@ -297,8 +297,8 @@ export function exportRhino(rh: RhinoModule, s: Stadium, opts: RhinoExportOption
     if (SYS.fixtures.length) {
       const lp = p.systems.lighting;
       const geo = [rh.Extrusion.createBoxExtrusion(new rh.Box(new rh.BoundingBox([-350, -350, -225], [350, 350, 225])), true)];
-      const ba = new rh.ObjectAttributes(); ba.layerIndex = L('14_LIGHTING::FLOODLIGHTS'); ba.name = 'MANICAI_FLOODLIGHT_GENERIC.1';
-      const idx = doc.instanceDefinitions().add('MANICAI_FLOODLIGHT_GENERIC', `Generic LED floodlight proxy, 700 × 700 × 450 mm, aimed along local -Z (conceptual placeholder — not a manufacturer product; ${lp.lumens} lm, ${lp.watts} W assumed)`, '', '', [0, 0, 0], geo, [ba]);
+      const ba = new rh.ObjectAttributes(); ba.layerIndex = L('14_LIGHTING::FLOODLIGHTS'); ba.name = 'MANICA_FLOODLIGHT_GENERIC.1';
+      const idx = doc.instanceDefinitions().add('MANICA_FLOODLIGHT_GENERIC', `Generic LED floodlight proxy, 700 × 700 × 450 mm, aimed along local -Z (conceptual placeholder — not a manufacturer product; ${lp.lumens} lm, ${lp.watts} W assumed)`, '', '', [0, 0, 0], geo, [ba]);
       free(...geo, ba);
       const defId = doc.instanceDefinitions().get(idx).id;
       for (const fx of SYS.fixtures) {
@@ -329,8 +329,8 @@ export function exportRhino(rh: RhinoModule, s: Stadium, opts: RhinoExportOption
       blocks.set(name, id);
       return id;
     };
-    const seatBlockFor = (w: number) => block(`MANICAI_SEAT_${w}MM`, `Generic stadium seat, ${w} mm centres (generic parametric family — not a manufacturer product)`, seatBlock(rh, w).parts, '03_SEATING');
-    const wcBlock = () => block('MANICAI_WHEELCHAIR_1400x900MM', 'Wheelchair position, 1400 mm deep × 900 mm wide clear floor (generic)', [rh.Extrusion.createBoxExtrusion(new rh.Box(new rh.BoundingBox([-800, -450, 0], [600, 450, 40])), true)], '04_ACCESSIBILITY::WHEELCHAIR_POSITIONS');
+    const seatBlockFor = (w: number) => block(`MANICA_SEAT_${w}MM`, `Generic stadium seat, ${w} mm centres (generic parametric family — not a manufacturer product)`, seatBlock(rh, w).parts, '03_SEATING');
+    const wcBlock = () => block('MANICA_WHEELCHAIR_1400x900MM', 'Wheelchair position, 1400 mm deep × 900 mm wide clear floor (generic)', [rh.Extrusion.createBoxExtrusion(new rh.Box(new rh.BoundingBox([-800, -450, 0], [600, 450, 40])), true)], '04_ACCESSIBILITY::WHEELCHAIR_POSITIONS');
     const seatLayers = s.profiles.map((pr) => {
       const root = p.tiers[pr.index]?.kind === 'club' ? '05_PREMIUM' : '03_SEATING';
       return SECTORS.map((sec) => L(`${root}::${tierLayer(pr)}::${slug(SECTOR_LABEL[sec])}`));
@@ -350,8 +350,8 @@ export function exportRhino(rh: RhinoModule, s: Stadium, opts: RhinoExportOption
       const a = new rh.ObjectAttributes();
       a.layerIndex = wheel ? L('04_ACCESSIBILITY::WHEELCHAIR_POSITIONS') : comp ? L('04_ACCESSIBILITY::COMPANION_SEATS') : seatLayers[t.tier[i]][t.sector[i]];
       a.name = name;
-      a.setUserString('manicai.cvalue_mm', String(Math.round(t.cValue[i])));
-      if (wheel || comp) a.setUserString('manicai.class', wheel ? 'wheelchair' : 'companion');
+      a.setUserString('manica.cvalue_mm', String(Math.round(t.cValue[i])));
+      if (wheel || comp) a.setUserString('manica.class', wheel ? 'wheelchair' : 'companion');
       doc.objects().add(ref, a);
       free(ref, a, xf);
     }
@@ -377,21 +377,21 @@ export function exportRhino(rh: RhinoModule, s: Stadium, opts: RhinoExportOption
   }
 
   // ── parametric preservation
-  doc.strings().set('manicai.schema', 'manicai.project');
-  doc.strings().set('manicai.appVersion', APP_VERSION);
-  doc.strings().set('manicai.project', serializeProject(p));
-  doc.strings().set('manicai.capacity', String(s.metrics.total));
-  doc.strings().set('manicai.capacity.bowl_net', String(s.metrics.net));
-  doc.strings().set('manicai.capacity.suites', String(s.metrics.suiteSeats));
-  doc.strings().set('manicai.building.gfa_m2', String(Math.round(s.architecture.metrics.grossArea)));
-  doc.strings().set('manicai.roof.type', p.architecture.roof.type);
-  doc.strings().set('manicai.roof.coverage', s.architecture.metrics.coverage.toFixed(3));
-  doc.strings().set('manicai.lighting.fixtures', String(s.systems.metrics.lighting.fixtures));
-  doc.strings().set('manicai.lighting.average_lx_estimate', String(Math.round(s.systems.metrics.lighting.average)));
-  doc.strings().set('manicai.electrical.demand_kw_estimate', String(Math.round(s.systems.metrics.mep.demandKW)));
-  doc.strings().set('manicai.capacity.gross', String(s.metrics.gross));
-  doc.strings().set('manicai.coordinateSystem', 'mm; Z up; origin = centre of the playing field at field level; +X field length (east end), +Y field width (north sideline); site north given by manicai.project site.northDeg');
-  doc.strings().set('manicai.note', 'Editable Rhino model generated by MANICAI — a conceptual design, not a construction document. Seats are block instances named tier-section-row-seat. Terrace pieces of one tier are grouped; run manicai_join_tiers.py (Export menu) to join each tier into one closed polysurface and cut its vomitory openings. Reopen this file in MANICAI to edit parametrically.');
+  doc.strings().set('manica.schema', 'manica.project');
+  doc.strings().set('manica.appVersion', APP_VERSION);
+  doc.strings().set('manica.project', serializeProject(p));
+  doc.strings().set('manica.capacity', String(s.metrics.total));
+  doc.strings().set('manica.capacity.bowl_net', String(s.metrics.net));
+  doc.strings().set('manica.capacity.suites', String(s.metrics.suiteSeats));
+  doc.strings().set('manica.building.gfa_m2', String(Math.round(s.architecture.metrics.grossArea)));
+  doc.strings().set('manica.roof.type', p.architecture.roof.type);
+  doc.strings().set('manica.roof.coverage', s.architecture.metrics.coverage.toFixed(3));
+  doc.strings().set('manica.lighting.fixtures', String(s.systems.metrics.lighting.fixtures));
+  doc.strings().set('manica.lighting.average_lx_estimate', String(Math.round(s.systems.metrics.lighting.average)));
+  doc.strings().set('manica.electrical.demand_kw_estimate', String(Math.round(s.systems.metrics.mep.demandKW)));
+  doc.strings().set('manica.capacity.gross', String(s.metrics.gross));
+  doc.strings().set('manica.coordinateSystem', 'mm; Z up; origin = centre of the playing field at field level; +X field length (east end), +Y field width (north sideline); site north given by manica.project site.northDeg');
+  doc.strings().set('manica.note', 'Editable Rhino model generated by Manica — a conceptual design, not a construction document. Seats are block instances named tier-section-row-seat. Terrace pieces of one tier are grouped; run manica_join_tiers.py (Export menu) to join each tier into one closed polysurface and cut its vomitory openings. Reopen this file in Manica to edit parametrically.');
 
   const options = new rh.File3dmWriteOptions();
   options.version = opts.version ?? 8;
@@ -559,14 +559,14 @@ function seatBlock(rh: RhinoModule, width: number) {
   return { parts: boxes.map(([a, b]) => rh.Extrusion.createBoxExtrusion(new rh.Box(new rh.BoundingBox(a, b)), true)) };
 }
 
-/** Read a MANICAI project back out of a .3dm's document strings. */
+/** Read a Manica project back out of a .3dm's document strings. */
 export function projectFrom3dm(rh: RhinoModule, bytes: Uint8Array): string | null {
   const doc = rh.File3dm.fromByteArray(bytes);
   if (!doc) return null;
   let out: string | null = null;
   for (let i = 0; i < doc.strings().count; i++) {
     const kv = doc.strings().get(i) as [string, string];
-    if (kv[0] === 'manicai.project') out = kv[1];
+    if (kv[0] === 'manica.project' || (kv[0] === 'manicai.project' && out === null)) out = kv[1];
   }
   doc.delete();
   return out;

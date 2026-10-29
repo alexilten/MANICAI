@@ -176,7 +176,7 @@ function PresetInfo() {
     <Section title="Preset evidence" summary={pr.confidence} defaultOpen={false}>
       <div className="sub-title">{pr.name} <span className={`badge ${pr.confidence === 'generic' ? 'generic' : 'secondary'}`}>{pr.confidence === 'generic' ? 'Generic' : `Confidence: ${pr.confidence}`}</span></div>
       {pr.verified.length > 0 && <><div className="sub-label">Published</div><ul className="facts">{pr.verified.map((v) => <li key={v}>{v}</li>)}</ul></>}
-      <div className="sub-label">Assumed by MANICAI</div>
+      <div className="sub-label">Assumed by Manica</div>
       <ul className="facts">{pr.assumed.map((v) => <li key={v}>{v}</li>)}</ul>
       {prec && <p className="source">{prec.credits.value} {prec.sources.slice(0, 2).map((s, i) => <a key={s} href={s} target="_blank" rel="noreferrer"> [{i + 1}]</a>)}</p>}
       <p className="muted small">An independent parametric study from public information — not the architects' geometry, and not affiliated with or endorsed by them.</p>
@@ -318,7 +318,7 @@ function EnvelopeSection() {
       <div className="legend">{byKind.map(({ k }) => <span key={k}><i style={{ background: BOH_TONES[k as BohKind] }} />{BOH_LABEL[k as BohKind]}</span>)}</div>
       {byKind.map(({ k, area }) => <KV key={k} k={BOH_LABEL[k as BohKind]} v={`${n(area)} m²`} />)}
       <KV k="Placed" v={`${n(am.bohArea)} of ${n(am.bohNeeded)} m²`} tone={am.bohArea >= am.bohNeeded * 0.98 ? 'ok' : 'warn'} />
-      <p className="muted small method">Roof coverage is the share of seats inside the roof's plan outline (rain driven at an angle is not modelled). Back-of-house areas are MANICAI planning assumptions. Structure is a coordination model, not an engineered design (standards: manicai.structure, manicai.roof, manicai.boh).</p>
+      <p className="muted small method">Roof coverage is the share of seats inside the roof's plan outline (rain driven at an angle is not modelled). Back-of-house areas are Manica planning assumptions. Structure is a coordination model, not an engineered design (standards: manica.structure, manica.roof, manica.boh).</p>
     </Section>
   );
 }
@@ -360,7 +360,7 @@ function SystemsSection() {
       <div className="sub-label">Service access</div>
       <KV k="Service yard" v={`${n(sm.service.yardArea)} m² on the ${({ N: 'north', S: 'south', E: 'east', W: 'west' } as const)[sm.service.yard]} side · ${sm.service.dockBays} bays`} tone={sm.service.yardFit >= 0.98 ? 'ok' : 'warn'} />
       <KV k="Field access tunnel" v={sm.service.fieldAccess ? `from the ${({ N: 'north', S: 'south', E: 'east', W: 'west' } as const)[p.systems.service.fieldAccess as 'N']}` : 'none'} />
-      <p className="muted small method">Lumen-method fixture count with a generic fixture, MANICAI planning ratios for plant and loads. These are space reservations to coordinate, not engineered systems (standards: manicai.lighting, fifa.lighting, manicai.boards, manicai.broadcast, manicai.mep).</p>
+      <p className="muted small method">Lumen-method fixture count with a generic fixture, Manica planning ratios for plant and loads. These are space reservations to coordinate, not engineered systems (standards: manica.lighting, fifa.lighting, manica.boards, manica.broadcast, manica.mep).</p>
     </Section>
   );
 }
@@ -374,7 +374,7 @@ function ModelCheckSection() {
   const run = () => { setBusy(true); setTimeout(async () => { try { setReport({ for: st, r: await checkModel(st) }); } finally { setBusy(false); } }, 20); };
   return (
     <Section title="Model check" summary={current ? `${current.pass}/${current.checks.length} passed` : 'not run'} defaultOpen={false} badge="R06">
-      <p className="muted small">Checks the model before it leaves MANICAI: closed solids, exact against tessellated volumes, unique ids, layers and IFC classes, exported seats against the capacity, and an IFC read-back.</p>
+      <p className="muted small">Checks the model before it leaves Manica: closed solids, exact against tessellated volumes, unique ids, layers and IFC classes, exported seats against the capacity, and an IFC read-back.</p>
       <button className="btn-sm wide" disabled={busy} onClick={run}>{busy ? 'Checking…' : current ? 'Run again' : 'Run model check'}</button>
       {report && !current && <p className="muted small">The design changed since the last check.</p>}
       {current && (

@@ -180,7 +180,7 @@ function buildNfl(p: FieldParams): FieldModel {
       CORNER_NE: [X, Y, 0], CORNER_NW: [-X, Y, 0], CORNER_SE: [X, -Y, 0], CORNER_SW: [-X, -Y, 0],
     },
     lineColor: '#ffffff',
-    sources: ['nfl.rule1.field', 'nfl.rule1.border', 'nfl.rule1.lines', 'nfl.rule1.hash', 'nfl.rule1.goalposts', 'nfl.rule1.benches', 'manicai.nfl.teamarea'],
+    sources: ['nfl.rule1.field', 'nfl.rule1.border', 'nfl.rule1.lines', 'nfl.rule1.hash', 'nfl.rule1.goalposts', 'nfl.rule1.benches', 'manica.nfl.teamarea'],
   };
 }
 

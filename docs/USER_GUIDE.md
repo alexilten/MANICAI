@@ -1,6 +1,6 @@
-# MANICAI user guide
+# Manica user guide
 
-MANICAI generates a stadium from a few rules: a sport, a field, and how the seating bowl should
+Manica generates a stadium from a few rules: a sport, a field, and how the seating bowl should
 behave. Every change rebuilds the whole stadium in a fraction of a second, with every seat placed and
 every row's sightline solved. This guide covers version 1.0 (Rounds 00–08).
 
@@ -13,8 +13,8 @@ Open the **Preset** menu in the toolbar.
 
 - **Generic** presets are clean starting points for soccer and NFL.
 - **Precedent-informed studies** take a stadium's published facts (capacity, sport, tiers, roof)
-  and fit a MANICAI bowl to them. They are not the real buildings: row counts are fitted to the
-  published capacity, and each preset lists what is published and what MANICAI assumed under
+  and fit a Manica bowl to them. They are not the real buildings: row counts are fitted to the
+  published capacity, and each preset lists what is published and what Manica assumed under
   **Preset evidence** in the right panel.
 - **My presets** are designs you saved in this browser. Type a name under "Save the current
   design" and press **Save as preset**. Hover a saved preset to delete it.
@@ -41,7 +41,7 @@ Work down the left panel. Each section opens with a summary of its current state
 
 Type into any number to set it exactly. A slider drag is one undo step.
 
-If a change cannot be built, MANICAI says so and keeps the design as it was.
+If a change cannot be built, Manica says so and keeps the design as it was.
 
 ## 3. Read the results (right panel)
 
@@ -89,8 +89,8 @@ engineering or a business case. [STUDIES.md](STUDIES.md) states each method and 
 
 - **Autosave.** The open design is saved in this browser as you work and comes back on your next
   visit. Pick a preset to start again.
-- **Save** (`⌘S`) downloads a `.manicai.json` project file. **Open** reads a project file or a
-  MANICAI `.3dm`. If a file has damaged values, MANICAI resets them to the defaults and lists them.
+- **Save** (`⌘S`) downloads a `.manica.json` project file. **Open** reads a project file or a
+  Manica `.3dm`. If a file has damaged values, Manica resets them to the defaults and lists them.
 - **Share** (link icon) gives a link that carries the whole design in the link itself, about 2 kB.
   Nothing is uploaded. Whoever opens it gets their own copy to change.
 - **Export**: Rhino 8 or 7 `.3dm` (with or without seats), IFC 4, glTF, a plan and section DXF,
@@ -112,9 +112,9 @@ so save a project file to keep a design elsewhere.
 | `Esc` | Leave seat view, clear the selection, close a menu or sheet |
 | `?` | Shortcuts |
 
-## 8. What MANICAI is not
+## 8. What Manica is not
 
-MANICAI is an independent experimental tool. It is not an official product of, or endorsed by,
+Manica is an independent experimental tool. It is not an official product of, or endorsed by,
 MANICA Architecture or any other studio. It does not use any studio's proprietary methods or
 geometry. Its outputs are design-stage studies that need review by qualified professionals before
 they are relied on for code compliance, structure, egress or cost.

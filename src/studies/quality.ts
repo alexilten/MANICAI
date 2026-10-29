@@ -8,7 +8,7 @@
  *
  *   quality = 0.5 · distance + 0.3 · sightline + 0.2 · head turn
  *
- * The weights and the 100 m full-score distance are MANICAI assumptions (standard manicai.quality), not
+ * The weights and the 100 m full-score distance are Manica assumptions (standard manica.quality), not
  * a published index. The score ranks seats and compares options; it is not a measure of spectator
  * experience and ignores the roof, screens, atmosphere and obstruction by the tier above.
  */

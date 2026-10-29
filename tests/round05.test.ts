@@ -215,7 +215,7 @@ describe('AH · service access', () => {
 describe('AI · v4 files and the Rhino systems layers', () => {
   it('v4 files open as v5 with the default systems and unchanged capacity and floor area', () => {
     for (const [f, total, gfa] of [['generic-nfl', 64578, 81097], ['birmingham', 61626, 38271]] as const) {
-      const p = parseProject(readFileSync(`tests/fixtures/v4-${f}.manicai.json`, 'utf8'));
+      const p = parseProject(readFileSync(`tests/fixtures/v4-${f}.manica.json`, 'utf8'));
       expect(p.version).toBe(SCHEMA_VERSION);
       expect(p.systems).toEqual(defaultProject().systems);
       const s = fresh(p);
@@ -231,7 +231,7 @@ describe('AI · v4 files and the Rhino systems layers', () => {
     const on = (l: string) => f.objects.filter((o) => o.layer === l);
     const lights = on('14_LIGHTING::FLOODLIGHTS');
     expect(lights).toHaveLength(sy.fixtures.length);
-    expect(lights.every((o) => o.type === 'InstanceReference' && o.block === 'MANICAI_FLOODLIGHT_GENERIC')).toBe(true);
+    expect(lights.every((o) => o.type === 'InstanceReference' && o.block === 'MANICA_FLOODLIGHT_GENERIC')).toBe(true);
     expect(on('14_LIGHTING::AIMING')).toHaveLength(sy.fixtures.length);
     expect(on('14_LIGHTING::MASTS')).toHaveLength(8);
     expect(on('11_HVAC::RISERS').length + on('12_ELECTRICAL::RISERS').length + on('13_PLUMBING::RISERS').length).toBe(3 * s.building.cores.length);

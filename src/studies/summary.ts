@@ -56,5 +56,5 @@ export function compareCsv(names: string[], rows: SummaryRow[][]): string {
   const cell = (s: string) => (/[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s);
   const head = ['group', 'metric', 'better', ...names].map(cell).join(',');
   const lines = rows[0]?.map((r, k) => [r.group, r.label, r.better ?? '', ...rows.map((x) => String(+x[k].value.toFixed(4)))].map(cell).join(',')) ?? [];
-  return ['# MANICAI scenario comparison — conceptual studies; see docs/STUDIES.md for methods and assumptions', head, ...lines].join('\n') + '\n';
+  return ['# Manica scenario comparison — conceptual studies; see docs/STUDIES.md for methods and assumptions', head, ...lines].join('\n') + '\n';
 }

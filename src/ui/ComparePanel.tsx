@@ -64,7 +64,7 @@ function Scenarios() {
       <div className="sub-label">Scenarios</div>
       <div className="scenario-bar">
         <button className="btn-sm" onClick={() => save(`Option ${String.fromCharCode(65 + (scenarios.length % 26))}`)}>Save current as a scenario</button>
-        {ready.length > 1 && <button className="btn-sm" onClick={() => download('manicai-scenarios.csv', compareCsv(ready.map((c) => c.name), ready.map((c) => c.rows)), 'text/csv')}>Comparison .csv</button>}
+        {ready.length > 1 && <button className="btn-sm" onClick={() => download('manica-scenarios.csv', compareCsv(ready.map((c) => c.name), ready.map((c) => c.rows)), 'text/csv')}>Comparison .csv</button>}
       </div>
       {!scenarios.length && <p className="muted small">Save the current design, change it, and save again: each option is compared here on capacity, proximity, sightlines, egress, sun, carbon and revenue. Scenarios are kept in this browser.</p>}
       <div className="compare-table-wrap">
@@ -148,7 +148,7 @@ function Explorer() {
           <button className={`chip ${sel === r.recommended ? 'on' : ''}`} onClick={() => setSel(r.recommended)}>★ recommended</button>
         </div>
       )}
-      <p className="muted small method">Pareto front: no other feasible option has more seats and a shorter mean distance to the centre spot. A seeded search over a few variables, not a proof of optimality; tiers, rakes, premium levels and the roof are held (manicai.explore).</p>
+      <p className="muted small method">Pareto front: no other feasible option has more seats and a shorter mean distance to the centre spot. A seeded search over a few variables, not a proof of optimality; tiers, rakes, premium levels and the roof are held (manica.explore).</p>
     </div>
   );
 }

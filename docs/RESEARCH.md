@@ -27,20 +27,20 @@ These were found while checking the brief against sources. The app and the docs 
 
 - **Populous** (Tottenham, Wembley with Foster + Partners, New Highmark Stadium) sets the benchmark for single-tier "walls" of fans (Tottenham's 17,500-seat South Stand) and for retractable or multi-sport fields.
 - **HOK** (Mercedes-Benz Stadium, Etihad Park, the EverBank modernisation) together with **ROSSETTI** (Ford Field, the Arthur Ashe work, Daytona Rising).
-- **HOK Scrum** is HOK's in-house Grasshopper/Rhino bowl tool. From its public description it covers real-time bowls, sightlines, proximity, rake, row elevations, concession and restroom access, acoustics, event scoring, seat-level revenue and precast rationalisation. HOK says a bowl can be set up in a day. MANICAI has **no access to Scrum's code, methods or data**. The description is used only to understand what professionals expect from such a tool. Checked (HOK article).
-- **Rhino + Grasshopper** is where professional bowls are actually built. MANICAI's position is to get to a credible bowl in minutes for anyone, then hand over a clean native `.3dm` with layers, blocks and named seats, so the work continues in Rhino rather than being redrawn.
+- **HOK Scrum** is HOK's in-house Grasshopper/Rhino bowl tool. From its public description it covers real-time bowls, sightlines, proximity, rake, row elevations, concession and restroom access, acoustics, event scoring, seat-level revenue and precast rationalisation. HOK says a bowl can be set up in a day. Manica has **no access to Scrum's code, methods or data**. The description is used only to understand what professionals expect from such a tool. Checked (HOK article).
+- **Rhino + Grasshopper** is where professional bowls are actually built. Manica's position is to get to a credible bowl in minutes for anyone, then hand over a clean native `.3dm` with layers, blocks and named seats, so the work continues in Rhino rather than being redrawn.
 
 ## 4. Bowl design principles used in Round 01
 
 - **C-value** sightlines with C = D(N+R)/(D+T) − R. FIFA gives 60 mm as the minimum, 90 mm as preferred and 120 mm as optimal. Risers are solved row by row from this formula. Checked (FIFA), formula recall (Green Guide, John & Sheard).
 - **Viewing distance:** FIFA recommends 150 m to the far pitch corner as the optimum and 190 m as the maximum. Checked.
-- **Rake:** the UK Green Guide caps seated tiers at 34° (recall). MANICAI uses this as the default maximum and caps risers there, flagging rows that then fall short of their C target.
+- **Rake:** the UK Green Guide caps seated tiers at 34° (recall). Manica uses this as the default maximum and caps risers there, flagging rows that then fall short of their C target.
 - **Seats and rows:** 500 mm seat width and 800 mm row depth (the Green Guide recommended values, with 460 mm and 700 mm as minimums), and at most 28 seats between aisles (recall). US codes size aisles differently. This is flagged for Round 02.
 - **Upper tiers** accept a lower C target (default 60 mm). Holding 90 mm with a 34° cap is not achievable at upper-tier distances; this is a known trade-off in large bowls and the reason most upper tiers sit at 60–70 mm.
-- **Corners:** a large corner radius pulls the corner rows close to the field corner and steepens the whole bowl. MANICAI measures this (`plan.corner`) and advises a radius near the first-row distance.
+- **Corners:** a large corner radius pulls the corner rows close to the field corner and steepens the whole bowl. Manica measures this (`plan.corner`) and advises a radius near the first-row distance.
 
-## 5. What the research means for MANICAI
+## 5. What the research means for Manica
 
-1. The user must always see which numbers are governing, which are guidance and which are MANICAI assumptions. Hence the tagged registry and the "Checks" panel.
+1. The user must always see which numbers are governing, which are guidance and which are Manica assumptions. Hence the tagged registry and the "Checks" panel.
 2. Precedent presets must be honest: fitted to a published capacity, labelled low-confidence, and never shown as the real building.
 3. The bowl is the core. Concourses, vomitories, premium, structure and roof all hang off the tier profiles and the plan ring. Round 01 therefore builds those two as exact, testable primitives (see [ARCHITECTURE.md](ARCHITECTURE.md)).

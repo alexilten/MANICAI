@@ -1,4 +1,4 @@
-# MANICAI capacity–proximity exploration — seeded search; see docs/STUDIES.md
+# Manica capacity–proximity exploration — seeded search; see docs/STUDIES.md
 option,capacity,mean_distance_m,within_150m,view_quality,min_c_mm,feasible,pareto,recommended,changes,breaks
 0,41998,84.37,0.6232,0.7264,60,true,true,false,the current design,
 1,70049,103.83,0.3253,0.6212,60,true,false,false,sidelines +2.8 m; ends +19.6 m; corner radius 12.5 m; Lower tier 35 rows (+9); Upper tier 28 rows (+7),

@@ -146,7 +146,7 @@ describe('V · building solids', () => {
 describe('W · v2 files and the Rhino building layers', () => {
   it('v2 files open with no premium levels and their Round 02 capacities', () => {
     for (const [f, gross, net] of [['generic-soccer', 44180, 41998], ['generic-nfl', 67720, 64580]] as const) {
-      const p = parseProject(readFileSync(`tests/fixtures/v2-${f}.manicai.json`, 'utf8'));
+      const p = parseProject(readFileSync(`tests/fixtures/v2-${f}.manica.json`, 'utf8'));
       expect(p.version).toBe(SCHEMA_VERSION);
       expect(p.premium).toEqual([]);
       const m = fresh(p).metrics;

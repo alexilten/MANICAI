@@ -1,10 +1,12 @@
 {
-  "schema": "manicai.project",
+  "schema": "manica.project",
   "version": 6,
-  "name": "Generic NFL bowl",
+  "name": "Enclosed NFL stadium (New Nissan-inspired)",
   "units": "imperial",
   "site": {
-    "northDeg": 90
+    "northDeg": 90,
+    "latitude": 36.2,
+    "longitude": -86.8
   },
   "sport": "nfl",
   "field": {
@@ -14,10 +16,10 @@
     "runoffEnd": 4572
   },
   "bowl": {
-    "sideDistance": 16000,
-    "endDistance": 12000,
-    "cornerRadius": 16000,
-    "targetCapacity": 65000,
+    "sideDistance": 15000,
+    "endDistance": 11000,
+    "cornerRadius": 15000,
+    "targetCapacity": 60000,
     "stands": {}
   },
   "seating": {
@@ -40,7 +42,7 @@
     {
       "id": "T1",
       "name": "Lower bowl",
-      "rows": 31,
+      "rows": 28,
       "rowDepth": 800,
       "riser": 380,
       "elevation": 1800,
@@ -55,17 +57,17 @@
         "width": 2800
       },
       "accessible": {
-        "perSection": 4,
+        "perSection": 3,
         "row": 0
       }
     },
     {
       "id": "T2",
-      "name": "Club level",
-      "rows": 10,
+      "name": "Suite & club level",
+      "rows": 7,
       "rowDepth": 900,
       "riser": 380,
-      "elevation": 4500,
+      "elevation": 5500,
       "overhang": -4000,
       "barrier": 800,
       "kind": "club",
@@ -77,7 +79,7 @@
         "width": 2800
       },
       "accessible": {
-        "perSection": 3,
+        "perSection": 2,
         "row": 1
       },
       "targetC": 60,
@@ -86,11 +88,11 @@
     {
       "id": "T3",
       "name": "Upper bowl",
-      "rows": 24,
+      "rows": 23,
       "rowDepth": 800,
       "riser": 380,
-      "elevation": 4500,
-      "overhang": -2500,
+      "elevation": 5000,
+      "overhang": -2000,
       "barrier": 800,
       "kind": "general",
       "crossAisles": [],
@@ -101,7 +103,7 @@
         "width": 2800
       },
       "accessible": {
-        "perSection": 3,
+        "perSection": 2,
         "row": 1
       },
       "targetC": 60
@@ -110,14 +112,31 @@
   "premium": [
     {
       "id": "P1",
-      "name": "Suite level",
-      "belowTier": "T3",
+      "name": "Lower suite level",
+      "belowTier": "T2",
       "kind": "suites",
       "height": 4500,
-      "setback": 4000,
+      "setback": 6000,
       "stands": [
         "N",
         "S"
+      ],
+      "unitWidth": 5500,
+      "unitDepth": 8000,
+      "seatsPerUnit": 16
+    },
+    {
+      "id": "P2",
+      "name": "Upper suite level",
+      "belowTier": "T3",
+      "kind": "suites",
+      "height": 4500,
+      "setback": 9000,
+      "stands": [
+        "N",
+        "S",
+        "E",
+        "W"
       ],
       "unitWidth": 5500,
       "unitDepth": 8000,
@@ -152,7 +171,7 @@
       "material": "steel"
     },
     "roof": {
-      "type": "canopy",
+      "type": "etfe",
       "stands": [
         "N",
         "S"
@@ -164,7 +183,7 @@
       "frameEvery": 2,
       "open": 1,
       "skyView": 20000,
-      "material": "ptfe"
+      "material": "etfe"
     },
     "facade": {
       "type": "glazed",
@@ -247,5 +266,5 @@
       "suite": 150000
     }
   },
-  "presetId": "generic-nfl"
+  "presetId": "nissan"
 }

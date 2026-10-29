@@ -5,7 +5,7 @@
  *   club      club seats in use × club price × occupancy × events
  *   suites    suites × annual suite licence
  *
- * Prices, events and occupancy are placeholders the user sets (standard manicai.revenue); MANICAI has
+ * Prices, events and occupancy are placeholders the user sets (standard manica.revenue); Manica has
  * no market data. The scenarios scale the prices to show sensitivity. Not a business case: no
  * concessions, media, naming rights, sponsorship, operating costs, taxes or financing.
  */

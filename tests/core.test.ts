@@ -246,7 +246,7 @@ describe('G · save / load', () => {
     }
   });
 
-  it('refuses files that are not MANICAI projects or come from a newer version', () => {
+  it('refuses files that are not Manica projects or come from a newer version', () => {
     expect(() => parseProject('{"schema":"stagework.project","version":1}')).toThrow();
     const p = JSON.parse(serializeProject(defaultProject())); p.version = 99;
     expect(() => parseProject(JSON.stringify(p))).toThrow(/newer/);

@@ -1,33 +1,26 @@
 {
-  "schema": "manicai.project",
+  "schema": "manica.project",
   "version": 6,
-  "name": "Big single-tier end (Tottenham-inspired)",
+  "name": "Club stadium with strong ends (Birmingham-inspired)",
   "units": "metric",
   "site": {
     "northDeg": 90,
-    "latitude": 51.6,
-    "longitude": -0.1
+    "latitude": 52.5,
+    "longitude": -1.9
   },
   "sport": "soccer",
   "field": {
     "length": 105000,
     "width": 68000,
-    "runoffSide": 5500,
+    "runoffSide": 6000,
     "runoffEnd": 6000
   },
   "bowl": {
-    "sideDistance": 7500,
+    "sideDistance": 8000,
     "endDistance": 7000,
     "cornerRadius": 8000,
-    "targetCapacity": 62850,
-    "stands": {
-      "W": {
-        "rows": {
-          "T1": 56,
-          "T2": 0
-        }
-      }
-    }
+    "targetCapacity": 62000,
+    "stands": {}
   },
   "seating": {
     "seatWidth": 500,
@@ -42,14 +35,14 @@
     "targetC": 90,
     "minC": 60,
     "riserStep": 10,
-    "maxRakeDeg": 35,
+    "maxRakeDeg": 34,
     "excludeBelowMin": false
   },
   "tiers": [
     {
       "id": "T1",
       "name": "Lower tier",
-      "rows": 37,
+      "rows": 26,
       "rowDepth": 800,
       "riser": 380,
       "elevation": 1300,
@@ -60,7 +53,7 @@
       "vomitories": {
         "enabled": true,
         "every": 2,
-        "mouthRow": 13,
+        "mouthRow": 10,
         "width": 2800
       },
       "accessible": {
@@ -71,7 +64,7 @@
     {
       "id": "T2",
       "name": "Upper tier",
-      "rows": 38,
+      "rows": 37,
       "rowDepth": 800,
       "riser": 380,
       "elevation": 4800,
@@ -82,7 +75,7 @@
       "vomitories": {
         "enabled": true,
         "every": 2,
-        "mouthRow": 13,
+        "mouthRow": 12,
         "width": 2800
       },
       "accessible": {
@@ -121,7 +114,7 @@
       "material": "steel"
     },
     "roof": {
-      "type": "perimeter",
+      "type": "retractable",
       "stands": [
         "N",
         "S"
@@ -133,7 +126,7 @@
       "frameEvery": 2,
       "open": 1,
       "skyView": 20000,
-      "material": "ptfe"
+      "material": "metal"
     },
     "facade": {
       "type": "glazed",
@@ -216,5 +209,5 @@
       "suite": 150000
     }
   },
-  "presetId": "single-end"
+  "presetId": "birmingham"
 }

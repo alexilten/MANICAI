@@ -1,25 +1,23 @@
 {
-  "schema": "manicai.project",
+  "schema": "manica.project",
   "version": 6,
-  "name": "Intimate soccer bowl (Inter Miami-inspired)",
+  "name": "Four-stand ground",
   "units": "metric",
   "site": {
-    "northDeg": 90,
-    "latitude": 25.8,
-    "longitude": -80.2
+    "northDeg": 90
   },
   "sport": "soccer",
   "field": {
     "length": 105000,
     "width": 68000,
-    "runoffSide": 5000,
-    "runoffEnd": 6500
+    "runoffSide": 6000,
+    "runoffEnd": 7500
   },
   "bowl": {
-    "sideDistance": 6000,
-    "endDistance": 7500,
-    "cornerRadius": 7000,
-    "targetCapacity": 25000,
+    "sideDistance": 7000,
+    "endDistance": 8500,
+    "cornerRadius": 0,
+    "targetCapacity": 30000,
     "stands": {}
   },
   "seating": {
@@ -41,8 +39,8 @@
   "tiers": [
     {
       "id": "T1",
-      "name": "Lower bowl",
-      "rows": 19,
+      "name": "Lower tier",
+      "rows": 20,
       "rowDepth": 800,
       "riser": 380,
       "elevation": 1200,
@@ -53,7 +51,7 @@
       "vomitories": {
         "enabled": true,
         "every": 2,
-        "mouthRow": 8,
+        "mouthRow": 9,
         "width": 2800
       },
       "accessible": {
@@ -63,12 +61,12 @@
     },
     {
       "id": "T2",
-      "name": "Upper bowl",
-      "rows": 12,
+      "name": "Upper tier",
+      "rows": 15,
       "rowDepth": 800,
       "riser": 380,
       "elevation": 4200,
-      "overhang": -6000,
+      "overhang": -4000,
       "barrier": 800,
       "kind": "general",
       "crossAisles": [],
@@ -209,5 +207,5 @@
       "suite": 150000
     }
   },
-  "presetId": "freedom-park"
+  "presetId": "four-stand"
 }

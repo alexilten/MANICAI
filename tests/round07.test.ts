@@ -203,7 +203,7 @@ describe('AV · scenario comparison', () => {
 describe('AW · v5 files', () => {
   it('v5 files open as v6 with the default studies and unchanged capacity and floor area', () => {
     for (const [f, total, gfa] of [['generic-nfl', 64578, 81097], ['milano', 71398, 49585]] as const) {
-      const p = parseProject(readFileSync(`tests/fixtures/v5-${f}.manicai.json`, 'utf8'));
+      const p = parseProject(readFileSync(`tests/fixtures/v5-${f}.manica.json`, 'utf8'));
       expect(p.version).toBe(6);
       expect(p.studies).toEqual(defaultProject().studies);
       const s = fresh(p);

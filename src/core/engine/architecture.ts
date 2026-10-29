@@ -18,7 +18,7 @@
  *     the team areas either side of the players' tunnel on the main stand.
  *
  * These are spatially rational conceptual representations, not structural designs (standards:
- * manicai.structure, manicai.roof, manicai.boh).
+ * manica.structure, manica.roof, manica.boh).
  */
 import type { Project, RoofType, StandId } from '../schema';
 import type { Mm } from '../units';
@@ -52,7 +52,7 @@ export const BOH_LABEL: Record<BohKind, string> = {
 export const BOH_KINDS: BohKind[] = ['tunnel', 'lockers', 'officials', 'medical', 'media', 'kitchens', 'storage', 'loading', 'waste', 'grounds', 'eventOps'];
 
 /**
- * Back-of-house areas, m²: a fixed part plus a part per spectator. MANICAI planning assumptions for a
+ * Back-of-house areas, m²: a fixed part plus a part per spectator. Manica planning assumptions for a
  * first massing (not a brief or a standard), scaled by boh.scale.
  */
 export function bohNeeds(p: Project, capacity: number): Record<Exclude<BohKind, 'tunnel'>, number> {

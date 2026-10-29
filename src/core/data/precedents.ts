@@ -4,12 +4,12 @@
  * Facts are tagged by how they were established (see `Fact.v`):
  *   checked  — read in a cited source during research on `CHECKED` (URL in `sources`)
  *   recall   — reference knowledge not re-read this round; verify before publication
- *   inferred — MANICAI's own reading of public images/descriptions; not a published number
+ *   inferred — Manica's own reading of public images/descriptions; not a published number
  *
  * Status is as of CHECKED. Proposals are never presented as completed buildings, and
  * collaborations name every studio we found credited.
  *
- * MANICAI is an independent experimental product. It is not affiliated with or endorsed by
+ * Manica is an independent experimental product. It is not affiliated with or endorsed by
  * MANICA Architecture or any studio listed here, and it holds none of their drawings or CAD.
  */
 export const CHECKED = '2026-10-25';
@@ -98,7 +98,7 @@ export const PRECEDENTS: Precedent[] = [
     year: { value: '2024–2025', v: 'checked' },
     credits: { value: 'MANICA lead design architect; Moody Nolan architect of record; Mortenson national CM with Independence Construction. Original 1994 ballpark not by MANICA.', v: 'checked' },
     bowl: { value: 'Upper Deck reworked (beer garden, group space, View Box bars), terraced 200/300-level club seating, new Dugout Club, E. 9th St building in right field', v: 'checked' },
-    features: ['Asymmetric ballpark bowl — needs MANICAI\'s future baseball system (not a rectangle).'],
+    features: ['Asymmetric ballpark bowl — needs Manica\'s future baseball system (not a rectangle).'],
     sources: ['https://www.mlb.com/press-release/press-release-guardians-announce-progressive-field-reimagined'],
   },
   {
@@ -181,6 +181,6 @@ export const PRECEDENTS: Precedent[] = [
 
 /** Benchmarks for the product landscape (described from public material only). */
 export const TOOLS = [
-  { id: 'hok-scrum', name: 'HOK Scrum', note: 'HOK\'s proprietary Grasshopper/Rhino seating-bowl tool (lead developer Carlos DelaBarrera). Public description: real-time 3D bowl, seat width, sightlines, proximity, rake, row elevation, concessions/restroom access, acoustics, event-specific scoring, seat-level revenue modelling, precast-length rationalisation (Roig Arena); integration with HOK STREAM for steel tonnage described as in progress. A bowl can be set up in a day; 2–3× faster. MANICAI has no access to its code or methods.', source: 'https://www.hok.com/ideas/research/hoks-scrum-a-game-changing-design-tool-for-sports-and-entertainment-venues/', checked: '2026-10-25' },
-  { id: 'grasshopper', name: 'Rhino + Grasshopper (custom definitions)', note: 'The de-facto professional environment for parametric bowls; powerful but expert-only. MANICAI exports native .3dm so work continues there.', source: 'https://www.rhino3d.com/', checked: '2026-10-25' },
+  { id: 'hok-scrum', name: 'HOK Scrum', note: 'HOK\'s proprietary Grasshopper/Rhino seating-bowl tool (lead developer Carlos DelaBarrera). Public description: real-time 3D bowl, seat width, sightlines, proximity, rake, row elevation, concessions/restroom access, acoustics, event-specific scoring, seat-level revenue modelling, precast-length rationalisation (Roig Arena); integration with HOK STREAM for steel tonnage described as in progress. A bowl can be set up in a day; 2–3× faster. Manica has no access to its code or methods.', source: 'https://www.hok.com/ideas/research/hoks-scrum-a-game-changing-design-tool-for-sports-and-entertainment-venues/', checked: '2026-10-25' },
+  { id: 'grasshopper', name: 'Rhino + Grasshopper (custom definitions)', note: 'The de-facto professional environment for parametric bowls; powerful but expert-only. Manica exports native .3dm so work continues there.', source: 'https://www.rhino3d.com/', checked: '2026-10-25' },
 ];

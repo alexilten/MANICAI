@@ -269,7 +269,7 @@ code { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
 .section .segmented.wrap button { flex: 1 1 30%; }
 
 
-/* ── MANICAI R01 */
+/* ── Manica R01 */
 .mono { font-family: var(--mono); font-size: 11px; }
 .round-badge { font-size: 9.5px; font-weight: 600; letter-spacing: .05em; padding: 2px 6px; border-radius: 5px; background: rgba(0,0,0,.055); color: var(--ink-3); }
 .tier-card { padding: 10px 11px 2px; border-radius: 12px; background: rgba(255,255,255,.55); box-shadow: 0 0 0 0.5px var(--line); margin-bottom: 10px; }

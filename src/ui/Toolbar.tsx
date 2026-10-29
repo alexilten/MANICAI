@@ -90,7 +90,7 @@ export function Toolbar() {
   return (
     <header className="toolbar glass">
       <div className="tb-group">
-        <button className="logo" onClick={() => setDialog('about')} title="About MANICAI and keyboard shortcuts (?)"><span className="logo-mark" />MANICAI</button>
+        <button className="logo" onClick={() => setDialog('about')} title="About Manica and keyboard shortcuts (?)"><span className="logo-mark" />Manica</button>
         <span className="tb-sep" />
         <input className="project-name" value={project.name} onChange={(e) => edit((p) => { p.name = e.target.value; }, 'name')} aria-label="Project name" />
         <div className="preset-wrap">
@@ -109,7 +109,7 @@ export function Toolbar() {
         <span className="tb-sep" />
         <button className="icon-btn" disabled={!canUndo} onClick={undo} title="Undo (⌘Z)"><Icon.undo /></button>
         <button className="icon-btn" disabled={!canRedo} onClick={redo} title="Redo (⇧⌘Z)"><Icon.redo /></button>
-        <button className="icon-btn" onClick={() => fileRef.current?.click()} title="Open project (.manicai.json or MANICAI .3dm)"><Icon.open /></button>
+        <button className="icon-btn" onClick={() => fileRef.current?.click()} title="Open project (.manica.json or Manica .3dm)"><Icon.open /></button>
         <button className="icon-btn" onClick={() => { exportProject(project); toast('Project saved'); }} title="Save project (⌘S)"><Icon.save /></button>
         <div className="share-wrap">
           <button className={`icon-btn share-btn ${menu === 'share' ? 'on' : ''}`} onClick={() => setMenu(menu === 'share' ? null : 'share')} title="Share a link to this design"><Icon.share /></button>

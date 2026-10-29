@@ -1,4 +1,4 @@
-# MANICAI quantity schedule — Compact enclosed NFL bowl (Allegiant-inspired) — conceptual quantities of the modelled envelopes, not a cost plan
+# Manica quantity schedule — Compact enclosed NFL bowl (Allegiant-inspired) — conceptual quantities of the modelled envelopes, not a cost plan
 section,item,count,quantity,unit,volume_m3,area_m2,method,status
 Seating,General admission,55439,55439,seats,,,Count of generated seat positions in use (excluded positions not counted),Generic placeholder (not a manufacturer product)
 Seating,Club / premium,7392,7392,seats,,,Count of generated seat positions in use (excluded positions not counted),Generic placeholder (not a manufacturer product)
@@ -55,9 +55,9 @@ Systems,Systems: Lighting: Lighting catwalk,1,551.341,m² plan area,82.701,551.3
 Systems,Systems: HVAC: Duct distribution zone,3,16686.774,m³ modelled envelope,16686.774,,"Exact volume of the modelled solids (extrusions, revolves; tessellated where sloped)",Space reservation
 Systems,Systems: Electrical: Cable tray zone,1,104.208,m³ modelled envelope,104.208,,"Exact volume of the modelled solids (extrusions, revolves; tessellated where sloped)",Space reservation
 Vomitory openings,Vomitory openings,48,833.673,m³ cut from terraces,,,Opening solid volume (includes the 25 mm clearance at the risers),Generic parametric element (conceptual size)
-Building,Gross floor area (GFA),1,89182.535,m²,,89182.535,"Concourse and premium plates, cores and back of house (MANICAI building metrics)",Computed
+Building,Gross floor area (GFA),1,89182.535,m²,,89182.535,"Concourse and premium plates, cores and back of house (Manica building metrics)",Computed
 Roof,Roof plan area,1,74725.772,m²,,74725.772,Plan area of the roof skin from leading edge to eave (excludes the cap); canopies: covered stands only,Conceptual mass (form only)
 Roof,Roof surface area,1,84374.821,m²,,84374.821,"Skin area along its slope, plus the cap (parabolic dome approximation) and any retractable panels",Conceptual mass (form only)
-Systems,Floodlights (generic),319,319,fixtures,,,Lumen method count (MANICAI estimate),Generic placeholder (not a manufacturer product)
+Systems,Floodlights (generic),319,319,fixtures,,,Lumen method count (Manica estimate),Generic placeholder (not a manufacturer product)
 Systems,Field lighting connected load (assumed),319,478.500,kW,,,319 × 1500 W design assumption — not a manufacturer rating,Design assumption
-Systems,Electrical demand (estimate),1,7912.931,kW,,,MANICAI ratio estimate (manicai.mep); not an electrical design,Design assumption
+Systems,Electrical demand (estimate),1,7912.931,kW,,,Manica ratio estimate (manica.mep); not an electrical design,Design assumption

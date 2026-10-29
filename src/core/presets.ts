@@ -3,7 +3,7 @@
  *
  * Precedent-informed presets are independent parametric studies, reconstructed only from public
  * facts (sport, published capacity, tier count where reported, roof type). They are not copies of
- * any studio's drawings or CAD. The geometry beyond those facts is MANICAI's assumption, so every
+ * any studio's drawings or CAD. The geometry beyond those facts is Manica's assumption, so every
  * preset carries its evidence and a confidence level, and row counts are fitted by the engine to
  * the published capacity rather than tuned by hand.
  */
@@ -24,7 +24,7 @@ export interface PresetMeta {
   precedent?: string;
   /** what is published (see the precedent entry for sources) */
   verified: string[];
-  /** what MANICAI assumed to build a bowl */
+  /** what Manica assumed to build a bowl */
   assumed: string[];
   confidence: Confidence;
 }
@@ -41,7 +41,7 @@ function base(sport: SportId, name: string, id: string): Project {
 }
 
 /**
- * Round 02 planning defaults shared by every preset (MANICAI assumptions, listed in each preset's
+ * Round 02 planning defaults shared by every preset (Manica assumptions, listed in each preset's
  * evidence): wheelchair platforms on every tier, vomitories in deep tiers, club tiers as premium.
  */
 function professional(p: Project): Project {
@@ -81,12 +81,12 @@ const P = (meta: PresetMeta, make: () => Project): Preset => {
   let built: Project | null = null;
   const cached = () => structuredClone(built ??= build());
   if (!c) return { ...meta, build: cached };
-  return { ...meta, assumed: [...meta.assumed, `Site at the latitude of ${c.city} (≈ ${c.lat}° ${c.lat >= 0 ? 'N' : 'S'}) for the sun study; the pitch orientation is the MANICAI default, not the real site's`], build: cached };
+  return { ...meta, assumed: [...meta.assumed, `Site at the latitude of ${c.city} (≈ ${c.lat}° ${c.lat >= 0 ? 'N' : 'S'}) for the sun study; the pitch orientation is the Manica default, not the real site's`], build: cached };
 };
 
 export const PRESETS: Preset[] = [
   P({ id: 'generic-soccer', name: 'Generic soccer bowl', short: 'Two-tier football bowl, 105 × 68 m pitch', category: 'generic', sport: 'soccer',
-      verified: [], assumed: ['All dimensions are MANICAI planning defaults.'], confidence: 'generic' },
+      verified: [], assumed: ['All dimensions are Manica planning defaults.'], confidence: 'generic' },
     () => {
       const p = base('soccer', 'Generic soccer bowl', 'generic-soccer');
       p.bowl.targetCapacity = 42000;
@@ -94,7 +94,7 @@ export const PRESETS: Preset[] = [
       return fitted(p);
     }),
   P({ id: 'generic-nfl', name: 'Generic NFL bowl', short: 'Three-tier football bowl with a club level', category: 'generic', sport: 'nfl',
-      verified: [], assumed: ['One suite level between the club level and the upper bowl, suites on both sidelines', 'Canopies over both sideline stands', 'All dimensions are MANICAI planning defaults.'], confidence: 'generic' },
+      verified: [], assumed: ['One suite level between the club level and the upper bowl, suites on both sidelines', 'Canopies over both sideline stands', 'All dimensions are Manica planning defaults.'], confidence: 'generic' },
     () => {
       const p = base('nfl', 'Generic NFL bowl', 'generic-nfl');
       p.bowl.targetCapacity = 65000; p.bowl.cornerRadius = 16000;
@@ -128,7 +128,7 @@ export const PRESETS: Preset[] = [
     }),
   P({ id: 'single-end', name: 'Big single-tier end — Tottenham-inspired', short: '62,850 · two-tier bowl with one huge single-tier end', category: 'precedent', sport: 'soccer', precedent: 'tottenham',
       verified: ['Premier League stadium (Populous), opened 2019', 'Capacity 62,850 (recalled)', 'Single-tier South Stand of about 17,500 seats (recalled)'],
-      assumed: ['Roof modelled as a continuous perimeter canopy', 'The single-tier end is the west end here (MANICAI puts the ends on ±X)', 'Lower tier extended at the west end to about 1¾ times its depth, upper tier dropped there; 35° rake limit', 'Two tiers elsewhere; row counts fitted to 62,850 net', 'Not the architects\' geometry — rake, tier split and distances are MANICAI assumptions'], confidence: 'low' },
+      assumed: ['Roof modelled as a continuous perimeter canopy', 'The single-tier end is the west end here (Manica puts the ends on ±X)', 'Lower tier extended at the west end to about 1¾ times its depth, upper tier dropped there; 35° rake limit', 'Two tiers elsewhere; row counts fitted to 62,850 net', 'Not the architects\' geometry — rake, tier split and distances are Manica assumptions'], confidence: 'low' },
     () => {
       const p = base('soccer', 'Big single-tier end (Tottenham-inspired)', 'single-end');
       p.field.runoffSide = 5500; p.field.runoffEnd = 6000;
@@ -169,7 +169,7 @@ export const PRESETS: Preset[] = [
     }),
   P({ id: 'allegiant', name: 'Compact enclosed NFL bowl — Allegiant-inspired', short: '65,000 · enclosed multipurpose NFL', category: 'precedent', sport: 'nfl', precedent: 'allegiant',
       verified: ['NFL stadium, MANICA design architect with HNTB, opened 2020', 'Capacity 65,000 (expandable to 71,835)', 'Fixed translucent ETFE roof; ten-level building; 128 suites'],
-      assumed: ['Two suite levels on both sidelines; the suite count is what fits at 5.5 m per suite, not the published 128', 'Three tiers (lower, club/suite, upper) — tier split not published', 'First row 15 m from sidelines', 'ETFE roof drawn as a shallow dome on long-span trusses; heights and spans are MANICAI assumptions'], confidence: 'low' },
+      assumed: ['Two suite levels on both sidelines; the suite count is what fits at 5.5 m per suite, not the published 128', 'Three tiers (lower, club/suite, upper) — tier split not published', 'First row 15 m from sidelines', 'ETFE roof drawn as a shallow dome on long-span trusses; heights and spans are Manica assumptions'], confidence: 'low' },
     () => {
       const p = base('nfl', 'Compact enclosed NFL bowl (Allegiant-inspired)', 'allegiant');
       p.bowl = { sideDistance: 15000, endDistance: 11000, cornerRadius: 14000, targetCapacity: 65000, stands: {} };

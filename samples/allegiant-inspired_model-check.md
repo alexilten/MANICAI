@@ -1,4 +1,4 @@
-# MANICAI model check — Compact enclosed NFL bowl (Allegiant-inspired)
+# Manica model check — Compact enclosed NFL bowl (Allegiant-inspired)
 
 1823 elements · 15 passed · 0 warnings · 0 failed
 
@@ -12,7 +12,7 @@ Consistency checks of a conceptual model — not code, structural or engineering
 | ✓ | Geometry: Exact and tessellated volumes agree | Largest difference 0.64 % (arc faceting) |
 | ✓ | Geometry: Sections are simple polygons | No terrace, member or opening section crosses itself |
 | ✓ | Identity: Element ids are unique | 1825 ids |
-| ✓ | Identity: Every element is on a MANICAI standard layer | 59 layers used |
+| ✓ | Identity: Every element is on a Manica standard layer | 59 layers used |
 | ✓ | Identity: Every element has an IFC class and type | 10 IFC classes |
 | ✓ | Identity: Elements sit on a storey | 6 storeys: Field level, Lower bowl concourse, Lower suite level, Club level concourse, Upper suite level, Upper bowl concourse |
 | ✓ | Identity: BIM elements are kept apart from masses and reservations | 946 elements · 45 placeholders · 427 space reservations · 405 conceptual masses |

@@ -1,4 +1,4 @@
-# MANICAI design studies — Big single-tier end (Tottenham-inspired)
+# Manica design studies — Big single-tier end (Tottenham-inspired)
 
 63,281 seats. Conceptual studies for comparing options: each section states its method, and docs/STUDIES.md lists the assumptions and limits. Not code, engineering, life-cycle or business advice.
 
@@ -11,7 +11,7 @@ Mean 0.68 (0–1); 45 % of seats score 0.7 or more. Terms: distance 0.44, sightl
 | Lower tier | 0.77 |
 | Upper tier | 0.60 |
 
-Method: 0.5 × distance (1 at ≤ 100 m to the far corner, 0 at 190 m) + 0.3 × C-value over the tier target + 0.2 × head turn (1 facing the centre spot, 0 at 90°). MANICAI weights (manicai.quality).
+Method: 0.5 × distance (1 at ≤ 100 m to the far corner, 0 at 190 m) + 0.3 × C-value over the tier target + 0.2 × head turn (1 facing the centre spot, 0 at 90°). Manica weights (manica.quality).
 
 ## Egress from the seating
 
@@ -22,7 +22,7 @@ Slowest exit 12.0 min against the 8 min target; longest route 53.1 m (limit 30 m
 | Lower tier | 20 vomitories | 56.0 m | 33,220 | 12.0 min | 53.1 m |
 | Upper tier | 18 vomitories | 50.4 m | 30,061 | 11.2 min | 44.4 m |
 
-Method: shortest route along the row and up or down the stepped aisle to a vomitory (or the back of the tier); exits clear at 79 persons per metre per minute (Green Guide stepped rate, recall). Seating stage only; concourses, stairs and gates need a code analysis (greenguide.egress, manicai.egress, review.egress).
+Method: shortest route along the row and up or down the stepped aisle to a vomitory (or the back of the tier); exits clear at 79 persons per metre per minute (Green Guide stepped rate, recall). Seating stage only; concourses, stairs and gates need a code analysis (greenguide.egress, manica.egress, review.egress).
 
 ## Sun and shade
 
@@ -31,7 +31,7 @@ Latitude 51.6°, site north 90°, 21/3, kick-off 15:00 solar time (sun 26° up a
 - Pitch: 6.3 h of direct sun on average over 12.0 h of daylight (least 3.4 h); 65 % of the pitch gets at least half the day.
 - At kick-off: 71 % of the pitch in sun, 74 % of the seats.
 
-Method: solar position (±1°) and rays through a massing of the terraces, building, facade and roof; metal roofs opaque, PTFE 10 %, ETFE 85 % (manicai.sun). Direct sun only.
+Method: solar position (±1°) and rays through a massing of the terraces, building, facade and roof; metal roofs opaque, PTFE 10 %, ETFE 85 % (manica.sun). Direct sun only.
 
 ## Materials and embodied carbon (A1–A3)
 
@@ -46,7 +46,7 @@ Method: solar position (±1°) and rays through a massing of the terraces, build
 | Roof covering | 60,369 m² × 40 kgCO₂e/m² | 2,415 |
 | Facade | 47,094 m² × 120 kgCO₂e/m² | 5,651 |
 
-Method: element-model quantities × generic factors (ICE v3, recall). Foundations, cores, MEP and fit-out left out. Not a life-cycle assessment (manicai.carbon, review.carbon).
+Method: element-model quantities × generic factors (ICE v3, recall). Foundations, cores, MEP and fit-out left out. Not a life-cycle assessment (manica.carbon, review.carbon).
 
 ## Gate and premium revenue
 
@@ -64,4 +64,4 @@ USD 80,683,275 a year (USD 1,275 per seat); premium 0 % of revenue from 0 % of c
 | Base | 80,683,275 | 0 |
 | High | 80,683,275 | 0 |
 
-Method: placeholder prices, events and occupancy set by the user; no market data. Not a business case (manicai.revenue).
+Method: placeholder prices, events and occupancy set by the user; no market data. Not a business case (manica.revenue).

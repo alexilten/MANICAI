@@ -1,7 +1,7 @@
 /**
  * Round 08: a project inside a link. The project JSON is deflated and written base64url after
  * `#project=`, so the design travels in the URL fragment: it is never sent to a server, and the
- * link works on any MANICAI deployment that can read the schema version.
+ * link works on any Manica deployment that can read the schema version.
  */
 import { readProject, type Project } from './schema';
 

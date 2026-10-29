@@ -69,15 +69,15 @@ export function quantities(s: Stadium, model: BimModel = buildModel(s)): QtyRow[
 
   // headline areas and systems from the engine's own metrics
   const AM = s.architecture.metrics, SM = s.systems.metrics, lp = s.project.systems.lighting;
-  rows.push({ section: 'Building', item: 'Gross floor area (GFA)', count: 1, quantity: AM.grossArea, unit: 'm²', area: AM.grossArea, method: 'Concourse and premium plates, cores and back of house (MANICAI building metrics)', status: 'Computed' });
+  rows.push({ section: 'Building', item: 'Gross floor area (GFA)', count: 1, quantity: AM.grossArea, unit: 'm²', area: AM.grossArea, method: 'Concourse and premium plates, cores and back of house (Manica building metrics)', status: 'Computed' });
   if (AM.roofPlan) rows.push({ section: 'Roof', item: 'Roof plan area', count: 1, quantity: AM.roofPlan, unit: 'm²', area: AM.roofPlan, method: 'Plan area of the roof skin from leading edge to eave (excludes the cap); canopies: covered stands only', status: STATUS_LABEL.mass });
   if (AM.roofSurface) rows.push({ section: 'Roof', item: 'Roof surface area', count: 1, quantity: AM.roofSurface, unit: 'm²', area: AM.roofSurface, method: 'Skin area along its slope, plus the cap (parabolic dome approximation) and any retractable panels', status: STATUS_LABEL.mass });
   if (s.systems.fixtures.length) {
     const n = s.systems.fixtures.length;
-    rows.push({ section: 'Systems', item: 'Floodlights (generic)', count: n, quantity: n, unit: 'fixtures', method: 'Lumen method count (MANICAI estimate)', status: STATUS_LABEL.placeholder });
+    rows.push({ section: 'Systems', item: 'Floodlights (generic)', count: n, quantity: n, unit: 'fixtures', method: 'Lumen method count (Manica estimate)', status: STATUS_LABEL.placeholder });
     rows.push({ section: 'Systems', item: 'Field lighting connected load (assumed)', count: n, quantity: (n * lp.watts) / 1000, unit: 'kW', method: `${n} × ${lp.watts} W design assumption — not a manufacturer rating`, status: 'Design assumption' });
   }
-  rows.push({ section: 'Systems', item: 'Electrical demand (estimate)', count: 1, quantity: SM.mep.demandKW, unit: 'kW', method: 'MANICAI ratio estimate (manicai.mep); not an electrical design', status: 'Design assumption' });
+  rows.push({ section: 'Systems', item: 'Electrical demand (estimate)', count: 1, quantity: SM.mep.demandKW, unit: 'kW', method: 'Manica ratio estimate (manica.mep); not an electrical design', status: 'Design assumption' });
   return rows;
 }
 
@@ -90,7 +90,7 @@ const csvCell = (v: string | number | undefined) => {
 export function quantitiesCsv(s: Stadium, model?: BimModel): string {
   const rows = quantities(s, model);
   const head = 'section,item,count,quantity,unit,volume_m3,area_m2,method,status';
-  return [`# MANICAI quantity schedule — ${s.project.name} — conceptual quantities of the modelled envelopes, not a cost plan`, head,
+  return [`# Manica quantity schedule — ${s.project.name} — conceptual quantities of the modelled envelopes, not a cost plan`, head,
     ...rows.map((r) => [r.section, r.item, r.count, r.quantity, r.unit, r.volume, r.area, r.method, r.status].map(csvCell).join(','))].join('\n') + '\n';
 }
 
@@ -100,5 +100,5 @@ export function elementsCsv(s: Stadium, model: BimModel = buildModel(s)): string
     e.id, e.name, e.category, e.ifc.cls, e.ifc.type, e.ifc.objectType, e.layer, storeyOf(model.storeys, e.base).name, STATUS_LABEL[e.status],
     Math.round(e.base), elementVolume(e), planArea(e) || undefined, e.space?.area, e.parent, e.voids,
   ].map(csvCell).join(','));
-  return [`# MANICAI element schedule — ${s.project.name}`, head, ...lines].join('\n') + '\n';
+  return [`# Manica element schedule — ${s.project.name}`, head, ...lines].join('\n') + '\n';
 }

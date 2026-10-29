@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { clearStadiumCache, resolveStadium } from '../src/core/engine/stadium';
 import { getPreset, PRESETS } from '../src/core/presets';
-import { defaultProject, readProject, serializeProject, SCHEMA_VERSION, type Project } from '../src/core/schema';
+import { defaultProject, readProject, SCHEMA_ID, serializeProject, SCHEMA_VERSION, type Project } from '../src/core/schema';
 import { decodeShare, encodeShare } from '../src/core/share';
 import { carbon } from '../src/studies/carbon';
 import { egress } from '../src/studies/egress';
@@ -83,9 +83,9 @@ describe('AY · damaged files', () => {
     expect(project.studies.sun.month).toBe(d.studies.sun.month);
     expect(resolveStadium(project).metrics.total).toBeGreaterThan(0);
   });
-  it('refuses a file from a newer MANICAI and anything that is not a project', () => {
+  it('refuses a file from a newer Manica and anything that is not a project', () => {
     expect(() => readProject(JSON.stringify({ ...defaultProject(), version: SCHEMA_VERSION + 1 }))).toThrow(/newer/);
-    expect(() => readProject('{"hello":1}')).toThrow(/Not a MANICAI project/);
+    expect(() => readProject('{"hello":1}')).toThrow(/Not a Manica project/);
   });
 });
 
@@ -129,5 +129,15 @@ describe('BB · version stamp', () => {
     expect(saved).toBeDefined();
     expect(rest).toEqual(p);
     expect(stamped(p).saved?.at).toMatch(/^\d{4}-\d\d-\d\dT/);
+  });
+});
+
+describe('BC · rename from MANICAI', () => {
+  it('opens files saved under the old manicai.project id and re-saves them as manica.project', () => {
+    const old = readFileSync('tests/fixtures/v5-generic-nfl.manica.json', 'utf8');
+    expect(JSON.parse(old).schema).toBe('manicai.project');
+    const p = readProject(old).project;
+    expect(p.schema).toBe(SCHEMA_ID);
+    expect(JSON.parse(serializeProject(p)).schema).toBe('manica.project');
   });
 });

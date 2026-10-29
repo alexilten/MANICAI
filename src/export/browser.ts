@@ -34,7 +34,7 @@ export async function export3dm(s: Stadium, opts: { version: 7 | 8; seats: boole
   download(`${name(s)}${opts.version === 7 ? '_R7' : ''}.3dm`, bytes as BlobPart, 'application/octet-stream');
   return bytes.length;
 }
-export const exportProject = (p: Project) => download(`${slug(p.name)}.manicai.json`, saveText(p), 'application/json');
+export const exportProject = (p: Project) => download(`${slug(p.name)}.manica.json`, saveText(p), 'application/json');
 /** write a text or binary file from one of the writers and return its size */
 async function write(file: string, type: string, make: (w: typeof import('./writers')) => string | Uint8Array) {
   const data = make(await loadWriters());
@@ -49,16 +49,16 @@ export const exportQuantities = (s: Stadium) => write(`${name(s)}_quantities.csv
 export const exportElements = (s: Stadium) => write(`${name(s)}_elements.csv`, 'text/csv', (w) => w.elements(s));
 export const exportReport = (s: Stadium) => write(`${name(s)}_model-check.md`, 'text/markdown', (w) => w.report(s));
 export const exportStudies = (s: Stadium) => write(`${name(s)}_studies.md`, 'text/markdown', (w) => w.studies(s));
-export const exportJoinScript = async () => { const m = await import('./rhino/manicai_join_tiers.py?raw'); download('manicai_join_tiers.py', m.default, 'text/x-python'); };
+export const exportJoinScript = async () => { const m = await import('./rhino/manica_join_tiers.py?raw'); download('manica_join_tiers.py', m.default, 'text/x-python'); };
 /** The model check, with an IFC read-back (the file is written in memory and not downloaded). */
 export const checkModel = async (s: Stadium) => (await loadWriters()).check(s);
 
-/** Open a saved project: .manicai.json, or a MANICAI .3dm (reads the embedded project). `repaired` lists values that were damaged and reset. */
+/** Open a saved project: .manica.json, or a Manica .3dm (reads the embedded project). `repaired` lists values that were damaged and reset. */
 export async function openProjectFile(f: File): Promise<{ project: Project; repaired: string[] }> {
   if (f.name.toLowerCase().endsWith('.3dm')) {
     const [rh, w] = await Promise.all([loadRhino(), loadWriters()]);
     const text = w.rhinoProject(rh, new Uint8Array(await f.arrayBuffer()));
-    if (!text) throw new Error('This .3dm has no MANICAI project inside');
+    if (!text) throw new Error('This .3dm has no Manica project inside');
     return readProject(text);
   }
   try { return readProject(await f.text()); } catch (e) { throw e instanceof SyntaxError ? new Error(`${f.name} is not a readable project file`) : e; }

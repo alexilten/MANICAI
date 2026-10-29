@@ -1,9 +1,9 @@
 {
-  "name": "manicai",
+  "name": "manica",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "MANICAI — generative stadium design engine: parametric seating bowl, live capacity and sightlines, native Rhino export",
+  "description": "Manica — generative stadium design engine: parametric seating bowl, live capacity and sightlines, native Rhino export",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
