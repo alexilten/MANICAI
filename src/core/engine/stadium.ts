@@ -115,6 +115,9 @@ export function resolveStadium(p: Project): Stadium {
     min: [Math.min(ext.minX, ring.cx - ring.hx - o), Math.min(ext.minY, ring.cy - ring.hy - o), 0] as [number, number, number],
     max: [Math.max(ext.maxX, ring.cx + ring.hx + o), Math.max(ext.maxY, ring.cy + ring.hy + o), outer + 2500] as [number, number, number],
   };
+  // a spherical envelope bulges past its footprint above the ground
+  const sp = architecture.sphere;
+  if (sp) for (let k = 0; k < 2; k++) { const c = k ? sp.cy : sp.cx; bounds.min[k] = Math.min(bounds.min[k], c - sp.R); bounds.max[k] = Math.max(bounds.max[k], c + sp.R); }
   return { project: p, field, ring, layout, profiles, seats, building, architecture, systems, metrics, warnings, timing, bounds };
 }
 
@@ -263,7 +266,7 @@ function addSystems(p: Project, ring: PlanRing, layout: Layout, profiles: TierPr
   const s = buildSystems(p, ring, layout, profiles, b, a, { field, seats: seats.seats, capacity: m.total, skyView: p.architecture.roof.skyView });
   const sm = s.metrics, L = sm.lighting, B = p.systems.boards;
   if (p.systems.lighting.mount === 'roof' && L.mount === 'masts') w.push({ level: 'info', code: 'lighting.mount', rule: 'manicai.lighting', message: 'The roof does not ring the field, so the floodlights stand on four corner masts instead of a roof catwalk.' });
-  if (L.minAngle < MIN_LIGHT_ANGLE) w.push({ level: 'warn', code: 'lighting.angle', rule: 'fifa.lighting', message: `The lowest floodlights are ${L.minAngle.toFixed(1)}° above the horizontal from the centre spot (${MIN_LIGHT_ANGLE}° wanted to keep glare out of players' eyes). Raise the roof or the masts.` });
+  if (L.fixtures > 0 && L.minAngle < MIN_LIGHT_ANGLE) w.push({ level: 'warn', code: 'lighting.angle', rule: 'fifa.lighting', message: `The lowest floodlights are ${L.minAngle.toFixed(1)}° above the horizontal from the centre spot (${MIN_LIGHT_ANGLE}° wanted to keep glare out of players' eyes). Raise the roof or the masts.` });
   if (L.overTilt > 0) w.push({ level: 'warn', code: 'lighting.tilt', rule: 'fifa.lighting', message: `${L.overTilt} floodlight${L.overTilt > 1 ? 's are' : ' is'} aimed more than ${MAX_TILT}° from the vertical (steepest ${L.maxTilt.toFixed(0)}°), which adds glare. Mount them higher or closer to the field.` });
   if (B.type === 'centre' && !sm.boards.built) w.push({ level: 'warn', code: 'board.centre', rule: 'manicai.boards', message: 'A centre-hung board needs a fixed roof over the field (enclosed, ETFE or truss), so it is not built. Use end boards or change the roof.' });
   if (B.type === 'centre' && sm.boards.built && B.clear < p.architecture.roof.skyView) w.push({ level: 'warn', code: 'board.low', rule: 'manicai.boards', message: `The centre-hung board's underside is ${(B.clear / 1000).toFixed(1)} m above the field, inside the ${(p.architecture.roof.skyView / 1000).toFixed(0)} m high-ball zone. Raise it.` });

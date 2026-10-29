@@ -11,6 +11,7 @@ import { Seats, Terraces, Vomitories, WheelchairPads } from './Bowl';
 import { BackOfHouse, Facade, Grid, Plaza, Roof, Structure } from './Architecture';
 import { Cores, Floors, Suites } from './Building';
 import { Field } from './Field';
+import { Exosphere, MediaPlane, SphereDiagrid, SphereRoof } from './Sphere';
 import { PitchSunMap } from './Studies';
 import { AvIt, Broadcast, Lighting, Mep, Site } from './Systems';
 
@@ -31,6 +32,7 @@ export function Viewport() {
   const view = useStore((s) => s.view);
   const night = useStore((s) => s.night) && mode === 'explore';
   const tech = mode === 'technical';
+  const sphere = stadium.architecture.sphere;
   const b = stadium.bounds;
   const span = Math.max(b.max[0] - b.min[0], b.max[1] - b.min[1]) * MM;
 
@@ -86,6 +88,10 @@ export function Viewport() {
         {/* analysis colours the seats: the roof and facade step aside */}
         {layers.roof && mode !== 'analysis' && <Roof ring={stadium.ring} arch={stadium.architecture} project={project} clip={clip} xray={xray} />}
         {layers.facade && mode !== 'analysis' && <Facade ring={stadium.ring} arch={stadium.architecture} project={project} clip={clip} xray={xray} />}
+        {sphere && layers.roof && mode !== 'analysis' && <SphereRoof s={sphere} clip={clip} xray={xray} />}
+        {sphere && layers.facade && mode !== 'analysis' && <SphereDiagrid s={sphere} clip={clip} />}
+        {sphere && layers.exosphere && mode !== 'analysis' && <Exosphere s={sphere} clip={clip} xray={xray} night={night} />}
+        {sphere && layers.screen && <MediaPlane s={sphere} clip={clip} />}
         {layers.facade && !tech && <Plaza ring={stadium.ring} arch={stadium.architecture} night={night} />}
         <SelectedSeat stadium={stadium} />
         {layers.dimensions && <Dimensions stadium={stadium} />}

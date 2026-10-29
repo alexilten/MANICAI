@@ -234,7 +234,7 @@ export const SPORTS: Record<SportId, SportDef> = {
   stage: {
     id: 'stage', label: 'Event floor · Stage',
     limits: { length: [m(20), m(80)], width: [m(20), m(80)], fixed: false },
-    defaults: { length: m(36), width: m(36), runoffSide: m(1), runoffEnd: m(1), sideDistance: m(2), endDistance: m(2) },
+    defaults: { length: m(36), width: m(36), runoffSide: m(2), runoffEnd: m(2), sideDistance: m(3), endDistance: m(3) },
     build: buildStage,
     focusLabel: 'nearest edge of the event floor, at floor level',
   },

@@ -38,6 +38,7 @@ export function Lighting({ ring, sys, clip, night, aiming }: { ring: PlanRing; s
   const ref = useRef<THREE.InstancedMesh>(null!);
   const n = sys.fixtures.length;
   useLayoutEffect(() => {
+    if (!ref.current) return; // no floodlights (an enclosed sphere)
     const m = new THREE.Matrix4(), q = new THREE.Quaternion(), pos = new THREE.Vector3(), dir = new THREE.Vector3(), one = new THREE.Vector3(1, 1, 1);
     // the fixture's face (local -Y… its 450 mm axis) turns toward its aim point
     const face = new THREE.Vector3(0, -1, 0);

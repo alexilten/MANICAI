@@ -180,6 +180,21 @@ Proposals and competition entries are labelled as such and are never presented a
 
 ## Populous
 
+### Sphere
+
+- **Location:** Paradise (Las Vegas), Nevada, USA · **Type:** arena · **Sport:** Concerts, immersive films, events
+- **Status:** completed _(checked)_ · Opened 29 Sep 2023
+- **Year:** 2023 _(checked)_
+- **Credits:** Populous architect; Severud Associates and Walter P Moore structural engineers; Arup acoustics. Owner Sphere Entertainment Co. _(checked)_
+- **Capacity:** 17,600 _(checked)_ · 20,000 with the standing floor
+- **Roof:** Steel-framed dome (32 radial trusses, compression ring, sprayed concrete) carrying a 160,000 ft² LED media plane on its inner face; Exosphere of 1.2 million LED pucks on an independent steel diagrid, 516 ft wide and 366 ft tall _(checked)_
+- **Bowl:** Amphitheatre facing the stage: four seating tiers (100–400 levels) and two suite levels with 23 suites; lowest tier partly retractable _(checked)_
+- Media plane apex 240 ft above the event floor
+- Main loudspeaker array of 14 clusters above the stage
+- 228 mechanised facets in the media plane for rigging
+- About 10,000 haptic seats
+- **Sources:** [1](https://en.wikipedia.org/wiki/Sphere_(venue)) · [2](https://populous.com/project/sphere) · [3](https://severud.com/?p=5436)
+
 ### Tottenham Hotspur Stadium
 
 - **Location:** London, England · **Type:** stadium · **Sport:** Football, NFL

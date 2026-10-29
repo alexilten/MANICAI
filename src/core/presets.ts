@@ -250,12 +250,13 @@ export const PRESETS: Preset[] = [
         'Main loudspeaker array of 14 clusters 25–30 ft above the stage; about 10,000 haptic seats',
       ],
       assumed: [
-        'Horseshoe plan opening onto a stage at the east end; a 36 × 30 m event floor, 16 m deep stage at +1.5 m',
-        'Tier rows fitted to 17,600 with the suite seats; tier heights and rows are not published',
-        'Suite levels under the 200 and 300 levels round the back of the horseshoe; the suite count is what fits at 9 m per suite, not the published 23',
-        '36° rake limit (steeper than the 34° football guidance, as reported for the upper levels)',
-        'Exosphere and media plane keep the published proportions but are sized by Manica to clear this bowl; the media plane is a cap of the dome aimed at the stage',
-        'No floodlights: production lighting rigs through the media plane. The loudspeaker array is drawn as 14 boxes above the stage',
+        'Horseshoe plan opening onto a stage at the east end: a 42 × 28 m event floor and a 16 m deep stage deck at +1.5 m; sightlines are taken to a 26 × 12 m strip in front of the stage',
+        'Tier rows fitted to 17,600 with the suite seats; tier heights, rows and row depths (760 mm) are not published',
+        'Suite levels under the 200 and 300 levels round the back of the horseshoe, overhanging the 100 level from about row 25; the suite count is what fits at 9 m per suite, not the published 23',
+        '40° rake limit for the steep upper levels (steeper than the 34° football guidance); at that limit the back rows of the 300 and 400 levels fall below the 60 mm C-value, which the checks report',
+        'The Exosphere, dome and media plane keep the published proportions (366/516 height to width, apex 1.2 × the interior radius, 160,000 ft² screen share) but Manica sizes them to clear this bowl, so they come out larger than built: about 188 m wide and 134 m tall, an 84 m apex and about 19,000 m² of media plane',
+        'Interior: a cylinder under a spherical cap; the media plane is the part of it seen within a cone from mid-bowl aimed at the stage. The dome shell sits 4.5 m outside it for catwalks and rigging',
+        'No floodlights: production lighting rigs through the media plane. The loudspeaker array is drawn as 14 boxes above the stage; haptic seats are not modelled',
       ], confidence: 'low' },
     () => {
       const p = base('stage', 'Spherical immersive venue (Sphere-inspired)', 'sphere');
