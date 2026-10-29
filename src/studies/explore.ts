@@ -55,7 +55,7 @@ export function scoreDesign(p: Project): Score {
   if (!p.sightlines.excludeBelowMin && minC < p.sightlines.minC - 0.5) breaks.push(`C-value ${Math.round(minC)} mm below the ${p.sightlines.minC} mm minimum`);
   if (profiles.some((x) => x.headroomBelow !== undefined && x.headroomBelow < HEADROOM)) breaks.push('tier headroom below 2.4 m');
   if (layout.clamped.length) breaks.push('rows clamped under a tier above');
-  return { tierSeats, capacity: res.counts.net + suiteSeats(p, ring), meanCentre: n ? d / n : 0, within150: n ? w / n : 0, quality: n ? q / n : 0, minC, feasible: !breaks.length, breaks };
+  return { tierSeats, capacity: res.counts.net + suiteSeats(p, ring, profiles), meanCentre: n ? d / n : 0, within150: n ? w / n : 0, quality: n ? q / n : 0, minC, feasible: !breaks.length, breaks };
 }
 
 export interface Vars { side: number; end: number; corner: number; rows: number[] }

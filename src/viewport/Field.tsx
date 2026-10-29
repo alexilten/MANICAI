@@ -18,6 +18,24 @@ export function Field({ field }: { field: FieldModel }) {
         <meshStandardMaterial map={tex} roughness={0.95} metalness={0} />
       </mesh>
       {field.goals.map((g) => <Goal key={g.id} g={g} />)}
+      {field.stage && <Stage stage={field.stage} />}
+    </group>
+  );
+}
+
+/** End stage: a black deck with a lit front lip. */
+function Stage({ stage }: { stage: NonNullable<FieldModel['stage']> }) {
+  const r = stage.rect, w = r.maxX - r.minX, h = r.maxY - r.minY;
+  return (
+    <group>
+      <mesh position={[(r.minX + r.maxX) / 2, (r.minY + r.maxY) / 2, stage.z / 2]} castShadow receiveShadow>
+        <boxGeometry args={[w, h, stage.z]} />
+        <meshStandardMaterial color="#1d1e22" roughness={0.7} />
+      </mesh>
+      <mesh position={[r.minX + 40, (r.minY + r.maxY) / 2, stage.z - 60]}>
+        <boxGeometry args={[80, h, 120]} />
+        <meshBasicMaterial color="#ffd9a0" toneMapped={false} />
+      </mesh>
     </group>
   );
 }
@@ -86,13 +104,20 @@ export function fieldTexture(f: FieldModel): THREE.CanvasTexture {
   const Y = (y: number) => (s.maxY - y) * pxPerMm;
   const rect = (r: Rect, fill: string) => { g.fillStyle = fill; g.fillRect(X(r.minX), Y(r.maxY), (r.maxX - r.minX) * pxPerMm, (r.maxY - r.minY) * pxPerMm); };
 
-  g.fillStyle = '#7fa073'; g.fillRect(0, 0, cw, ch);
-  // mowing stripes across the field length
-  const stripe = f.sport === 'nfl' ? 4572 : f.length / 18;
-  for (let x = -f.length / 2, i = 0; x < f.length / 2 - 1; x += stripe, i++) {
-    if (i % 2) continue;
-    g.fillStyle = '#86a879';
-    g.fillRect(X(x), Y(f.boundary.maxY), stripe * pxPerMm, f.width * pxPerMm);
+  if (f.sport === 'stage') {
+    // event floor: dark boards, no grass
+    g.fillStyle = '#3a3b40'; g.fillRect(0, 0, cw, ch);
+    g.fillStyle = 'rgba(255,255,255,0.035)';
+    for (let x = 0; x < cw; x += Math.max(2, 1200 * pxPerMm)) g.fillRect(x, 0, 1, ch);
+  } else {
+    g.fillStyle = '#7fa073'; g.fillRect(0, 0, cw, ch);
+    // mowing stripes across the field length
+    const stripe = f.sport === 'nfl' ? 4572 : f.length / 18;
+    for (let x = -f.length / 2, i = 0; x < f.length / 2 - 1; x += stripe, i++) {
+      if (i % 2) continue;
+      g.fillStyle = '#86a879';
+      g.fillRect(X(x), Y(f.boundary.maxY), stripe * pxPerMm, f.width * pxPerMm);
+    }
   }
   for (const z of f.zones) {
     if (z.kind === 'endzone') rect(z.rect, '#6f9165');

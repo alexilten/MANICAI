@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { PRESETS } from '../core/presets';
 import { encodeShare } from '../core/share';
+import type { SportId } from '../core/sports';
 import { export3dm, exportDxfFile, exportElements, exportGlbFile, exportIfcFile, exportJoinScript, exportProject, exportQuantities, exportReport, exportSeatsCsv, exportStudies, loadRhino, loadWriters, openProjectFile } from '../export/browser';
 import { Segmented } from './controls';
 import { Icon } from './icons';
 import { useStore, type CameraView, type Mode } from './store';
+
+const SPORT_TAG: Record<SportId, string> = { soccer: 'Soccer', nfl: 'NFL', stage: 'Stage' };
 
 export function Toolbar() {
   const project = useStore((s) => s.project);
@@ -182,7 +185,7 @@ function PresetMenu({ onClose }: { onClose: () => void }) {
   const removeUserPreset = useStore((s) => s.removeUserPreset);
   const loadUserPreset = useStore((s) => s.loadUserPreset);
   const toast = useStore((s) => s.showToast);
-  const [sport, setSport] = useState<'all' | 'soccer' | 'nfl'>('all');
+  const [sport, setSport] = useState<'all' | 'soccer' | 'nfl' | 'stage'>('all');
   const [name, setName] = useState(projectName);
   const fits = (s: string) => sport === 'all' || s === sport;
   const groups = [
@@ -194,7 +197,7 @@ function PresetMenu({ onClose }: { onClose: () => void }) {
   return (
     <div className="menu glass preset-menu">
       <div className="preset-filter">
-        <Segmented size="sm" value={sport} onChange={setSport} options={[{ value: 'all', label: 'All' }, { value: 'soccer', label: 'Soccer' }, { value: 'nfl', label: 'NFL' }]} />
+        <Segmented size="sm" value={sport} onChange={setSport} options={[{ value: 'all', label: 'All' }, { value: 'soccer', label: 'Soccer' }, { value: 'nfl', label: 'NFL' }, { value: 'stage', label: 'Stage' }]} />
         <span className="small muted">{groups.reduce((a, g) => a + g.items.length, 0) + own.length} presets</span>
       </div>
       <div className="menu-title">My presets</div>
@@ -204,7 +207,7 @@ function PresetMenu({ onClose }: { onClose: () => void }) {
             <button className="preset-open" onClick={() => { loadUserPreset(u.id); onClose(); }}>
               <span className="preset-name">{u.name}</span>
               <span className="preset-sum">Saved {new Date(u.savedAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-              <span className="preset-tags"><span className="tag">{u.project.sport === 'nfl' ? 'NFL' : 'Soccer'}</span><span className="tag">this browser</span></span>
+              <span className="preset-tags"><span className="tag">{SPORT_TAG[u.project.sport]}</span><span className="tag">this browser</span></span>
             </button>
             <button className="preset-del-btn" onClick={() => removeUserPreset(u.id)} title={`Delete "${u.name}"`} aria-label={`Delete ${u.name}`}><Icon.trash /></button>
           </div>
@@ -223,7 +226,7 @@ function PresetMenu({ onClose }: { onClose: () => void }) {
               <button key={p.id} className={`preset-card ${current === p.id ? 'on' : ''}`} onClick={() => { loadPreset(p.id); onClose(); }}>
                 <span className="preset-name">{p.name}</span>
                 <span className="preset-sum">{p.short}</span>
-                <span className="preset-tags"><span className="tag">{p.sport === 'nfl' ? 'NFL' : 'Soccer'}</span>{p.category === 'precedent' && <span className="tag">confidence: {p.confidence}</span>}</span>
+                <span className="preset-tags"><span className="tag">{SPORT_TAG[p.sport]}</span>{p.category === 'precedent' && <span className="tag">confidence: {p.confidence}</span>}</span>
               </button>
             ))}
           </div>

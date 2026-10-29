@@ -28,7 +28,7 @@ export function evaluate(p: Project) {
 /** Headline capacity: net bowl seats plus suite seats. */
 export function capacityOf(p: Project): number {
   const e = evaluate(p);
-  return e.counts.net + suiteSeats(p, e.ring);
+  return e.counts.net + suiteSeats(p, e.ring, e.profiles);
 }
 
 export interface FitResult { rows: number[]; capacity: number; reached: boolean }
@@ -112,7 +112,7 @@ export function suggestMoves(p: Project, limit = 6): Move[] {
     const q: Project = structuredClone(p);
     c.apply(q);
     const ev = evaluate(q);
-    const cap = ev.counts.net + suiteSeats(q, ev.ring);
+    const cap = ev.counts.net + suiteSeats(q, ev.ring, ev.profiles);
     return { ...c, capacity: cap, delta: cap - now, breaks: checks(q, ev, p) };
   });
   return moves

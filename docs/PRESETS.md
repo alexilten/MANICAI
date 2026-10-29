@@ -10,16 +10,17 @@ They are **not** the architects' geometry, they use no drawings or CAD, and they
 |---|---|---:|---:|---:|---:|---:|---:|---|---:|---:|---|
 | Generic soccer bowl | Soccer | 42,000 | 41,998 | 0 | 44,180 | 2 | 26 / 21 | Perimeter canopy | 60 | 178 | generic |
 | Generic NFL bowl | NFL | 65,000 | 64,578 | 34 | 67,272 | 3 | 31 / 10 / 24 | Partial canopy | 60 | 200 | generic |
-| Four-stand ground | Soccer | 30,000 | 30,444 | 0 | 31,560 | 2 | 20 / 15 | Perimeter canopy | 60 | 169 | generic |
+| Four-stand ground | Soccer | 30,000 | 29,540 | 0 | 30,504 | 2 | 19 / 15 | Perimeter canopy | 61 | 168 | generic |
 | Horseshoe ground | Soccer | 32,000 | 31,652 | 0 | 33,144 | 2 | 28 / 21 | Partial canopy | 60 | 180 | generic |
 | Big single-tier end — Tottenham-inspired | Soccer | 62,850 | 63,281 | 0 | 65,302 | 2 | 37 / 38 | Perimeter canopy | 60 | 202 | low |
-| Four stands with a steep home end — Everton-inspired | Soccer | 52,888 | 52,565 | 0 | 54,714 | 2 | 33 / 29 | Perimeter canopy | 60 | 194 | low |
+| Four stands with a steep home end — Everton-inspired | Soccer | 52,888 | 52,523 | 0 | 54,432 | 2 | 32 / 30 | Perimeter canopy | 60 | 194 | low |
 | Intimate soccer bowl — Inter Miami-inspired | Soccer | 25,000 | 25,434 | 0 | 26,450 | 2 | 19 / 12 | Perimeter canopy | 61 | 164 | low |
 | Compact enclosed NFL bowl — Allegiant-inspired | NFL | 65,000 | 64,899 | 72 | 66,780 | 3 | 30 / 8 / 24 | Translucent ETFE | 60 | 208 | low |
 | Large NFL atmosphere bowl — Chiefs-inspired | NFL | 70,000 | 70,584 | 32 | 72,912 | 3 | 32 / 8 / 29 | Translucent ETFE | 60 | 207 | low |
-| Enclosed NFL stadium — New Nissan-inspired | NFL | 60,000 | 60,044 | 84 | 61,222 | 3 | 28 / 7 / 23 | Translucent ETFE | 60 | 205 | low |
+| Enclosed NFL stadium — New Nissan-inspired | NFL | 60,000 | 59,714 | 140 | 59,978 | 3 | 27 / 7 / 23 | Translucent ETFE | 60 | 204 | low |
 | European two-tier bowl — Milan-inspired | Soccer | 71,500 | 71,398 | 32 | 73,348 | 2 | 29 / 39 | Perimeter canopy | 60 | 204 | low |
 | Club stadium with strong ends — Birmingham-inspired | Soccer | 62,000 | 61,626 | 0 | 64,186 | 2 | 26 / 37 | Retractable | 60 | 192 | low |
+| Spherical immersive venue — Sphere-inspired | Soccer | 17,600 | 17,796 | 28 | 17,586 | 4 | 26 / 14 / 11 / 15 | Sphere (dome + LED Exosphere) | -88 | 93 | low |
 
 ### Generic soccer bowl
 
@@ -53,8 +54,8 @@ Square corners: four separate stands.
 
 **Checks raised:**
 
-- The lowest floodlights are 22.9° above the horizontal from the centre spot (25° wanted to keep glare out of players' eyes). Raise the roof or the masts.
-- 26 floodlights are aimed more than 70° from the vertical (steepest 74°), which adds glare. Mount them higher or closer to the field.
+- The lowest floodlights are 22.5° above the horizontal from the centre spot (25° wanted to keep glare out of players' eyes). Raise the roof or the masts.
+- 28 floodlights are aimed more than 70° from the vertical (steepest 74°), which adds glare. Mount them higher or closer to the field.
 
 ### Horseshoe ground
 
@@ -257,4 +258,40 @@ Precedent: **Birmingham City Football Club Stadium (Powerhouse Stadium)** (Birmi
 
 - Upper tier: 1 row hit the 34° rake limit, so the C-value target is not met there. Move the tier closer to the field, lower its first row or accept a lower target.
 - Farthest seat is 192 m from the far pitch corner (FIFA maximum 190 m).
+
+### Spherical immersive venue — Sphere-inspired
+
+17,600 · LED sphere, wraparound screen, steep amphitheatre.
+
+Precedent: **Sphere** (Paradise (Las Vegas), Nevada, USA). Status: completed (Opened 29 Sep 2023). Credits: Populous architect; Severud Associates and Walter P Moore structural engineers; Arup acoustics. Owner Sphere Entertainment Co.
+
+**Published (sourced in [PRECEDENTS.md](PRECEDENTS.md)):**
+
+- Immersive concert and film venue (Populous), opened 29 Sep 2023, Las Vegas
+- 17,600 seated, 20,000 with the standing floor; all seats face the stage; seating takes about two-thirds of the interior, the stage the rest
+- Four seating tiers (100–400 levels) and two suite levels; 23 suites; lowest tier partly retractable
+- Exosphere: 516 ft (157 m) wide, 366 ft (112 m) tall; 580,000 ft² of LED, about 1.2 million pucks at 8 in centres on a steel diagrid independent of the building
+- Interior LED media plane: about 160,000 ft² (15,000 m²), 16K, wrapping over the audience to an apex 240 ft (73 m) above the event floor; 400 ft (122 m) dome
+- Dome of 32 radial trusses with a compression ring; the concourse roof acts as the tension ring (Severud)
+- Main loudspeaker array of 14 clusters 25–30 ft above the stage; about 10,000 haptic seats
+
+**Assumed by MANICAI:**
+
+- Horseshoe plan opening onto a stage at the east end: a 42 × 28 m event floor and a 16 m deep stage deck at +1.5 m; sightlines are taken to a 26 × 12 m strip in front of the stage
+- Tier rows fitted to 17,600 with the suite seats; tier heights, rows and row depths (760 mm) are not published
+- Suite levels under the 200 and 300 levels round the back of the horseshoe, overhanging the 100 level from about row 25; the suite count is what fits at 9 m per suite, not the published 23
+- 40° rake limit for the steep upper levels (steeper than the 34° football guidance); at that limit the back rows of the 300 and 400 levels fall below the 60 mm C-value, which the checks report
+- The Exosphere, dome and media plane keep the published proportions (366/516 height to width, apex 1.2 × the interior radius, 160,000 ft² screen share) but Manica sizes them to clear this bowl, so they come out larger than built: about 188 m wide and 134 m tall, an 84 m apex and about 19,000 m² of media plane
+- Interior: a cylinder under a spherical cap; the media plane is the part of it seen within a cone from mid-bowl aimed at the stage. The dome shell sits 4.5 m outside it for catwalks and rigging
+- No floodlights: production lighting rigs through the media plane. The loudspeaker array is drawn as 14 boxes above the stage; haptic seats are not modelled
+- Site at the latitude of Las Vegas (≈ 36.1° N) for the sun study; the pitch orientation is the MANICAI default, not the real site's
+
+**Checks raised:**
+
+- 300 level: 10 rows hit the 40° rake limit, so the C-value target is not met there. Move the tier closer to the field, lower its first row or accept a lower target.
+- 300 level: lowest C-value -4 mm is below the 60 mm minimum.
+- 400 level: 14 rows hit the 40° rake limit, so the C-value target is not met there. Move the tier closer to the field, lower its first row or accept a lower target.
+- 400 level: lowest C-value -88 mm is below the 60 mm minimum.
+- Back-of-house: 4,061 m² placed of the 4,599 m² assumed. Deepen the back-of-house band or reduce the allowance.
+- Back-of-house rooms get 2.6 m clear under the lowest concourse. Raise the lower tier's vomitory row or the concourse level.
 

@@ -18,7 +18,7 @@
  */
 import type { PremiumLevel, Project, StandId } from '../schema';
 import type { Mm } from '../units';
-import { enclosedArea, isCorner, perimeter, pointAt, segmentLength, SEGMENTS, type PlanRing, type SegmentId } from './plan';
+import { CORNER_NEIGHBOURS, enclosedArea, isCorner, perimeter, pointAt, segmentLength, SEGMENTS, type CornerSeg, type PlanRing, type SegmentId } from './plan';
 import { FASCIA_DEPTH, SOFFIT_DEPTH, type TierProfile } from './profile';
 
 /** depth of the suite balcony in front of the glass (two rows of seats) */
@@ -106,19 +106,25 @@ export function premiumStack(p: Project, profiles: TierProfile[], ti: number): {
   return (p.premium ?? []).filter((l) => l.belowTier === t.id).map((level) => { const o = { level, z }; z += level.height; return o; });
 }
 
-/** Number of suites a level fits on one stand, and the margin either side. */
-function suitesOn(ring: PlanRing, seg: SegmentId, width: Mm) {
-  const len = segmentLength(ring, seg, 0);
+/** Number of suites a level fits on one plan region at plan offset d (the suite fronts), and the margin either side. */
+function suitesOn(ring: PlanRing, seg: SegmentId, width: Mm, d: Mm) {
+  const len = segmentLength(ring, seg, isCorner(seg) ? d : 0);
   const n = Math.max(0, Math.floor((len - 2 * 2000) / Math.max(1000, width)));
   return { n, len, start: (len - n * width) / 2 };
 }
 
+/** Regions a suite level fronts: its stands, and the corners between two of them (a continuous suite ring). */
+export function suiteRegions(stands: StandId[]): SegmentId[] {
+  return SEGMENTS.filter((g) => (isCorner(g) ? CORNER_NEIGHBOURS[g as CornerSeg].every((s) => stands.includes(s)) : stands.includes(g as StandId)));
+}
+
 /** Suite seats only (cheap: used by the capacity fit). */
-export function suiteSeats(p: Project, ring: PlanRing): number {
+export function suiteSeats(p: Project, ring: PlanRing, profiles: TierProfile[]): number {
   let seats = 0;
   for (const l of p.premium ?? []) {
-    if (l.kind !== 'suites' || !p.tiers.some((t, i) => i > 0 && t.id === l.belowTier)) continue;
-    for (const g of l.stands) seats += suitesOn(ring, g, l.unitWidth).n * l.seatsPerUnit;
+    const ti = p.tiers.findIndex((t, i) => i > 0 && t.id === l.belowTier);
+    if (l.kind !== 'suites' || ti < 0) continue;
+    for (const g of suiteRegions(l.stands)) seats += suitesOn(ring, g, l.unitWidth, profiles[ti - 1].back).n * l.seatsPerUnit;
   }
   return seats;
 }
@@ -202,8 +208,8 @@ export function buildBuilding(p: Project, ring: PlanRing, profiles: TierProfile[
       levels.push(lv);
       premiumPlateArea += lv.area;
       if (l.kind === 'suites') {
-        for (const g of l.stands as StandId[]) {
-          const { n, len, start } = suitesOn(ring, g, l.unitWidth);
+        for (const g of suiteRegions(l.stands)) {
+          const { n, len, start } = suitesOn(ring, g, l.unitWidth, g0);
           for (let k = 0; k < n; k++) {
             const s0 = start + k * l.unitWidth;
             suites.push({ id: `STE.${l.id}.${g}${String(k + 1).padStart(2, '0')}`, level: lv.id, seg: g, u0: s0 / len, u1: (s0 + l.unitWidth) / len, d0: g0, d1: g0 + l.unitDepth, z, seats: l.seatsPerUnit });

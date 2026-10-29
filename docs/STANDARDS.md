@@ -57,6 +57,12 @@ Verification: **checked** means the rule was read in the cited source on the dat
 | `nfl.rule1.benches` | Players' benches a minimum 30 ft back from the sidelines. | ≥ 30 ft | governing | checked 2026-10-25 | [2024 NFL Rulebook, Rule 1 Sec. 1 Art. 2](https://operations.nfl.com/media/24emxacq/2024-nfl-rulebook.pdf) |
 | `manicai.nfl.teamarea` | Team areas drawn between the 32-yard lines, from the border to the 30 ft bench line. Verify the extent against the current NFL Rulebook and league operations requirements. |  | assumption | recall | MANICAI default |
 
+## Event floor and stage
+
+| id | statement | value | kind | verification | source |
+|---|---|---|---|---|---|
+| `manicai.stage` | Event venues replace the playing field with a flat event floor (standing or retractable seating) and a raised stage at its east end, 16 m deep at +1.5 m, spanning the floor. The sightline focus is the nearest edge of the floor at floor level. Production, rigging and stage-house requirements come from the operator. |  | assumption | recall | Manica default |
+
 ## Sightlines
 
 | id | statement | value | kind | verification | source |
@@ -135,6 +141,12 @@ Verification: **checked** means the rule was read in the cited source on the dat
 | id | statement | value | kind | verification | source |
 |---|---|---|---|---|---|
 | `manicai.roof` | The roof bears on the outer column line. Its deck underside clears the highest tread by the set clearance (default 9 m) and rises toward the field at the set pitch; primary frames taper from the set depth to a quarter of it at the leading edge, above the deck on open roofs and below it on enclosed ones. Coverage counts seats inside the roof outline in plan (wind-driven rain is not modelled). The high-ball view is the height over the centre spot of the back-row sightline under the leading edge; the 20 m default is a MANICAI assumption, not a published standard. Long-span truss depth defaults to span / 12. |  | assumption | recall | MANICAI method; user-editable |
+
+## Spherical envelope
+
+| id | statement | value | kind | verification | source |
+|---|---|---|---|---|---|
+| `manicai.sphere` | The spherical envelope keeps the published proportions of the Sphere in Las Vegas: an Exosphere 516 ft (157 m) wide and 366 ft (112 m) tall on a steel diagrid carrying LED pucks at 8 in (203 mm) centres, and an interior dome whose LED media plane rises 240 ft (73 m) above the event floor on a 400 ft (122 m) diameter. Both are scaled to the smallest size that clears the bowl (by the roof clearance) and the building. The media plane is a cap of the dome aimed at the stage, sized to the published share of 160,000 ft² (15,000 m²) and reaching the floor behind the stage. The dome springs from the concourse roof (the tension ring) and closes on a compression ring, on 32 radial trusses. A conceptual massing, not an engineered shell. |  | assumption | checked 2026-10-29 | [Manica method from the published Sphere (Las Vegas) figures: Populous, Severud Associates, Wikipedia](https://en.wikipedia.org/wiki/Sphere_(venue)) |
 
 ## Back of house
 
